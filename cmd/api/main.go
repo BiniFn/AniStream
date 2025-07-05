@@ -13,5 +13,8 @@ func main() {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
 
-	api.StartServer(env)
+	srv := api.NewServer(env)
+	if err := srv.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
