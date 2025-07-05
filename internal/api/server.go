@@ -13,15 +13,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Server struct {
 	Config *config.Env
 	Router *chi.Mux
 	Server *http.Server
+	Db     *pgxpool.Pool
 }
 
-func NewServer(config *config.Env) *Server {
+func NewServer(config *config.Env, db *pgxpool.Pool) *Server {
 	r := chi.NewRouter()
 
 	r.Use(
@@ -45,6 +47,7 @@ func NewServer(config *config.Env) *Server {
 		Router: r,
 		Config: config,
 		Server: srv,
+		Db:     db,
 	}
 }
 

@@ -13,7 +13,13 @@ func main() {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
 
-	srv := api.NewServer(env)
+	db, err := config.NewDatabase(env)
+	if err != nil {
+		log.Fatalf("Error connecting to the database: %v", err)
+	}
+	defer db.Close()
+
+	srv := api.NewServer(env, db)
 	if err := srv.Run(); err != nil {
 		log.Fatal(err)
 	}

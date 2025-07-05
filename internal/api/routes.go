@@ -1,6 +1,8 @@
 package api
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func (s *Server) LoadRoutes() {
 	s.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
