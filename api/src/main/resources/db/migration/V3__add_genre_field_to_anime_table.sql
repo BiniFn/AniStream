@@ -1,2 +1,0 @@
-ALTER TABLE animes
-    ADD COLUMN genre VARCHAR NOT NULL DEFAULT 'unknown';
