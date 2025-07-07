@@ -1,5 +1,21 @@
 # Makefile at repo root
-.PHONY: help dev-api dev-cron dev-stream build test tidy docker
+
+# capture everything after "migrate" as the migration name
+MIGRATION_NAME := $(filter-out migrate,$(MAKECMDGOALS))
+
+.PHONY: help dev-api dev-cron dev-stream build test tidy docker migrate
+
+# ----- Make migration files ----- #
+migrate:           ## Generate migration files
+	@if [ -z "$(MIGRATION_NAME)" ]; then \
+	  echo "Usage: make migrate <migration_name>"; \
+	  exit 1; \
+	fi
+	migrate create -seq -dir migrations -ext sql $(MIGRATION_NAME)
+
+# prevent "make" from trying to build MIGRATION_NAME as its own target
+%:
+	@:
 
 # ----- Local dev ----- #
 dev-api:            ## Hot-reload API with Air
@@ -10,6 +26,10 @@ dev-cron:           ## Run cron binary
 
 dev-stream:         ## Run streaming proxy
 	go run ./cmd/streamer
+
+# ----- SQLC ----- #
+sqlc:               ## Generate SQLC code
+	sqlc generate
 
 # ----- Build & test ----- #
 build:              ## Build all three binaries into ./bin
