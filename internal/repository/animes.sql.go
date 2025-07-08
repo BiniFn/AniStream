@@ -43,7 +43,7 @@ FROM animes
 WHERE anilist_id = $1
 `
 
-func (q *Queries) GetAnimeByAnilistId(ctx context.Context, anilistID pgtype.Text) (Anime, error) {
+func (q *Queries) GetAnimeByAnilistId(ctx context.Context, anilistID pgtype.Int4) (Anime, error) {
 	row := q.db.QueryRow(ctx, getAnimeByAnilistId, anilistID)
 	var i Anime
 	err := row.Scan(
@@ -168,7 +168,7 @@ FROM animes
 WHERE mal_id = $1
 `
 
-func (q *Queries) GetAnimeByMalId(ctx context.Context, malID pgtype.Text) (Anime, error) {
+func (q *Queries) GetAnimeByMalId(ctx context.Context, malID pgtype.Int4) (Anime, error) {
 	row := q.db.QueryRow(ctx, getAnimeByMalId, malID)
 	var i Anime
 	err := row.Scan(
@@ -211,8 +211,8 @@ type GetAnimeByMediaTypeRow struct {
 	ImageUrl       string
 	Genre          string
 	HiAnimeID      string
-	MalID          pgtype.Text
-	AnilistID      pgtype.Text
+	MalID          pgtype.Int4
+	AnilistID      pgtype.Int4
 	LastEpisode    int32
 	CreatedAt      pgtype.Timestamp
 	UpdatedAt      pgtype.Timestamp
@@ -299,8 +299,8 @@ type GetAnimeBySeasonRow struct {
 	ImageUrl       string
 	Genre          string
 	HiAnimeID      string
-	MalID          pgtype.Text
-	AnilistID      pgtype.Text
+	MalID          pgtype.Int4
+	AnilistID      pgtype.Int4
 	LastEpisode    int32
 	CreatedAt      pgtype.Timestamp
 	UpdatedAt      pgtype.Timestamp
@@ -669,8 +669,8 @@ type InsertAnimeParams struct {
 	ImageUrl    string
 	Genre       string
 	HiAnimeID   string
-	MalID       pgtype.Text
-	AnilistID   pgtype.Text
+	MalID       pgtype.Int4
+	AnilistID   pgtype.Int4
 	LastEpisode int32
 }
 
@@ -755,7 +755,7 @@ RETURNING mal_id, description, main_picture_url, media_type, rating, airing_stat
 `
 
 type InsertAnimeMetadataParams struct {
-	MalID              string
+	MalID              int32
 	Description        pgtype.Text
 	MainPictureUrl     pgtype.Text
 	MediaType          MediaType
@@ -802,7 +802,7 @@ func (q *Queries) InsertAnimeMetadata(ctx context.Context, arg InsertAnimeMetada
 }
 
 type InsertMultipleAnimeMetadatasParams struct {
-	MalID              string
+	MalID              int32
 	Description        pgtype.Text
 	MainPictureUrl     pgtype.Text
 	MediaType          MediaType
@@ -829,8 +829,8 @@ type InsertMultipleAnimesParams struct {
 	ImageUrl    string
 	Genre       string
 	HiAnimeID   string
-	MalID       pgtype.Text
-	AnilistID   pgtype.Text
+	MalID       pgtype.Int4
+	AnilistID   pgtype.Int4
 	LastEpisode int32
 }
 
@@ -872,8 +872,8 @@ type SearchAnimesRow struct {
 	ImageUrl       string
 	Genre          string
 	HiAnimeID      string
-	MalID          pgtype.Text
-	AnilistID      pgtype.Text
+	MalID          pgtype.Int4
+	AnilistID      pgtype.Int4
 	LastEpisode    int32
 	CreatedAt      pgtype.Timestamp
 	UpdatedAt      pgtype.Timestamp
@@ -993,8 +993,8 @@ type UpdateAnimeParams struct {
 	ImageUrl    string
 	Genre       string
 	HiAnimeID   string
-	MalID       pgtype.Text
-	AnilistID   pgtype.Text
+	MalID       pgtype.Int4
+	AnilistID   pgtype.Int4
 	LastEpisode int32
 	ID          string
 }
@@ -1058,7 +1058,7 @@ type UpdateAnimeMetadataParams struct {
 	TrailerEmbedUrl    pgtype.Text
 	SeasonYear         pgtype.Int4
 	Season             Season
-	MalID              string
+	MalID              int32
 }
 
 func (q *Queries) UpdateAnimeMetadata(ctx context.Context, arg UpdateAnimeMetadataParams) error {

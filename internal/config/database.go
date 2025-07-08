@@ -2,7 +2,11 @@ package config
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -24,6 +28,17 @@ func NewDatabase(env *Env) (*pgxpool.Pool, error) {
 	if err := pool.Ping(context.Background()); err != nil {
 		pool.Close()
 		return nil, err
+	}
+
+	m, err := migrate.New("file://migrations", env.DatabaseURL)
+	if err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("failed to create migration instance: %w", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		pool.Close()
+		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
 	return pool, nil

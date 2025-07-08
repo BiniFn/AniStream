@@ -259,8 +259,8 @@ type Anime struct {
 	ImageUrl     string
 	Genre        string
 	HiAnimeID    string
-	MalID        pgtype.Text
-	AnilistID    pgtype.Text
+	MalID        pgtype.Int4
+	AnilistID    pgtype.Int4
 	LastEpisode  int32
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
@@ -268,7 +268,7 @@ type Anime struct {
 }
 
 type AnimeMetadatum struct {
-	MalID              string
+	MalID              int32
 	Description        pgtype.Text
 	MainPictureUrl     pgtype.Text
 	MediaType          MediaType

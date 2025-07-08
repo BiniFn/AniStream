@@ -1,4 +1,5 @@
 -- Function to generate a NanoID
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE OR REPLACE FUNCTION generate_nanoid(length INT DEFAULT 21) RETURNS TEXT AS $$
 DECLARE alphabet TEXT := '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-';
 random_bytes BYTEA;
@@ -25,18 +26,15 @@ CREATE TABLE animes (
   image_url TEXT NOT NULL,
   genre TEXT NOT NULL,
   hi_anime_id TEXT NOT NULL,
-  mal_id TEXT,
-  anilist_id TEXT,
+  mal_id INT,
+  anilist_id INT,
   last_episode INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT unique_hi_anime_id UNIQUE (hi_anime_id),
+  CONSTRAINT unique_mal_id UNIQUE (mal_id),
+  CONSTRAINT unique_anilist_id UNIQUE (anilist_id)
 );
--- Create an index on the mal_id column for faster lookups
-CREATE INDEX idx_animes_mal_id ON animes (mal_id);
--- Create an index on the anilist_id column for faster lookups
-CREATE INDEX idx_animes_anilist_id ON animes (anilist_id);
--- Create an index on the hi_anime_id column for faster lookups
-CREATE INDEX idx_animes_hi_anime_id ON animes (hi_anime_id);
 -- Create an ENUM type for media types
 CREATE TYPE media_type AS ENUM (
   'tv',
@@ -95,7 +93,7 @@ CREATE TYPE season AS ENUM (
 );
 -- Create Anime Metadata table
 CREATE TABLE anime_metadata (
-  mal_id TEXT PRIMARY KEY,
+  mal_id INT PRIMARY KEY,
   description TEXT,
   main_picture_url TEXT,
   media_type media_type NOT NULL DEFAULT 'unknown',
@@ -115,7 +113,8 @@ CREATE TABLE anime_metadata (
   season_year INT,
   season season NOT NULL DEFAULT 'unknown',
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT fk_anime_metadata_mal_id FOREIGN KEY (mal_id) REFERENCES animes (mal_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 -- Create an index on the media_type column for faster lookups
 CREATE INDEX idx_anime_metadata_media_type ON anime_metadata (media_type);
@@ -127,9 +126,6 @@ CREATE INDEX idx_anime_metadata_airing_status ON anime_metadata (airing_status);
 CREATE INDEX idx_anime_metadata_source ON anime_metadata (source);
 -- Create an index on the season column for faster lookups
 CREATE INDEX idx_anime_metadata_season ON anime_metadata (season);
--- Foreign key constraint to link anime_metadata to animes
-ALTER TABLE anime_metadata
-ADD CONSTRAINT fk_anime_metadata_mal_id FOREIGN KEY (mal_id) REFERENCES animes (mal_id) ON DELETE CASCADE ON UPDATE CASCADE;
 -- Search
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX animes_ename_trgm_idx ON animes USING gin(ename gin_trgm_ops);
