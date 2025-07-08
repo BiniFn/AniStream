@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/coeeter/aniways/internal/config"
+	"github.com/coeeter/aniways/internal/repository"
+	"github.com/coeeter/aniways/internal/routes"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -20,7 +22,7 @@ type Server struct {
 	Config *config.Env
 	Router *chi.Mux
 	Server *http.Server
-	Db     *pgxpool.Pool
+	Repo   *repository.Queries
 }
 
 func NewServer(config *config.Env, db *pgxpool.Pool) *Server {
@@ -43,17 +45,19 @@ func NewServer(config *config.Env, db *pgxpool.Pool) *Server {
 		IdleTimeout:       120 * time.Second,
 	}
 
+	repo := repository.New(db)
+
 	return &Server{
 		Router: r,
 		Config: config,
 		Server: srv,
-		Db:     db,
+		Repo:   repo,
 	}
 }
 
 func (s *Server) Run() error {
 	// wire routes…
-	s.LoadRoutes()
+	routes.MountGlobal(s.Router, s.Repo)
 
 	// start listening
 	errChan := make(chan error, 1)
