@@ -25,7 +25,7 @@ var defaultMALRate = rate.Every(time.Minute / 60) // ~60 req/min
 
 type MetadataRefresher struct {
 	repo      *repository.Queries
-	malClient myanimelist.Client
+	malClient *myanimelist.Client
 	ttl       time.Duration
 	limiter   *rate.Limiter
 	sem       *semaphore.Weighted
@@ -39,7 +39,7 @@ type MetadataRefresher struct {
 //   - queue size 1000
 //   - 30-day TTL
 //   - ~60 MAL API calls per minute
-func NewRefresher(repo *repository.Queries, malClient myanimelist.Client) *MetadataRefresher {
+func NewRefresher(repo *repository.Queries, malClient *myanimelist.Client) *MetadataRefresher {
 	m := &MetadataRefresher{
 		repo:      repo,
 		malClient: malClient,

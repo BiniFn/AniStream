@@ -18,7 +18,7 @@ func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries) {
 			ClientSecret: env.MyAnimeListClientSecret,
 		})
 		refresher := animeSvc.NewRefresher(repo, malClient)
-		svc := animeSvc.New(repo, refresher)
+		svc := animeSvc.New(repo, refresher, malClient)
 
 		handlers.MountAnimeRoutes(r, svc)
 	})

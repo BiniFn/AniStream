@@ -12,9 +12,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Client interface {
-	GetAnimeMetadata(ctx context.Context, malID int) (*MalAnimeMetadata, error)
-	GetTrailer(ctx context.Context, malID int) (string, error)
+type Client struct {
+	baseURL    string
+	clientId   string
+	httpClient *http.Client
 }
 
 type ClientConfig struct {
@@ -22,10 +23,10 @@ type ClientConfig struct {
 	ClientSecret string
 }
 
-func NewClient(config ClientConfig) Client {
-	return &client{
+func NewClient(config ClientConfig) *Client {
+	return &Client{
 		baseURL:  "https://api.myanimelist.net/v2",
-		ClientID: config.ClientID,
+		clientId: config.ClientID,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 			Transport: &http.Transport{
@@ -35,12 +36,6 @@ func NewClient(config ClientConfig) Client {
 			},
 		},
 	}
-}
-
-type client struct {
-	baseURL    string
-	ClientID   string
-	httpClient *http.Client
 }
 
 var metadataFields = []string{
@@ -63,7 +58,7 @@ var metadataFields = []string{
 	"start_season",
 }
 
-func (c *client) GetAnimeMetadata(ctx context.Context, malID int) (*MalAnimeMetadata, error) {
+func (c *Client) GetAnimeMetadata(ctx context.Context, malID int) (*MalAnimeMetadata, error) {
 	u, _ := url.Parse(fmt.Sprintf("%s/anime/%d", c.baseURL, malID))
 	q := u.Query()
 	q.Set("fields", strings.Join(metadataFields, ","))
@@ -73,7 +68,7 @@ func (c *client) GetAnimeMetadata(ctx context.Context, malID int) (*MalAnimeMeta
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	req.Header.Set("X-MAL-CLIENT-ID", c.ClientID)
+	req.Header.Set("X-MAL-CLIENT-ID", c.clientId)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -97,7 +92,7 @@ func (c *client) GetAnimeMetadata(ctx context.Context, malID int) (*MalAnimeMeta
 	return &metadata, nil
 }
 
-func (c *client) GetTrailer(ctx context.Context, malID int) (string, error) {
+func (c *Client) GetTrailer(ctx context.Context, malID int) (string, error) {
 	url := fmt.Sprintf("https://myanimelist.net/anime/%d", malID)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {

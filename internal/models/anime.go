@@ -1,6 +1,9 @@
 package models
 
-import "github.com/coeeter/aniways/internal/repository"
+import (
+	"github.com/coeeter/aniways/internal/hianime"
+	"github.com/coeeter/aniways/internal/repository"
+)
 
 type AnimeDto struct {
 	ID          string `json:"id"`
@@ -95,5 +98,25 @@ func (a AnimeWithMetadataDto) FromRepository(anime repository.Anime, metadata re
 		AnilistID:   anime.AnilistID.Int32,
 		LastEpisode: anime.LastEpisode,
 		Metadata:    AnimeMetadataDto{}.FromRepository(metadata),
+	}
+}
+
+type TrailerDto struct {
+	Trailer string `json:"trailer"`
+}
+
+type EpisodeDto struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Number   int    `json:"number"`
+	IsFiller bool   `json:"isFiller"`
+}
+
+func (e EpisodeDto) FromScraper(episode hianime.ScrapedEpisodeDto) EpisodeDto {
+	return EpisodeDto{
+		ID:       episode.EpisodeID,
+		Title:    episode.Title,
+		Number:   episode.Number,
+		IsFiller: episode.IsFiller,
 	}
 }
