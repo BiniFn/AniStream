@@ -96,3 +96,12 @@ func (s *Service) GetAnimeByID(
 
 	return &dto, nil
 }
+
+func (s *Service) GetAnimeGenres(ctx context.Context) ([]string, error) {
+	rows, err := s.repo.GetAllGenres(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, nil
+}

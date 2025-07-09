@@ -4,7 +4,8 @@ FROM animes;
 -- name: GetAllGenres :many
 SELECT DISTINCT trim(unnested) AS genre
 FROM animes,
-  unnest(string_to_array(genre, ',')) AS unnested;
+  unnest(string_to_array(genre, ',')) AS unnested
+ORDER BY genre;
 -- name: GetRecentlyUpdatedAnimes :many
 SELECT *
 FROM animes

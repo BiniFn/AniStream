@@ -15,6 +15,7 @@ const getAllGenres = `-- name: GetAllGenres :many
 SELECT DISTINCT trim(unnested) AS genre
 FROM animes,
   unnest(string_to_array(genre, ',')) AS unnested
+ORDER BY genre
 `
 
 func (q *Queries) GetAllGenres(ctx context.Context) ([]string, error) {
