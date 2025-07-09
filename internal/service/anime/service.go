@@ -3,11 +3,13 @@ package anime
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
+	"github.com/jackc/pgx/v5"
 )
 
 type Service struct {
@@ -34,7 +36,7 @@ func (s *Service) GetRecentlyUpdatedAnimes(
 	}
 
 	for _, r := range rows {
-		go s.refresher.MaybeRefresh(ctx, r.MalID.Int32)
+		go s.refresher.MaybeRefresh(context.Background(), r.MalID.Int32)
 	}
 
 	total, err := s.repo.GetRecentlyUpdatedAnimesCount(ctx)
@@ -69,14 +71,25 @@ func (s *Service) GetAnimeByID(
 	}
 
 	m, err := s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
-	if err == sql.ErrNoRows || time.Since(m.UpdatedAt.Time) > s.refresher.ttl {
-		if err := s.refresher.RefreshBlocking(ctx, a.MalID.Int32); err != nil {
-			log.Printf("blocking refresh failed: %v", err)
-		}
-		m, err = s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
-		if err != nil {
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
+			log.Printf("metadata lookup error for MAL %d: %v", a.MalID.Int32, err)
 			return nil, err
 		}
+	} else {
+		// If metadata is fresh, return it
+		if time.Since(m.UpdatedAt.Time) < s.refresher.ttl {
+			dto := models.AnimeWithMetadataDto{}.FromRepository(a, m)
+			return &dto, nil
+		}
+	}
+
+	if err := s.refresher.RefreshBlocking(ctx, a.MalID.Int32); err != nil {
+		log.Printf("blocking refresh failed: %v", err)
+	}
+	m, err = s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
+	if err != nil {
+		return nil, err
 	}
 
 	dto := models.AnimeWithMetadataDto{}.FromRepository(a, m)

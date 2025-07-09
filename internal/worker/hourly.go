@@ -3,12 +3,14 @@ package worker
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/coeeter/aniways/internal/hianime"
 	"github.com/coeeter/aniways/internal/repository"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -72,12 +74,13 @@ func scrapeRecentlyUpdated(
 			defer func() { <-sem }()
 
 			dbAnime, err := repo.GetAnimeByHiAnimeId(ctx, scraped.HiAnimeID)
-			if err != nil && err != sql.ErrNoRows {
+			if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
 				log.Printf("❌ RU DB lookup error for %s: %v", scraped.HiAnimeID, err)
 				return
 			}
 
-			needsFetch := err == sql.ErrNoRows || dbAnime.LastEpisode != int32(scraped.LastEpisode)
+			hasExisting := dbAnime.ID != "" && dbAnime.HiAnimeID == scraped.HiAnimeID
+			needsFetch := errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) || dbAnime.LastEpisode != int32(scraped.LastEpisode)
 			if !needsFetch {
 				return
 			}
@@ -90,23 +93,7 @@ func scrapeRecentlyUpdated(
 
 			updatedAt := now.Add(time.Duration(offset) * updateSpacing)
 
-			if err == sql.ErrNoRows {
-				params := repository.InsertAnimeParams{
-					Ename:       info.EName,
-					Jname:       info.JName,
-					ImageUrl:    info.PosterURL,
-					Genre:       info.Genre,
-					HiAnimeID:   scraped.HiAnimeID,
-					MalID:       pgtype.Int4{Int32: int32(info.MalID), Valid: info.MalID > 0},
-					AnilistID:   pgtype.Int4{Int32: int32(info.AnilistID), Valid: info.AnilistID > 0},
-					LastEpisode: int32(scraped.LastEpisode),
-					CreatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
-					UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
-				}
-				if err := repo.InsertAnime(ctx, params); err != nil {
-					log.Printf("❌ RU insert failed for %s: %v", scraped.HiAnimeID, err)
-				}
-			} else {
+			if hasExisting {
 				params := repository.UpdateAnimeParams{
 					ID:          dbAnime.ID,
 					Ename:       dbAnime.Ename,
@@ -121,6 +108,22 @@ func scrapeRecentlyUpdated(
 				}
 				if err := repo.UpdateAnime(ctx, params); err != nil {
 					log.Printf("❌ RU update failed for %s: %v", scraped.HiAnimeID, err)
+				}
+			} else {
+				params := repository.InsertAnimeParams{
+					Ename:       info.EName,
+					Jname:       info.JName,
+					ImageUrl:    info.PosterURL,
+					Genre:       info.Genre,
+					HiAnimeID:   scraped.HiAnimeID,
+					MalID:       pgtype.Int4{Int32: int32(info.MalID), Valid: info.MalID > 0},
+					AnilistID:   pgtype.Int4{Int32: int32(info.AnilistID), Valid: info.AnilistID > 0},
+					LastEpisode: int32(scraped.LastEpisode),
+					CreatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
+					UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
+				}
+				if err := repo.InsertAnime(ctx, params); err != nil {
+					log.Printf("❌ RU insert failed for %s: %v", scraped.HiAnimeID, err)
 				}
 			}
 		}(scraped, offset)
