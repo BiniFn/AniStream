@@ -18,8 +18,8 @@ type ScrapedAnimeInfoDto struct {
 	JName       string `json:"jName"`
 	PosterURL   string `json:"posterUrl"`
 	Genre       string `json:"genre"`
-	MalID       string `json:"malId"`
-	AnilistID   string `json:"anilistId"`
+	MalID       int    `json:"malId"`
+	AnilistID   int    `json:"anilistId"`
 	LastEpisode int    `json:"lastEpisode"`
 }
 

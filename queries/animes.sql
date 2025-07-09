@@ -127,7 +127,9 @@ INSERT INTO animes (
     hi_anime_id,
     mal_id,
     anilist_id,
-    last_episode
+    last_episode,
+    created_at,
+    updated_at
   )
 VALUES (
     sqlc.arg(ename),
@@ -137,7 +139,9 @@ VALUES (
     sqlc.arg(hi_anime_id),
     sqlc.arg(mal_id),
     sqlc.arg(anilist_id),
-    sqlc.arg(last_episode)
+    sqlc.arg(last_episode),
+    COALESCE(sqlc.arg(created_at), NOW()),
+    COALESCE(sqlc.arg(updated_at), NOW())
   )
 RETURNING *;
 -- name: InsertMultipleAnimes :copyfrom
@@ -171,7 +175,7 @@ SET ename = sqlc.arg(ename),
   mal_id = sqlc.arg(mal_id),
   anilist_id = sqlc.arg(anilist_id),
   last_episode = sqlc.arg(last_episode),
-  updated_at = NOW()
+  updated_at = COALESCE(sqlc.arg(updated_at), NOW())
 WHERE id = sqlc.arg(id)
 RETURNING *;
 -- name: InsertAnimeMetadata :exec

@@ -15,7 +15,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Server struct {
@@ -25,7 +24,7 @@ type Server struct {
 	Repo   *repository.Queries
 }
 
-func NewServer(config *config.Env, db *pgxpool.Pool) *Server {
+func NewServer(config *config.Env, repo *repository.Queries) *Server {
 	r := chi.NewRouter()
 
 	r.Use(
@@ -44,8 +43,6 @@ func NewServer(config *config.Env, db *pgxpool.Pool) *Server {
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       120 * time.Second,
 	}
-
-	repo := repository.New(db)
 
 	return &Server{
 		Router: r,

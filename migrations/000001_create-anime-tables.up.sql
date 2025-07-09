@@ -32,8 +32,7 @@ CREATE TABLE animes (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
   CONSTRAINT unique_hi_anime_id UNIQUE (hi_anime_id),
-  CONSTRAINT unique_mal_id UNIQUE (mal_id),
-  CONSTRAINT unique_anilist_id UNIQUE (anilist_id)
+  CONSTRAINT unique_mal_id UNIQUE (mal_id)
 );
 -- Create an ENUM type for media types
 CREATE TYPE media_type AS ENUM (

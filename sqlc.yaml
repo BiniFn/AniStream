@@ -1,4 +1,12 @@
 version: "2"
+
+overrides:
+  go:
+    overrides:
+      - db_type: "tsvector"
+        go_type: "string"
+        nullable: true
+
 sql:
   - engine: "postgresql"
     schema: "./migrations/"
@@ -8,12 +16,3 @@ sql:
         package: "repository"
         out: "internal/repository"
         sql_package: "pgx/v5"
-        overrides:
-          - db_type: "uuid"
-            go_type:
-              import: "github.com/google/uuid"
-              type: "UUID"
-          - db_type: "timestamptz"
-            go_type:
-              import: "time"
-              type: "Time"

@@ -206,6 +206,8 @@ func (s *HianimeScraper) GetAnimeInfoByHiAnimeID(ctx context.Context, hiAnimeID 
 		AnilistID string `json:"anilist_id"`
 	}
 	_ = json.Unmarshal([]byte(syncJSON), &sync)
+	malID, _ := strconv.Atoi(sync.MalID)
+	anilistID, _ := strconv.Atoi(sync.AnilistID)
 
 	titleEl := doc.Find("h2.film-name.dynamic-name")
 	ename := strings.TrimSpace(titleEl.Text())
@@ -233,8 +235,8 @@ func (s *HianimeScraper) GetAnimeInfoByHiAnimeID(ctx context.Context, hiAnimeID 
 		JName:       jname,
 		PosterURL:   poster,
 		Genre:       genre,
-		MalID:       sync.MalID,
-		AnilistID:   sync.AnilistID,
+		MalID:       malID,
+		AnilistID:   anilistID,
 		LastEpisode: lastEp,
 	}, nil
 }

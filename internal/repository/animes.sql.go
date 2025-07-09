@@ -216,7 +216,7 @@ type GetAnimeByMediaTypeRow struct {
 	LastEpisode    int32
 	CreatedAt      pgtype.Timestamp
 	UpdatedAt      pgtype.Timestamp
-	SearchVector   interface{}
+	SearchVector   string
 	AnimeMetadatum AnimeMetadatum
 }
 
@@ -304,7 +304,7 @@ type GetAnimeBySeasonRow struct {
 	LastEpisode    int32
 	CreatedAt      pgtype.Timestamp
 	UpdatedAt      pgtype.Timestamp
-	SearchVector   interface{}
+	SearchVector   string
 	AnimeMetadatum AnimeMetadatum
 }
 
@@ -648,7 +648,9 @@ INSERT INTO animes (
     hi_anime_id,
     mal_id,
     anilist_id,
-    last_episode
+    last_episode,
+    created_at,
+    updated_at
   )
 VALUES (
     $1,
@@ -658,7 +660,9 @@ VALUES (
     $5,
     $6,
     $7,
-    $8
+    $8,
+    COALESCE($9, NOW()),
+    COALESCE($10, NOW())
   )
 RETURNING id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector
 `
@@ -672,6 +676,8 @@ type InsertAnimeParams struct {
 	MalID       pgtype.Int4
 	AnilistID   pgtype.Int4
 	LastEpisode int32
+	CreatedAt   interface{}
+	UpdatedAt   interface{}
 }
 
 func (q *Queries) InsertAnime(ctx context.Context, arg InsertAnimeParams) error {
@@ -684,6 +690,8 @@ func (q *Queries) InsertAnime(ctx context.Context, arg InsertAnimeParams) error 
 		arg.MalID,
 		arg.AnilistID,
 		arg.LastEpisode,
+		arg.CreatedAt,
+		arg.UpdatedAt,
 	)
 	return err
 }
@@ -877,7 +885,7 @@ type SearchAnimesRow struct {
 	LastEpisode    int32
 	CreatedAt      pgtype.Timestamp
 	UpdatedAt      pgtype.Timestamp
-	SearchVector   interface{}
+	SearchVector   string
 	AnimeMetadatum AnimeMetadatum
 	QueryRank      float32
 }
@@ -982,8 +990,8 @@ SET ename = $1,
   mal_id = $6,
   anilist_id = $7,
   last_episode = $8,
-  updated_at = NOW()
-WHERE id = $9
+  updated_at = COALESCE($9, NOW())
+WHERE id = $10
 RETURNING id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector
 `
 
@@ -996,6 +1004,7 @@ type UpdateAnimeParams struct {
 	MalID       pgtype.Int4
 	AnilistID   pgtype.Int4
 	LastEpisode int32
+	UpdatedAt   pgtype.Timestamp
 	ID          string
 }
 
@@ -1009,6 +1018,7 @@ func (q *Queries) UpdateAnime(ctx context.Context, arg UpdateAnimeParams) error 
 		arg.MalID,
 		arg.AnilistID,
 		arg.LastEpisode,
+		arg.UpdatedAt,
 		arg.ID,
 	)
 	return err

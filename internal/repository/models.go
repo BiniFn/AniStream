@@ -264,7 +264,7 @@ type Anime struct {
 	LastEpisode  int32
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
-	SearchVector interface{}
+	SearchVector string
 }
 
 type AnimeMetadatum struct {
