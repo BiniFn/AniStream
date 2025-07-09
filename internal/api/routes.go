@@ -4,14 +4,22 @@ import (
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/api/handlers"
+	"github.com/coeeter/aniways/internal/config"
+	"github.com/coeeter/aniways/internal/myanimelist"
 	"github.com/coeeter/aniways/internal/repository"
 	animeSvc "github.com/coeeter/aniways/internal/service/anime"
 	"github.com/go-chi/chi/v5"
 )
 
-func MountGlobalRoutes(r *chi.Mux, repo *repository.Queries) {
+func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries) {
 	r.Route("/anime", func(r chi.Router) {
-		svc := animeSvc.New(repo)
+		malClient := myanimelist.NewClient(myanimelist.ClientConfig{
+			ClientID:     env.MyAnimeListClientID,
+			ClientSecret: env.MyAnimeListClientSecret,
+		})
+		refresher := animeSvc.NewRefresher(repo, malClient)
+		svc := animeSvc.New(repo, refresher)
+
 		handlers.MountAnimeRoutes(r, svc)
 	})
 

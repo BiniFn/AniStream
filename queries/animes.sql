@@ -67,6 +67,10 @@ WHERE anilist_id = $1;
 SELECT *
 FROM animes
 WHERE hi_anime_id = $1;
+-- name: GetAnimeMetadataByMalId :one
+SELECT *
+FROM anime_metadata
+WHERE mal_id = $1;
 -- name: GetAnimesByIds :many
 SELECT *
 FROM animes

@@ -55,56 +55,6 @@ func (ns NullAiringStatus) Value() (driver.Value, error) {
 	return string(ns.AiringStatus), nil
 }
 
-type MediaType string
-
-const (
-	MediaTypeTv        MediaType = "tv"
-	MediaTypeMovie     MediaType = "movie"
-	MediaTypeOna       MediaType = "ona"
-	MediaTypeOva       MediaType = "ova"
-	MediaTypeSpecial   MediaType = "special"
-	MediaTypeTvSpecial MediaType = "tv_special"
-	MediaTypeMusic     MediaType = "music"
-	MediaTypeCm        MediaType = "cm"
-	MediaTypePv        MediaType = "pv"
-	MediaTypeUnknown   MediaType = "unknown"
-)
-
-func (e *MediaType) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = MediaType(s)
-	case string:
-		*e = MediaType(s)
-	default:
-		return fmt.Errorf("unsupported scan type for MediaType: %T", src)
-	}
-	return nil
-}
-
-type NullMediaType struct {
-	MediaType MediaType
-	Valid     bool // Valid is true if MediaType is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullMediaType) Scan(value interface{}) error {
-	if value == nil {
-		ns.MediaType, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.MediaType.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullMediaType) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.MediaType), nil
-}
-
 type Rating string
 
 const (
@@ -197,61 +147,6 @@ func (ns NullSeason) Value() (driver.Value, error) {
 	return string(ns.Season), nil
 }
 
-type Source string
-
-const (
-	SourceOther        Source = "other"
-	SourceOriginal     Source = "original"
-	SourceManga        Source = "manga"
-	Source4KomaManga   Source = "4_koma_manga"
-	SourceWebManga     Source = "web_manga"
-	SourceDigitalManga Source = "digital_manga"
-	SourceNovel        Source = "novel"
-	SourceLightNovel   Source = "light_novel"
-	SourceVisualNovel  Source = "visual_novel"
-	SourceGame         Source = "game"
-	SourceCardGame     Source = "card_game"
-	SourceBook         Source = "book"
-	SourcePictureBook  Source = "picture_book"
-	SourceRadio        Source = "radio"
-	SourceMusic        Source = "music"
-)
-
-func (e *Source) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = Source(s)
-	case string:
-		*e = Source(s)
-	default:
-		return fmt.Errorf("unsupported scan type for Source: %T", src)
-	}
-	return nil
-}
-
-type NullSource struct {
-	Source Source
-	Valid  bool // Valid is true if Source is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullSource) Scan(value interface{}) error {
-	if value == nil {
-		ns.Source, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.Source.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullSource) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.Source), nil
-}
-
 type Anime struct {
 	ID           string
 	Ename        string
@@ -271,7 +166,7 @@ type AnimeMetadatum struct {
 	MalID              int32
 	Description        pgtype.Text
 	MainPictureUrl     pgtype.Text
-	MediaType          MediaType
+	MediaType          pgtype.Text
 	Rating             Rating
 	AiringStatus       AiringStatus
 	AvgEpisodeDuration pgtype.Int4
@@ -283,7 +178,7 @@ type AnimeMetadatum struct {
 	Popularity         pgtype.Int4
 	AiringStartDate    pgtype.Text
 	AiringEndDate      pgtype.Text
-	Source             Source
+	Source             pgtype.Text
 	TrailerEmbedUrl    pgtype.Text
 	SeasonYear         pgtype.Int4
 	Season             Season

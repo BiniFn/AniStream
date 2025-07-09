@@ -34,19 +34,6 @@ CREATE TABLE animes (
   CONSTRAINT unique_hi_anime_id UNIQUE (hi_anime_id),
   CONSTRAINT unique_mal_id UNIQUE (mal_id)
 );
--- Create an ENUM type for media types
-CREATE TYPE media_type AS ENUM (
-  'tv',
-  'movie',
-  'ona',
-  'ova',
-  'special',
-  'tv_special',
-  'music',
-  'cm',
-  'pv',
-  'unknown'
-);
 -- Create Rating ENUM type
 CREATE TYPE rating AS ENUM (
   'pg_13',
@@ -64,24 +51,6 @@ CREATE TYPE airing_status AS ENUM (
   'not_yet_aired',
   'unknown'
 );
--- Create an ENUM type for source
-CREATE TYPE source AS ENUM (
-  'other',
-  'original',
-  'manga',
-  '4_koma_manga',
-  'web_manga',
-  'digital_manga',
-  'novel',
-  'light_novel',
-  'visual_novel',
-  'game',
-  'card_game',
-  'book',
-  'picture_book',
-  'radio',
-  'music'
-);
 -- Create an ENUM type for season
 CREATE TYPE season AS ENUM (
   'winter',
@@ -95,7 +64,7 @@ CREATE TABLE anime_metadata (
   mal_id INT PRIMARY KEY,
   description TEXT,
   main_picture_url TEXT,
-  media_type media_type NOT NULL DEFAULT 'unknown',
+  media_type TEXT,
   rating rating NOT NULL DEFAULT 'unknown',
   airing_status airing_status NOT NULL DEFAULT 'unknown',
   avg_episode_duration INT,
@@ -107,7 +76,7 @@ CREATE TABLE anime_metadata (
   popularity INT,
   airing_start_date TEXT,
   airing_end_date TEXT,
-  source source NOT NULL DEFAULT 'other',
+  source TEXT,
   trailer_embed_url TEXT,
   season_year INT,
   season season NOT NULL DEFAULT 'unknown',
@@ -115,16 +84,6 @@ CREATE TABLE anime_metadata (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
   CONSTRAINT fk_anime_metadata_mal_id FOREIGN KEY (mal_id) REFERENCES animes (mal_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
--- Create an index on the media_type column for faster lookups
-CREATE INDEX idx_anime_metadata_media_type ON anime_metadata (media_type);
--- Create an index on the rating column for faster lookups
-CREATE INDEX idx_anime_metadata_rating ON anime_metadata (rating);
--- Create an index on the airing_status column for faster lookups
-CREATE INDEX idx_anime_metadata_airing_status ON anime_metadata (airing_status);
--- Create an index on the source column for faster lookups
-CREATE INDEX idx_anime_metadata_source ON anime_metadata (source);
--- Create an index on the season column for faster lookups
-CREATE INDEX idx_anime_metadata_season ON anime_metadata (season);
 -- Search
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX animes_ename_trgm_idx ON animes USING gin(ename gin_trgm_ops);

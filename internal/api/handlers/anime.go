@@ -8,7 +8,25 @@ import (
 )
 
 func MountAnimeRoutes(r chi.Router, svc *animeSvc.Service) {
+	r.Get("/{id}", getAnimeByID(svc))
 	r.Get("/recently-updated", listRecentlyUpdated(svc))
+}
+
+func getAnimeByID(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if id == "" {
+			jsonError(w, http.StatusBadRequest, "anime ID is required")
+			return
+		}
+
+		resp, err := svc.GetAnimeByID(r.Context(), id)
+		if err != nil {
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
+			return
+		}
+		jsonOK(w, resp)
+	}
 }
 
 func listRecentlyUpdated(svc *animeSvc.Service) http.HandlerFunc {

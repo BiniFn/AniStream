@@ -9,18 +9,11 @@ DROP INDEX IF EXISTS animes_ename_trgm_idx;
 DROP INDEX IF EXISTS animes_jname_trgm_idx;
 DROP EXTENSION IF EXISTS pg_trgm;
 -- 4) Drop anime_metadata and its lookup indexes
-DROP INDEX IF EXISTS idx_anime_metadata_season;
-DROP INDEX IF EXISTS idx_anime_metadata_source;
-DROP INDEX IF EXISTS idx_anime_metadata_airing_status;
-DROP INDEX IF EXISTS idx_anime_metadata_rating;
-DROP INDEX IF EXISTS idx_anime_metadata_media_type;
 DROP TABLE IF EXISTS anime_metadata;
 -- 5) Drop ENUM types
 DROP TYPE IF EXISTS season;
-DROP TYPE IF EXISTS source;
 DROP TYPE IF EXISTS airing_status;
 DROP TYPE IF EXISTS rating;
-DROP TYPE IF EXISTS media_type;
 -- 6) Drop indexes on animes (backing the UNIQUEs, if you left them)
 DROP INDEX IF EXISTS idx_animes_hi_anime_id;
 DROP INDEX IF EXISTS idx_animes_anilist_id;

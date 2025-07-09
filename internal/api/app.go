@@ -53,7 +53,7 @@ func New(config *config.Env, repo *repository.Queries) *App {
 
 func (s *App) Run() error {
 	// wire routes…
-	MountGlobalRoutes(s.Router, s.Repo)
+	MountGlobalRoutes(s.Router, s.Config, s.Repo)
 
 	// start listening
 	errChan := make(chan error, 1)

@@ -201,7 +201,7 @@ LIMIT $1 OFFSET $2
 type GetAnimeByMediaTypeParams struct {
 	Limit     int32
 	Offset    int32
-	MediaType MediaType
+	MediaType pgtype.Text
 }
 
 type GetAnimeByMediaTypeRow struct {
@@ -365,6 +365,41 @@ func (q *Queries) GetAnimeBySeason(ctx context.Context, arg GetAnimeBySeasonPara
 		return nil, err
 	}
 	return items, nil
+}
+
+const getAnimeMetadataByMalId = `-- name: GetAnimeMetadataByMalId :one
+SELECT mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringusers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season, created_at, updated_at
+FROM anime_metadata
+WHERE mal_id = $1
+`
+
+func (q *Queries) GetAnimeMetadataByMalId(ctx context.Context, malID int32) (AnimeMetadatum, error) {
+	row := q.db.QueryRow(ctx, getAnimeMetadataByMalId, malID)
+	var i AnimeMetadatum
+	err := row.Scan(
+		&i.MalID,
+		&i.Description,
+		&i.MainPictureUrl,
+		&i.MediaType,
+		&i.Rating,
+		&i.AiringStatus,
+		&i.AvgEpisodeDuration,
+		&i.TotalEpisodes,
+		&i.Studio,
+		&i.Rank,
+		&i.Mean,
+		&i.Scoringusers,
+		&i.Popularity,
+		&i.AiringStartDate,
+		&i.AiringEndDate,
+		&i.Source,
+		&i.TrailerEmbedUrl,
+		&i.SeasonYear,
+		&i.Season,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getAnimesByAnilistIds = `-- name: GetAnimesByAnilistIds :many
@@ -782,7 +817,7 @@ type InsertAnimeMetadataParams struct {
 	MalID              int32
 	Description        pgtype.Text
 	MainPictureUrl     pgtype.Text
-	MediaType          MediaType
+	MediaType          pgtype.Text
 	Rating             Rating
 	AiringStatus       AiringStatus
 	AvgEpisodeDuration pgtype.Int4
@@ -794,7 +829,7 @@ type InsertAnimeMetadataParams struct {
 	Popularity         pgtype.Int4
 	AiringStartDate    pgtype.Text
 	AiringEndDate      pgtype.Text
-	Source             Source
+	Source             pgtype.Text
 	TrailerEmbedUrl    pgtype.Text
 	SeasonYear         pgtype.Int4
 	Season             Season
@@ -829,7 +864,7 @@ type InsertMultipleAnimeMetadatasParams struct {
 	MalID              int32
 	Description        pgtype.Text
 	MainPictureUrl     pgtype.Text
-	MediaType          MediaType
+	MediaType          pgtype.Text
 	Rating             Rating
 	AiringStatus       AiringStatus
 	AvgEpisodeDuration pgtype.Int4
@@ -841,7 +876,7 @@ type InsertMultipleAnimeMetadatasParams struct {
 	Popularity         pgtype.Int4
 	AiringStartDate    pgtype.Text
 	AiringEndDate      pgtype.Text
-	Source             Source
+	Source             pgtype.Text
 	TrailerEmbedUrl    pgtype.Text
 	SeasonYear         pgtype.Int4
 	Season             Season
@@ -1068,7 +1103,7 @@ RETURNING mal_id, description, main_picture_url, media_type, rating, airing_stat
 type UpdateAnimeMetadataParams struct {
 	Description        pgtype.Text
 	MainPictureUrl     pgtype.Text
-	MediaType          MediaType
+	MediaType          pgtype.Text
 	Rating             Rating
 	AiringStatus       AiringStatus
 	AvgEpisodeDuration pgtype.Int4
@@ -1080,7 +1115,7 @@ type UpdateAnimeMetadataParams struct {
 	Popularity         pgtype.Int4
 	AiringStartDate    pgtype.Text
 	AiringEndDate      pgtype.Text
-	Source             Source
+	Source             pgtype.Text
 	TrailerEmbedUrl    pgtype.Text
 	SeasonYear         pgtype.Int4
 	Season             Season

@@ -2,17 +2,21 @@ package anime
 
 import (
 	"context"
+	"database/sql"
+	"log"
+	"time"
 
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 )
 
 type Service struct {
-	repo *repository.Queries
+	repo      *repository.Queries
+	refresher *MetadataRefresher
 }
 
-func New(repo *repository.Queries) *Service {
-	return &Service{repo: repo}
+func New(repo *repository.Queries, refresher *MetadataRefresher) *Service {
+	return &Service{repo: repo, refresher: refresher}
 }
 
 func (s *Service) GetRecentlyUpdatedAnimes(
@@ -27,6 +31,10 @@ func (s *Service) GetRecentlyUpdatedAnimes(
 	})
 	if err != nil {
 		return models.Pagination[models.AnimeDto]{}, err
+	}
+
+	for _, r := range rows {
+		go s.refresher.MaybeRefresh(ctx, r.MalID.Int32)
 	}
 
 	total, err := s.repo.GetRecentlyUpdatedAnimesCount(ctx)
@@ -49,4 +57,29 @@ func (s *Service) GetRecentlyUpdatedAnimes(
 		},
 		Items: items,
 	}, nil
+}
+
+func (s *Service) GetAnimeByID(
+	ctx context.Context,
+	id string,
+) (*models.AnimeWithMetadataDto, error) {
+	a, err := s.repo.GetAnimeById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
+	if err == sql.ErrNoRows || time.Since(m.UpdatedAt.Time) > s.refresher.ttl {
+		if err := s.refresher.RefreshBlocking(ctx, a.MalID.Int32); err != nil {
+			log.Printf("blocking refresh failed: %v", err)
+		}
+		m, err = s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	dto := models.AnimeWithMetadataDto{}.FromRepository(a, m)
+
+	return &dto, nil
 }
