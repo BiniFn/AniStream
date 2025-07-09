@@ -49,8 +49,8 @@ func main() {
 
 	go worker.HourlyTask(ctx, scraper, repo)
 
-	srv := api.NewServer(env, repo)
-	if err := srv.Run(); err != nil {
+	app := api.New(env, repo)
+	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

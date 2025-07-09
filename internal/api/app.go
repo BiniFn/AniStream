@@ -11,20 +11,19 @@ import (
 
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/repository"
-	"github.com/coeeter/aniways/internal/routes"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 )
 
-type Server struct {
+type App struct {
 	Config *config.Env
 	Router *chi.Mux
 	Server *http.Server
 	Repo   *repository.Queries
 }
 
-func NewServer(config *config.Env, repo *repository.Queries) *Server {
+func New(config *config.Env, repo *repository.Queries) *App {
 	r := chi.NewRouter()
 
 	r.Use(
@@ -44,7 +43,7 @@ func NewServer(config *config.Env, repo *repository.Queries) *Server {
 		IdleTimeout:       120 * time.Second,
 	}
 
-	return &Server{
+	return &App{
 		Router: r,
 		Config: config,
 		Server: srv,
@@ -52,9 +51,9 @@ func NewServer(config *config.Env, repo *repository.Queries) *Server {
 	}
 }
 
-func (s *Server) Run() error {
+func (s *App) Run() error {
 	// wire routes…
-	routes.MountGlobal(s.Router, s.Repo)
+	MountGlobalRoutes(s.Router, s.Repo)
 
 	// start listening
 	errChan := make(chan error, 1)
@@ -77,7 +76,7 @@ func (s *Server) Run() error {
 	}
 }
 
-func (s *Server) Shutdown(ctx context.Context) error {
+func (s *App) Shutdown(ctx context.Context) error {
 	if err := s.Server.Shutdown(ctx); err != nil {
 		return fmt.Errorf("server shutdown: %w", err)
 	}

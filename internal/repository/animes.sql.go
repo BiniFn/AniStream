@@ -597,6 +597,8 @@ func (q *Queries) GetRandomAnimeByGenre(ctx context.Context, genre pgtype.Text) 
 const getRecentlyUpdatedAnimes = `-- name: GetRecentlyUpdatedAnimes :many
 SELECT id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector
 FROM animes
+WHERE animes.mal_id IS NOT NULL
+  OR animes.mal_id != 0
 ORDER BY updated_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -637,6 +639,20 @@ func (q *Queries) GetRecentlyUpdatedAnimes(ctx context.Context, arg GetRecentlyU
 		return nil, err
 	}
 	return items, nil
+}
+
+const getRecentlyUpdatedAnimesCount = `-- name: GetRecentlyUpdatedAnimesCount :one
+SELECT COUNT(*)
+FROM animes
+WHERE animes.mal_id IS NOT NULL
+  OR animes.mal_id != 0
+`
+
+func (q *Queries) GetRecentlyUpdatedAnimesCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getRecentlyUpdatedAnimesCount)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const insertAnime = `-- name: InsertAnime :exec

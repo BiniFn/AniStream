@@ -8,8 +8,15 @@ FROM animes,
 -- name: GetRecentlyUpdatedAnimes :many
 SELECT *
 FROM animes
+WHERE animes.mal_id IS NOT NULL
+  OR animes.mal_id != 0
 ORDER BY updated_at DESC
 LIMIT $1 OFFSET $2;
+-- name: GetRecentlyUpdatedAnimesCount :one
+SELECT COUNT(*)
+FROM animes
+WHERE animes.mal_id IS NOT NULL
+  OR animes.mal_id != 0;
 -- name: GetAnimeByGenre :many
 SELECT *
 FROM animes
