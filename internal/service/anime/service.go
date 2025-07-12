@@ -233,10 +233,6 @@ func (s *Service) GetAnimeEpisodes(ctx context.Context, id string) ([]models.Epi
 	return episodeDtos, nil
 }
 
-func (s *Service) GetEpisodeServers() error {
-	return fmt.Errorf("GetEpisodeServers is not implemented in anime service")
-}
-
 func (s *Service) SearchAnimes(ctx context.Context, query, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
 	if page < 1 || size < 1 {
 		return models.Pagination[models.AnimeDto]{}, fmt.Errorf("invalid pagination parameters: page=%d, size=%d", page, size)
@@ -285,4 +281,42 @@ func (s *Service) SearchAnimes(ctx context.Context, query, genre string, page, s
 		},
 		Items: items,
 	}, nil
+}
+
+func (s *Service) GetServersForEpisode(ctx context.Context, id, episodeID string) (models.ServerDto, error) {
+	key := fmt.Sprintf("anime_servers:%s:episode:%s", id, episodeID)
+	var cachedServers models.ServerDto
+	if ok, err := s.redis.Get(ctx, key, &cachedServers); err != nil {
+		log.Printf("failed to get servers from cache: %v", err)
+	} else if ok {
+		log.Printf("found %d servers in cache for anime ID %s episode %s", len(cachedServers.Sub)+len(cachedServers.Dub)+len(cachedServers.Raw), id, episodeID)
+		return cachedServers, nil
+	}
+
+	a, err := s.repo.GetAnimeById(ctx, id)
+	if err != nil {
+		log.Printf("failed to fetch anime by ID %s: %v", id, err)
+		return models.ServerDto{}, err
+	}
+
+	servers, err := s.scraper.GetEpisodeServers(ctx, a.HiAnimeID, episodeID)
+	if err != nil {
+		log.Printf("failed to fetch servers for anime ID %s episode %s: %v", id, episodeID, err)
+		return models.ServerDto{}, err
+	}
+
+	if len(servers) == 0 {
+		log.Printf("no servers found for anime ID %s episode %s", id, episodeID)
+		return models.ServerDto{}, fmt.Errorf("no servers found for anime ID %s episode %s", id, episodeID)
+	}
+
+	serverDto := models.ServerDto{}.FromScraper(servers)
+
+	if err := s.redis.Set(ctx, key, serverDto, 24*time.Hour); err != nil {
+		log.Printf("failed to cache servers for anime ID %s episode %s: %v", id, episodeID, err)
+	} else {
+		log.Printf("cached %d servers for anime ID %s episode %s", len(serverDto.Sub)+len(serverDto.Dub)+len(serverDto.Raw), id, episodeID)
+	}
+
+	return serverDto, nil
 }

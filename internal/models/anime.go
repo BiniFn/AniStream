@@ -1,6 +1,8 @@
 package models
 
 import (
+	"sort"
+
 	"github.com/coeeter/aniways/internal/hianime"
 	"github.com/coeeter/aniways/internal/repository"
 )
@@ -131,5 +133,53 @@ func (e EpisodeDto) FromScraper(episode hianime.ScrapedEpisodeDto) EpisodeDto {
 		Title:    episode.Title,
 		Number:   episode.Number,
 		IsFiller: episode.IsFiller,
+	}
+}
+
+type IndividualServerDto struct {
+	Type       string `json:"type"`
+	ServerName string `json:"serverName"`
+	ServerID   string `json:"serverId"`
+}
+
+type ServerDto struct {
+	Sub []IndividualServerDto `json:"sub"`
+	Dub []IndividualServerDto `json:"dub"`
+	Raw []IndividualServerDto `json:"raw"`
+}
+
+func sortByName(s []IndividualServerDto) {
+	sort.Slice(s, func(i, j int) bool {
+		return s[i].ServerName < s[j].ServerName
+	})
+}
+
+func (s ServerDto) FromScraper(servers []hianime.ScrapedEpisodeServerDto) ServerDto {
+	var sub, dub, raw []IndividualServerDto
+
+	for _, server := range servers {
+		dto := IndividualServerDto{
+			Type:       server.Type,
+			ServerName: server.ServerName,
+			ServerID:   server.ServerID,
+		}
+		switch server.Type {
+		case "sub":
+			sub = append(sub, dto)
+		case "dub":
+			dub = append(dub, dto)
+		case "raw":
+			raw = append(raw, dto)
+		}
+	}
+
+	sortByName(sub)
+	sortByName(dub)
+	sortByName(raw)
+
+	return ServerDto{
+		Sub: sub,
+		Dub: dub,
+		Raw: raw,
 	}
 }

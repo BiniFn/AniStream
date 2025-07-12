@@ -12,6 +12,7 @@ func MountAnimeRoutes(r chi.Router, svc *animeSvc.Service) {
 	r.Get("/{id}", getAnimeByID(svc))
 	r.Get("/{id}/trailer", getAnimeTrailer(svc))
 	r.Get("/{id}/episodes", getAnimeEpisodes(svc))
+	r.Get("/{id}/episodes/{episodeID}", getServersForEpisode(svc))
 	r.Get("/genres", listGenres(svc))
 	r.Get("/recently-updated", listRecentlyUpdated(svc))
 	r.Get("/search", searchAnimes(svc))
@@ -124,6 +125,29 @@ func searchAnimes(svc *animeSvc.Service) http.HandlerFunc {
 		if err != nil {
 			log.Printf("failed to search animes: %v", err)
 			jsonError(w, http.StatusInternalServerError, "failed to search animes")
+			return
+		}
+		jsonOK(w, resp)
+	}
+}
+
+func getServersForEpisode(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if id == "" {
+			jsonError(w, http.StatusBadRequest, "anime ID is required")
+			return
+		}
+
+		episodeID := chi.URLParam(r, "episodeID")
+		if episodeID == "" {
+			jsonError(w, http.StatusBadRequest, "episode ID is required")
+			return
+		}
+
+		resp, err := svc.GetServersForEpisode(r.Context(), id, episodeID)
+		if err != nil {
+			jsonError(w, http.StatusInternalServerError, "failed to fetch servers for episode")
 			return
 		}
 		jsonOK(w, resp)

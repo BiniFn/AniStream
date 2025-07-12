@@ -304,6 +304,10 @@ func (s *HianimeScraper) GetEpisodeServers(ctx context.Context, hiAnimeID, episo
 	fallbackTypes := []string{"sub", "dub", "raw"}
 	for _, t := range fallbackTypes {
 		if _, ok := seen[t]; ok {
+			if t == "raw" {
+				t = "sub"
+			}
+
 			out = append(out, ScrapedEpisodeServerDto{
 				Type:       t,
 				ServerName: "Megaplay",
