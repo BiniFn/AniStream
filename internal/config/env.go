@@ -10,7 +10,8 @@ type Env struct {
 	AppPort                 string `envconfig:"APP_PORT" default:"8080"`
 	AllowedOrigins          string `envconfig:"ALLOWED_ORIGINS" default:"*"`
 	DatabaseURL             string `envconfig:"DATABASE_URL" required:"true"`
-	RedisURL                string `envconfig:"REDIS_URL" required:"true"`
+	RedisAddr               string `envconfig:"REDIS_ADDR" required:"true"`
+	RedisPassword           string `envconfig:"REDIS_PASSWORD" required:"true"`
 	MyAnimeListClientID     string `envconfig:"MYANIMELIST_CLIENT_ID" required:"true"`
 	MyAnimeListClientSecret string `envconfig:"MYANIMELIST_CLIENT_SECRET" required:"true"`
 }

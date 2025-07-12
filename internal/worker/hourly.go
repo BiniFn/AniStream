@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/hianime"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5"
@@ -22,6 +23,7 @@ func HourlyTask(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
+	redis *cache.RedisClient,
 ) {
 	ticker := time.NewTicker(hourlyInterval)
 	defer ticker.Stop()
@@ -34,7 +36,7 @@ func HourlyTask(
 			return
 		case <-ticker.C:
 			log.Println("🔄 Running hourly task...")
-			if err := scrapeRecentlyUpdated(ctx, scraper, repo); err != nil {
+			if err := scrapeRecentlyUpdated(ctx, scraper, repo, redis); err != nil {
 				log.Printf("🚨 Error in hourly task: %v", err)
 			} else {
 				log.Println("✅ Hourly task completed successfully")
@@ -47,6 +49,7 @@ func scrapeRecentlyUpdated(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
+	redis *cache.RedisClient,
 ) error {
 	listing, err := scraper.GetRecentlyUpdatedAnime(ctx, 1)
 	if err != nil {
@@ -109,6 +112,10 @@ func scrapeRecentlyUpdated(
 				if err := repo.UpdateAnime(ctx, params); err != nil {
 					log.Printf("❌ RU update failed for %s: %v", scraped.HiAnimeID, err)
 				}
+				if err := redis.Del(ctx, "anime_episodes:"+dbAnime.ID); err != nil {
+					log.Printf("⚠️ Failed to delete cache for anime episodes of %s: %v", dbAnime.ID, err)
+				}
+				log.Printf("✅ Updated existing anime %s with new data", scraped.HiAnimeID)
 			} else {
 				params := repository.InsertAnimeParams{
 					Ename:       info.EName,

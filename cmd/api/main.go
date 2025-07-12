@@ -8,7 +8,9 @@ import (
 	"syscall"
 
 	"github.com/coeeter/aniways/internal/api"
+	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/config"
+	"github.com/coeeter/aniways/internal/database"
 	"github.com/coeeter/aniways/internal/hianime"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/worker"
@@ -20,11 +22,17 @@ func main() {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
 
-	db, err := config.NewDatabase(env)
+	db, err := database.New(env)
 	if err != nil {
 		log.Fatalf("Error connecting to the database: %v", err)
 	}
 	defer db.Close()
+
+	redis, err := cache.NewRedisClient(context.Background(), env.RedisAddr, env.RedisPassword)
+	if err != nil {
+		log.Fatalf("Error connecting to Redis: %v", err)
+	}
+	defer redis.Close()
 
 	repo := repository.New(db)
 	scraper := hianime.NewHianimeScraper()
@@ -47,9 +55,9 @@ func main() {
 		log.Printf("ℹ️  DB already has %d anime, skipping initial scrape", count)
 	}
 
-	go worker.HourlyTask(ctx, scraper, repo)
+	go worker.HourlyTask(ctx, scraper, repo, redis)
 
-	app := api.New(env, repo)
+	app := api.New(env, repo, redis)
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}

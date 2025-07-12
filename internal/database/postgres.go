@@ -1,17 +1,18 @@
-package config
+package database
 
 import (
 	"context"
 	"fmt"
 	"log"
 
+	"github.com/coeeter/aniways/internal/config"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewDatabase(env *Env) (*pgxpool.Pool, error) {
+func New(env *config.Env) (*pgxpool.Pool, error) {
 	log.Printf("🚀 Initializing database connection…")
 
 	// open the pool

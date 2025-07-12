@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/hianime"
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/myanimelist"
@@ -21,18 +22,21 @@ type Service struct {
 	refresher *MetadataRefresher
 	scraper   *hianime.HianimeScraper
 	malClient *myanimelist.Client
+	redis     *cache.RedisClient
 }
 
 func New(
 	repo *repository.Queries,
 	refresher *MetadataRefresher,
 	malClient *myanimelist.Client,
+	redis *cache.RedisClient,
 ) *Service {
 	return &Service{
 		repo:      repo,
 		refresher: refresher,
 		malClient: malClient,
 		scraper:   hianime.NewHianimeScraper(),
+		redis:     redis,
 	}
 }
 
@@ -42,6 +46,15 @@ func (s *Service) GetRecentlyUpdatedAnimes(
 ) (models.Pagination[models.AnimeDto], error) {
 	offset := int32((page - 1) * size)
 	limit := int32(size)
+
+	if page < 1 || size < 1 {
+		return models.Pagination[models.AnimeDto]{}, fmt.Errorf("invalid pagination parameters: page=%d, size=%d", page, size)
+	}
+
+	if size > 100 {
+		return models.Pagination[models.AnimeDto]{}, fmt.Errorf("size too large: maximum is 100, got %d", size)
+	}
+
 	rows, err := s.repo.GetRecentlyUpdatedAnimes(ctx, repository.GetRecentlyUpdatedAnimesParams{
 		Limit:  limit,
 		Offset: offset,
@@ -113,12 +126,25 @@ func (s *Service) GetAnimeByID(
 }
 
 func (s *Service) GetAnimeGenres(ctx context.Context) ([]string, error) {
-	rows, err := s.repo.GetAllGenres(ctx)
+	key := "anime_genres"
+	var genres []string
+	if ok, err := s.redis.Get(ctx, key, &genres); err != nil {
+		log.Printf("failed to get genres from cache: %v", err)
+	} else if ok {
+		log.Printf("found %d genres in cache", len(genres))
+		return genres, nil
+	}
+
+	genres, err := s.repo.GetAllGenres(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return rows, nil
+	if err := s.redis.Set(ctx, key, genres, 30*24*time.Hour); err != nil {
+		log.Printf("failed to cache genres: %v", err)
+	}
+
+	return genres, nil
 }
 
 func (s *Service) GetAnimeTrailer(ctx context.Context, id string) (*models.TrailerDto, error) {
@@ -168,6 +194,15 @@ func (s *Service) GetAnimeTrailer(ctx context.Context, id string) (*models.Trail
 }
 
 func (s *Service) GetAnimeEpisodes(ctx context.Context, id string) ([]models.EpisodeDto, error) {
+	key := fmt.Sprintf("anime_episodes:%s", id)
+	var cachedEpisodes []models.EpisodeDto
+	if ok, err := s.redis.Get(ctx, key, &cachedEpisodes); err != nil {
+		log.Printf("failed to get episodes from cache: %v", err)
+	} else if ok {
+		log.Printf("found %d episodes in cache for anime ID %s", len(cachedEpisodes), id)
+		return cachedEpisodes, nil
+	}
+
 	a, err := s.repo.GetAnimeById(ctx, id)
 	if err != nil {
 		return nil, err
@@ -188,5 +223,16 @@ func (s *Service) GetAnimeEpisodes(ctx context.Context, id string) ([]models.Epi
 	for i, ep := range episodes {
 		episodeDtos[i] = models.EpisodeDto{}.FromScraper(ep)
 	}
+
+	if err := s.redis.Set(ctx, key, episodeDtos, 7*24*time.Hour); err != nil {
+		log.Printf("failed to cache episodes for anime ID %s: %v", id, err)
+	} else {
+		log.Printf("cached %d episodes for anime ID %s", len(episodeDtos), id)
+	}
+
 	return episodeDtos, nil
+}
+
+func (s *Service) GetEpisodeServers() error {
+	return fmt.Errorf("GetEpisodeServers is not implemented in anime service")
 }
