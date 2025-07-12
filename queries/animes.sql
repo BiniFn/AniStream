@@ -94,21 +94,21 @@ WHERE hi_anime_id = ANY(sqlc.arg(hi_anime_ids)::text [])
 ORDER BY updated_at DESC;
 -- name: SearchAnimes :many
 SELECT animes.*,
-  sqlc.embed(anime_metadata),
   ts_rank(
     animes.search_vector,
     plainto_tsquery(sqlc.arg(query))
   ) AS query_rank
 FROM animes
-  LEFT JOIN anime_metadata ON animes.mal_id = anime_metadata.mal_id
 WHERE (
     sqlc.arg(query) = ''
-    OR name % sqlc.arg(query)
+    OR sqlc.arg(query) IS NULL
+    OR ename % sqlc.arg(query)
     OR jname % sqlc.arg(query)
     OR search_vector @@ plainto_tsquery('english', sqlc.arg(query))
   )
   AND (
     sqlc.arg(genre) = ''
+    OR sqlc.arg(genre) IS NULL
     OR genre ILIKE '%' || sqlc.arg(genre) || '%'
   )
   AND animes.mal_id IS NOT NULL
@@ -117,16 +117,16 @@ LIMIT $1 OFFSET $2;
 -- name: SearchAnimesCount :one
 SELECT COUNT(*)
 FROM animes
-  LEFT JOIN anime_metadata ON animes.mal_id = anime_metadata.mal_id
-WHERE -- if $1 is empty, skip text search
-  (
+WHERE (
     sqlc.arg(query) = ''
-    OR name % sqlc.arg(query)
+    OR sqlc.arg(query) IS NULL
+    OR ename % sqlc.arg(query)
     OR jname % sqlc.arg(query)
     OR search_vector @@ plainto_tsquery('english', sqlc.arg(query))
-  ) -- if $2 is empty, skip genre filter
+  )
   AND (
     sqlc.arg(genre) = ''
+    OR sqlc.arg(genre) IS NULL
     OR genre ILIKE '%' || sqlc.arg(genre) || '%'
   )
   AND animes.mal_id IS NOT NULL;

@@ -236,3 +236,53 @@ func (s *Service) GetAnimeEpisodes(ctx context.Context, id string) ([]models.Epi
 func (s *Service) GetEpisodeServers() error {
 	return fmt.Errorf("GetEpisodeServers is not implemented in anime service")
 }
+
+func (s *Service) SearchAnimes(ctx context.Context, query, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
+	if page < 1 || size < 1 {
+		return models.Pagination[models.AnimeDto]{}, fmt.Errorf("invalid pagination parameters: page=%d, size=%d", page, size)
+	}
+
+	if size > 100 {
+		return models.Pagination[models.AnimeDto]{}, fmt.Errorf("size too large: maximum is 100, got %d", size)
+	}
+
+	offset := int32((page - 1) * size)
+	limit := int32(size)
+
+	rows, err := s.repo.SearchAnimes(ctx, repository.SearchAnimesParams{
+		Query:  query,
+		Genre:  genre,
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return models.Pagination[models.AnimeDto]{}, err
+	}
+
+	for _, r := range rows {
+		go s.refresher.MaybeRefresh(context.Background(), r.MalID.Int32)
+	}
+
+	total, err := s.repo.SearchAnimesCount(ctx, repository.SearchAnimesCountParams{
+		Query: query,
+	})
+	if err != nil {
+		return models.Pagination[models.AnimeDto]{}, err
+	}
+
+	items := make([]models.AnimeDto, len(rows))
+	for i, a := range rows {
+		items[i] = models.AnimeDto{}.FromSearch(a)
+	}
+
+	totalPages := int((total + int64(size) - 1) / int64(size))
+	return models.Pagination[models.AnimeDto]{
+		PageInfo: models.PageInfo{
+			CurrentPage: page,
+			TotalPages:  totalPages,
+			HasNextPage: page < totalPages,
+			HasPrevPage: page > 1,
+		},
+		Items: items,
+	}, nil
+}

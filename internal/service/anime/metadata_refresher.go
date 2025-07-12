@@ -81,6 +81,14 @@ func (m *MetadataRefresher) MaybeRefresh(ctx context.Context, malID int32) {
 
 func (m *MetadataRefresher) worker() {
 	for malID := range m.queue {
+		row, err := m.repo.GetAnimeMetadataByMalId(context.Background(), malID)
+		if err == nil && time.Since(row.UpdatedAt.Time) < m.ttl {
+			m.mu.Lock()
+			delete(m.inFlight, malID)
+			m.mu.Unlock()
+			continue
+		}
+
 		if err := m.limiter.Wait(context.Background()); err != nil {
 			log.Printf("rate limiter error: %v", err)
 		}
@@ -139,10 +147,6 @@ func (m *MetadataRefresher) RefreshBlocking(ctx context.Context, malID int32) er
 	if err := m.limiter.Wait(ctx); err != nil {
 		return err
 	}
-	if err := m.sem.Acquire(ctx, 1); err != nil {
-		return err
-	}
-	defer m.sem.Release(1)
 
 	dto, err := m.malClient.GetAnimeMetadata(ctx, int(malID))
 	if err != nil {

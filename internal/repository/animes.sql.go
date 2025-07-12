@@ -896,21 +896,21 @@ type InsertMultipleAnimesParams struct {
 
 const searchAnimes = `-- name: SearchAnimes :many
 SELECT animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector,
-  anime_metadata.mal_id, anime_metadata.description, anime_metadata.main_picture_url, anime_metadata.media_type, anime_metadata.rating, anime_metadata.airing_status, anime_metadata.avg_episode_duration, anime_metadata.total_episodes, anime_metadata.studio, anime_metadata.rank, anime_metadata.mean, anime_metadata.scoringusers, anime_metadata.popularity, anime_metadata.airing_start_date, anime_metadata.airing_end_date, anime_metadata.source, anime_metadata.trailer_embed_url, anime_metadata.season_year, anime_metadata.season, anime_metadata.created_at, anime_metadata.updated_at,
   ts_rank(
     animes.search_vector,
     plainto_tsquery($3)
   ) AS query_rank
 FROM animes
-  LEFT JOIN anime_metadata ON animes.mal_id = anime_metadata.mal_id
 WHERE (
     $3 = ''
-    OR name % $3
+    OR $3 IS NULL
+    OR ename % $3
     OR jname % $3
     OR search_vector @@ plainto_tsquery('english', $3)
   )
   AND (
     $4 = ''
+    OR $4 IS NULL
     OR genre ILIKE '%' || $4 || '%'
   )
   AND animes.mal_id IS NOT NULL
@@ -926,20 +926,19 @@ type SearchAnimesParams struct {
 }
 
 type SearchAnimesRow struct {
-	ID             string
-	Ename          string
-	Jname          string
-	ImageUrl       string
-	Genre          string
-	HiAnimeID      string
-	MalID          pgtype.Int4
-	AnilistID      pgtype.Int4
-	LastEpisode    int32
-	CreatedAt      pgtype.Timestamp
-	UpdatedAt      pgtype.Timestamp
-	SearchVector   string
-	AnimeMetadatum AnimeMetadatum
-	QueryRank      float32
+	ID           string
+	Ename        string
+	Jname        string
+	ImageUrl     string
+	Genre        string
+	HiAnimeID    string
+	MalID        pgtype.Int4
+	AnilistID    pgtype.Int4
+	LastEpisode  int32
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
+	SearchVector string
+	QueryRank    float32
 }
 
 func (q *Queries) SearchAnimes(ctx context.Context, arg SearchAnimesParams) ([]SearchAnimesRow, error) {
@@ -969,27 +968,6 @@ func (q *Queries) SearchAnimes(ctx context.Context, arg SearchAnimesParams) ([]S
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.SearchVector,
-			&i.AnimeMetadatum.MalID,
-			&i.AnimeMetadatum.Description,
-			&i.AnimeMetadatum.MainPictureUrl,
-			&i.AnimeMetadatum.MediaType,
-			&i.AnimeMetadatum.Rating,
-			&i.AnimeMetadatum.AiringStatus,
-			&i.AnimeMetadatum.AvgEpisodeDuration,
-			&i.AnimeMetadatum.TotalEpisodes,
-			&i.AnimeMetadatum.Studio,
-			&i.AnimeMetadatum.Rank,
-			&i.AnimeMetadatum.Mean,
-			&i.AnimeMetadatum.Scoringusers,
-			&i.AnimeMetadatum.Popularity,
-			&i.AnimeMetadatum.AiringStartDate,
-			&i.AnimeMetadatum.AiringEndDate,
-			&i.AnimeMetadatum.Source,
-			&i.AnimeMetadatum.TrailerEmbedUrl,
-			&i.AnimeMetadatum.SeasonYear,
-			&i.AnimeMetadatum.Season,
-			&i.AnimeMetadatum.CreatedAt,
-			&i.AnimeMetadatum.UpdatedAt,
 			&i.QueryRank,
 		); err != nil {
 			return nil, err
@@ -1005,16 +983,16 @@ func (q *Queries) SearchAnimes(ctx context.Context, arg SearchAnimesParams) ([]S
 const searchAnimesCount = `-- name: SearchAnimesCount :one
 SELECT COUNT(*)
 FROM animes
-  LEFT JOIN anime_metadata ON animes.mal_id = anime_metadata.mal_id
-WHERE -- if $1 is empty, skip text search
-  (
+WHERE (
     $1 = ''
-    OR name % $1
+    OR $1 IS NULL
+    OR ename % $1
     OR jname % $1
     OR search_vector @@ plainto_tsquery('english', $1)
-  ) -- if $2 is empty, skip genre filter
+  )
   AND (
     $2 = ''
+    OR $2 IS NULL
     OR genre ILIKE '%' || $2 || '%'
   )
   AND animes.mal_id IS NOT NULL

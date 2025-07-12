@@ -29,6 +29,19 @@ func (a AnimeDto) FromRepository(anime repository.Anime) AnimeDto {
 	}
 }
 
+func (a AnimeDto) FromSearch(anime repository.SearchAnimesRow) AnimeDto {
+	return AnimeDto{
+		ID:          anime.ID,
+		Ename:       anime.Ename,
+		JName:       anime.Jname,
+		ImageURL:    anime.ImageUrl,
+		Genre:       anime.Genre,
+		MalID:       anime.MalID.Int32,
+		AnilistID:   anime.AnilistID.Int32,
+		LastEpisode: anime.LastEpisode,
+	}
+}
+
 type AnimeMetadataDto struct {
 	MalID              int32   `json:"malId"`
 	Description        string  `json:"description"`
