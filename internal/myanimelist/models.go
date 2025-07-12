@@ -61,6 +61,11 @@ func (m MalAnimeMetadata) ToRepository() *repository.AnimeMetadatum {
 		season = repository.Season(m.StartSeason.Season)
 	}
 
+	studio := "Unknown"
+	if len(m.Studios) > 0 && m.Studios[0].Name != "" {
+		studio = m.Studios[0].Name
+	}
+
 	return &repository.AnimeMetadatum{
 		MalID:              int32(m.MalID),
 		Description:        pgtype.Text{String: m.Synopsis, Valid: true},
@@ -70,7 +75,7 @@ func (m MalAnimeMetadata) ToRepository() *repository.AnimeMetadatum {
 		AiringStatus:       airingStatus,
 		AvgEpisodeDuration: pgtype.Int4{Int32: int32(m.AvgEpDuration), Valid: true},
 		TotalEpisodes:      pgtype.Int4{Int32: int32(m.NumEpisodes), Valid: true},
-		Studio:             pgtype.Text{String: m.Studios[0].Name, Valid: true},
+		Studio:             pgtype.Text{String: studio, Valid: true},
 		Rank:               pgtype.Int4{Int32: int32(m.Rank), Valid: true},
 		Mean:               pgtype.Float8{Float64: m.Mean, Valid: true},
 		Scoringusers:       pgtype.Int4{Int32: int32(m.NumScoringUsers), Valid: true},

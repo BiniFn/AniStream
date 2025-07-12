@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/coeeter/aniways/internal/hianime"
+	"github.com/coeeter/aniways/internal/hianime/streaming"
 	"github.com/coeeter/aniways/internal/repository"
 )
 
@@ -155,7 +156,7 @@ func sortByName(s []IndividualServerDto) {
 }
 
 func (s ServerDto) FromScraper(servers []hianime.ScrapedEpisodeServerDto) ServerDto {
-	var sub, dub, raw []IndividualServerDto
+	sub, dub, raw := []IndividualServerDto{}, []IndividualServerDto{}, []IndividualServerDto{}
 
 	for _, server := range servers {
 		dto := IndividualServerDto{
@@ -185,12 +186,12 @@ func (s ServerDto) FromScraper(servers []hianime.ScrapedEpisodeServerDto) Server
 }
 
 type StreamingDataDto struct {
-	Source     string                 `json:"source"`
-	ServerName string                 `json:"serverName"`
-	Type       string                 `json:"type"`
-	Intro      hianime.ScrapedSegment `json:"intro"`
-	Outro      hianime.ScrapedSegment `json:"outro"`
-	Tracks     []hianime.ScrapedTrack `json:"tracks"`
+	Source     string     `json:"source"`
+	ServerName string     `json:"serverName"`
+	Type       string     `json:"type"`
+	Intro      SegmentDto `json:"intro"`
+	Outro      SegmentDto `json:"outro"`
+	Tracks     []TrackDto `json:"tracks"`
 }
 
 type SegmentDto struct {
@@ -205,13 +206,30 @@ type TrackDto struct {
 	Default bool   `json:"default,omitempty"`
 }
 
-func (s StreamingDataDto) FromScraper(data hianime.ScrapedUnencryptedSources) StreamingDataDto {
+func (s StreamingDataDto) FromScraper(data streaming.ScrapedUnencryptedSources) StreamingDataDto {
 	return StreamingDataDto{
 		Source:     data.Source,
 		ServerName: data.ServerName,
 		Type:       data.Type,
-		Intro:      data.Intro,
-		Outro:      data.Outro,
-		Tracks:     data.Tracks,
+		Intro: SegmentDto{
+			Start: data.Intro.Start,
+			End:   data.Intro.End,
+		},
+		Outro: SegmentDto{
+			Start: data.Outro.Start,
+			End:   data.Outro.End,
+		},
+		Tracks: func(t []streaming.ScrapedTrack) []TrackDto {
+			tracks := make([]TrackDto, len(t))
+			for i, track := range t {
+				tracks[i] = TrackDto{
+					File:    track.File,
+					Kind:    track.Kind,
+					Label:   track.Label,
+					Default: track.Default,
+				}
+			}
+			return tracks
+		}(data.Tracks),
 	}
 }
