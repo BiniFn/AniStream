@@ -5,12 +5,16 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"math/big"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Luzifer/go-openssl/v4"
 	"github.com/PuerkitoBio/goquery"
 )
 
@@ -317,4 +321,196 @@ func (s *HianimeScraper) GetEpisodeServers(ctx context.Context, hiAnimeID, episo
 	}
 
 	return out, nil
+}
+
+func isHiAnimeServer(serverName string) bool {
+	return strings.HasPrefix(strings.ToLower(serverName), "hd")
+}
+
+func (s *HianimeScraper) scrapeStreamingDataForHiAnime(ctx context.Context, serverID, streamType, serverName string) (ScrapedUnencryptedSources, error) {
+	u := fmt.Sprintf("%s/ajax/v2/episode/sources?id=%s", s.baseURL, serverID)
+	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to create request for HiAnime streaming data: %w", err)
+	}
+	req.Header.Set("Referer", s.baseURL)
+	req.Header.Set("User-Agent", s.randomUA())
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to fetch HiAnime streaming data: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("unexpected status code for HiAnime streaming data: %d", resp.StatusCode)
+	}
+
+	var data struct {
+		Link string `json:"link"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to decode HiAnime streaming data: %w", err)
+	}
+	if data.Link == "" {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("no streaming link found for HiAnime server %s", serverID)
+	}
+	log.Println("Streaming link for HiAnime server", serverName, ":", data.Link)
+
+	parsedURL, err := url.Parse(data.Link)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to parse streaming link: %w", err)
+	}
+
+	parts := strings.Split(parsedURL.Path, "/")
+	xrax := parts[len(parts)-1]
+	parsedURL.Path = ""
+	parsedURL.RawQuery = ""
+	origin := parsedURL.String()
+	log.Println("Extracted xrax from HiAnime streaming link:", xrax, "on domain:", origin)
+
+	ajaxURL := fmt.Sprintf("%s/embed-2/v2/e-1/getSources?id=%s", origin, xrax)
+	log.Println("Constructed AJAX URL for HiAnime streaming data:", ajaxURL)
+
+	req, err = http.NewRequestWithContext(ctx, "GET", ajaxURL, nil)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to create request for HiAnime streaming AJAX data: %w", err)
+	}
+	resp, err = s.client.Do(req)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to fetch HiAnime streaming AJAX data: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("unexpected status code for HiAnime streaming AJAX data: %d", resp.StatusCode)
+	}
+	var streamingData ScrapedEncryptedSources
+	if err := json.NewDecoder(resp.Body).Decode(&streamingData); err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to decode HiAnime streaming AJAX data: %w", err)
+	}
+
+	req, err = http.NewRequestWithContext(ctx, "GET", "https://raw.githubusercontent.com/itzzzme/megacloud-keys/refs/heads/main/key.txt", nil)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to create request for HiAnime decryption key: %w", err)
+	}
+	resp, err = s.client.Do(req)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to fetch HiAnime decryption key: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("unexpected status code for HiAnime decryption key: %d", resp.StatusCode)
+	}
+	keyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to read HiAnime decryption key: %w", err)
+	}
+	key := strings.TrimSpace(string(keyBytes))
+	log.Println("Decryption key for HiAnime streaming data:", key)
+
+	o := openssl.New()
+	plainBytes, err := o.DecryptBytes(
+		key,
+		[]byte(streamingData.Sources),
+		openssl.BytesToKeyMD5,
+	)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to decrypt HiAnime streaming sources: %w", err)
+	}
+	log.Println("Decrypted HiAnime streaming sources successfully")
+
+	decryptedSources := string(plainBytes)
+	var sources []struct {
+		File string `json:"file"`
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal([]byte(decryptedSources), &sources); err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to unmarshal decrypted HiAnime sources: %w", err)
+	}
+	log.Println("Parsed decrypted HiAnime sources successfully")
+
+	file := sources[0].File
+
+	return ScrapedUnencryptedSources{
+		Source:     file,
+		ServerName: serverName,
+		Type:       streamType,
+		Intro:      streamingData.Intro,
+		Outro:      streamingData.Outro,
+		Tracks:     streamingData.Tracks,
+	}, nil
+}
+
+func (s *HianimeScraper) scrapeStreamingDataForMegaplay(ctx context.Context, serverID, streamType string) (ScrapedUnencryptedSources, error) {
+	u := fmt.Sprintf("https://megaplay.buzz/stream/s-2/%s/%s", serverID, streamType)
+	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to create request for Megaplay streaming data: %w", err)
+	}
+	req.Header.Set("Referer", "https://megaplay.buzz")
+	req.Header.Set("User-Agent", s.randomUA())
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to fetch Megaplay streaming data: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("unexpected status code for Megaplay streaming data: %d", resp.StatusCode)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to parse Megaplay streaming data: %w", err)
+	}
+
+	mediaId, ok := doc.Find("#megaplay-player").Attr("data-id")
+	if !ok || mediaId == "" {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("no media ID found in Megaplay streaming data")
+	}
+
+	ajaxUrl := fmt.Sprintf("https://megaplay.buzz/stream/getSources?id=%s", mediaId)
+	req, err = http.NewRequestWithContext(ctx, "GET", ajaxUrl, nil)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to create request for Megaplay streaming sources: %w", err)
+	}
+	req.Header.Set("Referer", u)
+	req.Header.Set("Origin", "https://megaplay.buzz")
+	req.Header.Set("User-Agent", s.randomUA())
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+	resp, err = s.client.Do(req)
+	if err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to fetch Megaplay streaming sources: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("unexpected status code for Megaplay streaming sources: %d", resp.StatusCode)
+	}
+
+	var sources ScrapedMegaplaySources
+	if err := json.NewDecoder(resp.Body).Decode(&sources); err != nil {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("failed to decode Megaplay streaming sources: %w", err)
+	}
+
+	if sources.Sources.File == "" {
+		return ScrapedUnencryptedSources{}, fmt.Errorf("no streaming source found for Megaplay server %s", serverID)
+	}
+	log.Println("Streaming source for Megaplay server", serverID, ":", sources.Sources.File)
+
+	return ScrapedUnencryptedSources{
+		Source:     sources.Sources.File,
+		ServerName: "Megaplay",
+		Type:       streamType,
+		Intro:      sources.Intro,
+		Outro:      sources.Outro,
+		Tracks:     sources.Tracks,
+	}, nil
+}
+
+func (s *HianimeScraper) GetStreamingData(ctx context.Context, serverID, streamType, serverName string) (ScrapedUnencryptedSources, error) {
+	log.Println("Fetching streaming data for server:", serverName, "with ID:", serverID, "and type:", streamType)
+	if isHiAnimeServer(serverName) {
+		return s.scrapeStreamingDataForHiAnime(ctx, serverID, streamType, serverName)
+	} else if strings.Contains(serverName, "megaplay") {
+		return s.scrapeStreamingDataForMegaplay(ctx, serverID, streamType)
+	}
+	return ScrapedUnencryptedSources{}, fmt.Errorf("unsupported server type: %s", serverName)
 }

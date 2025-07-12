@@ -320,3 +320,34 @@ func (s *Service) GetServersForEpisode(ctx context.Context, id, episodeID string
 
 	return serverDto, nil
 }
+
+func (s *Service) GetStreamingData(ctx context.Context, serverID, streamType, serverName string) (models.StreamingDataDto, error) {
+	if serverID == "" || streamType == "" || serverName == "" {
+		return models.StreamingDataDto{}, fmt.Errorf("serverID, streamType, and serverName are required")
+	}
+
+	key := fmt.Sprintf("streaming_data:%s:%s:%s", serverID, streamType, serverName)
+	var cachedData models.StreamingDataDto
+	if ok, err := s.redis.Get(ctx, key, &cachedData); err != nil {
+		log.Printf("failed to get streaming data from cache: %v", err)
+	} else if ok {
+		log.Printf("found streaming data in cache for server %s type %s name %s", serverID, streamType, serverName)
+		return cachedData, nil
+	}
+
+	data, err := s.scraper.GetStreamingData(ctx, serverID, streamType, serverName)
+	if err != nil {
+		log.Printf("failed to fetch streaming data for server %s type %s name %s: %v", serverID, streamType, serverName, err)
+		return models.StreamingDataDto{}, err
+	}
+
+	dto := models.StreamingDataDto{}.FromScraper(data)
+
+	if err := s.redis.Set(ctx, key, dto, 24*time.Hour); err != nil {
+		log.Printf("failed to cache streaming data for server %s type %s name %s: %v", serverID, streamType, serverName, err)
+	} else {
+		log.Printf("cached streaming data for server %s type %s name %s", serverID, streamType, serverName)
+	}
+
+	return dto, nil
+}

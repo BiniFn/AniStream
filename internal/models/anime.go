@@ -183,3 +183,35 @@ func (s ServerDto) FromScraper(servers []hianime.ScrapedEpisodeServerDto) Server
 		Raw: raw,
 	}
 }
+
+type StreamingDataDto struct {
+	Source     string                 `json:"source"`
+	ServerName string                 `json:"serverName"`
+	Type       string                 `json:"type"`
+	Intro      hianime.ScrapedSegment `json:"intro"`
+	Outro      hianime.ScrapedSegment `json:"outro"`
+	Tracks     []hianime.ScrapedTrack `json:"tracks"`
+}
+
+type SegmentDto struct {
+	Start int `json:"start"`
+	End   int `json:"end"`
+}
+
+type TrackDto struct {
+	File    string `json:"file"`
+	Kind    string `json:"kind"`
+	Label   string `json:"label,omitempty"`
+	Default bool   `json:"default,omitempty"`
+}
+
+func (s StreamingDataDto) FromScraper(data hianime.ScrapedUnencryptedSources) StreamingDataDto {
+	return StreamingDataDto{
+		Source:     data.Source,
+		ServerName: data.ServerName,
+		Type:       data.Type,
+		Intro:      data.Intro,
+		Outro:      data.Outro,
+		Tracks:     data.Tracks,
+	}
+}
