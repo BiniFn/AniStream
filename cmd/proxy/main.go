@@ -64,6 +64,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 	req, err := http.NewRequestWithContext(ctx, r.Method, targetURL, nil)
 	if err != nil {
+		log.Println("Error creating request:", err)
 		http.Error(w, "bad target URL", http.StatusBadRequest)
 		return
 	}
@@ -73,6 +74,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Println("Error fetching upstream:", err)
 		http.Error(w, "upstream fetch failed", http.StatusBadGateway)
 		return
 	}
