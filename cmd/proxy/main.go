@@ -143,7 +143,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 		return "/proxy?p=" + pEnc + "&s=" + url.QueryEscape(serverName)
 	}
 
-	if ext == ".m3u8" {
+	if ext == ".m3u8" || ext == ".vtt" {
 		scanner := bufio.NewScanner(resp.Body)
 		flusher, _ := w.(http.Flusher)
 
