@@ -362,6 +362,9 @@ func (s *Service) GetRandomAnime(ctx context.Context) (models.AnimeDto, error) {
 		log.Printf("failed to fetch random anime: %v", err)
 		return models.AnimeDto{}, err
 	}
+
+	go s.refresher.MaybeRefresh(context.Background(), data.MalID.Int32)
+
 	return models.AnimeDto{}.FromRepository(data), nil
 }
 
@@ -375,6 +378,9 @@ func (s *Service) GetRandomAnimeByGenre(ctx context.Context, genre string) (mode
 		log.Printf("failed to fetch random anime by genre %s: %v", genre, err)
 		return models.AnimeDto{}, err
 	}
+
+	go s.refresher.MaybeRefresh(context.Background(), data.MalID.Int32)
+
 	return models.AnimeDto{}.FromRepository(data), nil
 }
 
@@ -416,6 +422,7 @@ func (s *Service) GetSeasonalAnimes(ctx context.Context) ([]models.SeasonalAnime
 			continue
 		}
 		dbAnimes[i] = d
+		go s.refresher.MaybeRefresh(context.Background(), d.MalID.Int32)
 	}
 
 	seasonalAnimes := make([]models.SeasonalAnimeDto, len(animes.Page.Media))
