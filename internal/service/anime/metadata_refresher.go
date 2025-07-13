@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coeeter/aniways/internal/myanimelist"
+	"github.com/coeeter/aniways/internal/client/myanimelist"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/sync/semaphore"

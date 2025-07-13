@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Khan/genqlient/graphql"
-	operations "github.com/coeeter/aniways/internal/anilist/graphql"
+	operations "github.com/coeeter/aniways/internal/client/anilist/graphql"
 )
 
 var (

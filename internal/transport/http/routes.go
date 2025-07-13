@@ -1,15 +1,15 @@
-package api
+package http
 
 import (
 	"net/http"
 
-	"github.com/coeeter/aniways/internal/anilist"
-	"github.com/coeeter/aniways/internal/api/handlers"
 	"github.com/coeeter/aniways/internal/cache"
+	"github.com/coeeter/aniways/internal/client/anilist"
+	"github.com/coeeter/aniways/internal/client/myanimelist"
 	"github.com/coeeter/aniways/internal/config"
-	"github.com/coeeter/aniways/internal/myanimelist"
 	"github.com/coeeter/aniways/internal/repository"
 	animeSvc "github.com/coeeter/aniways/internal/service/anime"
+	"github.com/coeeter/aniways/internal/transport/http/handlers"
 	"github.com/go-chi/chi/v5"
 )
 

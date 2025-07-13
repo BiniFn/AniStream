@@ -3,8 +3,8 @@ package models
 import (
 	"sort"
 
-	"github.com/coeeter/aniways/internal/hianime"
-	"github.com/coeeter/aniways/internal/hianime/streaming"
+	"github.com/coeeter/aniways/internal/client/hianime"
+	"github.com/coeeter/aniways/internal/client/hianime/streaming"
 	"github.com/coeeter/aniways/internal/repository"
 )
 

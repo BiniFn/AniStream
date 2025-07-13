@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/coeeter/aniways/internal/hianime/streaming"
+	"github.com/coeeter/aniways/internal/client/hianime/streaming"
 )
 
 type HianimeScraper struct {

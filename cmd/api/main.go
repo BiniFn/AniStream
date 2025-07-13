@@ -7,12 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/coeeter/aniways/internal/api"
 	"github.com/coeeter/aniways/internal/cache"
+	"github.com/coeeter/aniways/internal/client/hianime"
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/database"
-	"github.com/coeeter/aniways/internal/hianime"
 	"github.com/coeeter/aniways/internal/repository"
+	"github.com/coeeter/aniways/internal/transport/http"
 	"github.com/coeeter/aniways/internal/worker"
 )
 
@@ -57,7 +57,7 @@ func main() {
 
 	go worker.HourlyTask(ctx, scraper, repo, redis)
 
-	app := api.New(env, repo, redis)
+	app := http.New(env, repo, redis)
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
