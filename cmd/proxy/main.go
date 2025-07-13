@@ -2,12 +2,15 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/base64"
 	"flag"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"os/signal"
 	"path"
 	"strings"
 	"time"
@@ -28,9 +31,40 @@ var (
 
 func main() {
 	flag.Parse()
-	http.HandleFunc("/proxy", proxyHandler)
-	log.Printf("📡 proxy listening on %s", *addr)
-	log.Fatal(http.ListenAndServe(*addr, nil))
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/proxy", proxyHandler)
+
+	srv := &http.Server{
+		Addr:    *addr,
+		Handler: mux,
+	}
+
+	errChan := make(chan error, 1)
+	go func() {
+		log.Printf("📡 proxy listening on %s", *addr)
+
+		if err := srv.ListenAndServe(); err != nil {
+			errChan <- err
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+
+	select {
+	case err := <-errChan:
+		log.Fatalf("Error starting server: %v", err)
+	case sig := <-stop:
+		log.Printf("🛑 caught signal %s, shutting down...", sig)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatalf("graceful shutdown failed: %v", err)
+		}
+		log.Println("✅ server stopped gracefully")
+		os.Exit(0)
+	}
 }
 
 func proxyHandler(w http.ResponseWriter, r *http.Request) {

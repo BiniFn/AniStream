@@ -21,11 +21,8 @@ migrate:           ## Generate migration files
 dev-api:            ## Hot-reload API with Air
 	air -c .air.toml
 
-dev-cron:           ## Run cron binary
-	go run ./cmd/cron
-
-dev-stream:         ## Run streaming proxy
-	go run ./cmd/streamer
+dev-proxy:
+	go run ./cmd/proxy
 
 # ----- SQLC ----- #
 sqlc:               ## Generate SQLC code
