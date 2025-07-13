@@ -1,0 +1,10 @@
+query GetMediaByMalId($idMal: Int!) {
+  Media(idMal: $idMal) {
+    id
+    title {
+      romaji
+      english
+      native
+    }
+  }
+}

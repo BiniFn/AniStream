@@ -50,6 +50,17 @@ docker:             ## Build multi-stage Docker image
 docker-compose:
 	docker-compose --env-file .env.local up -d
 
+# ----- GraphQL ----- #
+genqlient:          ## Generate GraphQL client code
+	@if [ ! -f schema.graphql ]; then \
+		npx --yes graphqurl https://graphql.anilist.co --introspect > schema.graphql; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to fetch schema.graphql"; \
+			exit 1; \
+		fi \
+	fi
+	genqlient genqlient.yaml
+
 help:               ## Show this help
 	@grep -E '^[a-zA-Z_\-]+:.*?## ' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN {FS=":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'

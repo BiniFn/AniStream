@@ -1,0 +1,6 @@
+schema:
+  - schema.graphql
+operations:
+  - ./internal/anilist/graphql/operations.graphql
+generated: internal/anilist/graphql/generated.go
+package: graphql

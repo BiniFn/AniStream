@@ -34,3 +34,5 @@ tmp/*
 .env*
 !.env.example
 
+schema.graphql
+
