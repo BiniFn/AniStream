@@ -28,23 +28,6 @@ LIMIT $1 OFFSET $2;
 SELECT COUNT(*)
 FROM animes
 WHERE genre ILIKE '%' || sqlc.arg(genre) || '%';
--- name: GetAnimeBySeason :many
-SELECT animes.*,
-  sqlc.embed(anime_metadata)
-FROM animes
-  LEFT JOIN anime_metadata ON animes.mal_id = anime_metadata.mal_id
-WHERE anime_metadata.season = sqlc.arg(season)
-  AND anime_metadata.season_year = sqlc.arg(season_year)
-ORDER BY animes.updated_at DESC
-LIMIT $1 OFFSET $2;
--- name: GetAnimeByMediaType :many
-SELECT animes.*,
-  sqlc.embed(anime_metadata)
-FROM animes
-  LEFT JOIN anime_metadata ON animes.mal_id = anime_metadata.mal_id
-WHERE anime_metadata.media_type = sqlc.arg(media_type)
-ORDER BY animes.updated_at DESC
-LIMIT $1 OFFSET $2;
 -- name: GetRandomAnime :one
 SELECT *
 FROM animes
