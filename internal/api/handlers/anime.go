@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/coeeter/aniways/internal/models"
 	animeSvc "github.com/coeeter/aniways/internal/service/anime"
 	"github.com/go-chi/chi/v5"
 )
@@ -18,6 +19,7 @@ func MountAnimeRoutes(r chi.Router, svc *animeSvc.Service) {
 	r.Get("/genres", listGenres(svc))
 	r.Get("/recently-updated", listRecentlyUpdated(svc))
 	r.Get("/search", searchAnimes(svc))
+	r.Get("/random", randomAnime(svc))
 }
 
 func getAnimeByID(svc *animeSvc.Service) http.HandlerFunc {
@@ -191,6 +193,35 @@ func getStreamingData(svc *animeSvc.Service) http.HandlerFunc {
 			jsonError(w, http.StatusInternalServerError, "failed to fetch streaming data")
 			return
 		}
+		jsonOK(w, resp)
+	}
+}
+
+func randomAnime(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		genre := r.URL.Query().Get("genre")
+
+		var (
+			resp models.AnimeDto
+			err  error
+		)
+
+		if genre != "" {
+			resp, err = svc.GetRandomAnimeByGenre(r.Context(), genre)
+			if err != nil {
+				log.Printf("failed to fetch random anime by genre %s: %v", genre, err)
+				jsonError(w, http.StatusInternalServerError, "failed to fetch random anime by genre")
+				return
+			}
+		} else {
+			resp, err = svc.GetRandomAnime(r.Context())
+			if err != nil {
+				log.Printf("failed to fetch random animes: %v", err)
+				jsonError(w, http.StatusInternalServerError, "failed to fetch random animes")
+				return
+			}
+		}
+
 		jsonOK(w, resp)
 	}
 }

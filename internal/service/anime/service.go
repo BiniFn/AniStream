@@ -351,3 +351,25 @@ func (s *Service) GetStreamingData(ctx context.Context, serverID, streamType, se
 
 	return dto, nil
 }
+
+func (s *Service) GetRandomAnime(ctx context.Context) (models.AnimeDto, error) {
+	data, err := s.repo.GetRandomAnime(ctx)
+	if err != nil {
+		log.Printf("failed to fetch random anime: %v", err)
+		return models.AnimeDto{}, err
+	}
+	return models.AnimeDto{}.FromRepository(data), nil
+}
+
+func (s *Service) GetRandomAnimeByGenre(ctx context.Context, genre string) (models.AnimeDto, error) {
+	if genre == "" {
+		return models.AnimeDto{}, fmt.Errorf("genre is required")
+	}
+
+	data, err := s.repo.GetRandomAnimeByGenre(ctx, pgtype.Text{String: genre, Valid: true})
+	if err != nil {
+		log.Printf("failed to fetch random anime by genre %s: %v", genre, err)
+		return models.AnimeDto{}, err
+	}
+	return models.AnimeDto{}.FromRepository(data), nil
+}
