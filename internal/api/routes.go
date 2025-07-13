@@ -24,6 +24,8 @@ func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, re
 		svc := animeSvc.New(repo, refresher, malClient, anilistClient, redis)
 
 		handlers.MountAnimeRoutes(r, svc)
+		handlers.MountAnimeListingsRoutes(r, svc)
+		handlers.MountAnimeEpisodesRoutes(r, svc)
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
