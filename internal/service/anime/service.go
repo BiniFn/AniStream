@@ -492,3 +492,122 @@ func (s *Service) GetAnimeBanner(ctx context.Context, id string) (string, error)
 
 	return bannerURL, nil
 }
+
+func (s *Service) GetTrendingAnimes(ctx context.Context) ([]models.AnimeDto, error) {
+	key := "trending_animes"
+	var cachedAnimes []models.AnimeDto
+	if ok, err := s.redis.Get(ctx, key, &cachedAnimes); err != nil {
+		log.Printf("failed to get trending animes from cache: %v", err)
+	} else if ok {
+		log.Printf("found %d trending animes in cache", len(cachedAnimes))
+		return cachedAnimes, nil
+	}
+
+	animes, err := s.anilistClient.GetTrendingAnime(ctx)
+	if err != nil {
+		log.Printf("failed to fetch trending animes: %v", err)
+		return nil, err
+	}
+
+	trendingAnimes := make([]models.AnimeDto, len(animes.Page.Media))
+	for i, a := range animes.Page.Media {
+		d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
+		if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
+			log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
+			continue
+		}
+		trendingAnimes[i] = models.AnimeDto{}.FromRepository(d)
+		go s.refresher.MaybeRefresh(context.Background(), d.MalID.Int32)
+	}
+
+	if err := s.redis.Set(ctx, key, trendingAnimes, 24*time.Hour); err != nil {
+		log.Printf("failed to cache trending animes: %v", err)
+	} else {
+		log.Printf("cached %d trending animes", len(trendingAnimes))
+	}
+
+	return trendingAnimes, nil
+}
+
+func (s *Service) GetPopularAnimes(ctx context.Context) ([]models.AnimeDto, error) {
+	key := "popular_animes"
+	var cachedAnimes []models.AnimeDto
+	if ok, err := s.redis.Get(ctx, key, &cachedAnimes); err != nil {
+		log.Printf("failed to get popular animes from cache: %v", err)
+	} else if ok {
+		log.Printf("found %d popular animes in cache", len(cachedAnimes))
+		return cachedAnimes, nil
+	}
+
+	animes, err := s.anilistClient.GetPopularAnime(ctx)
+	if err != nil {
+		log.Printf("failed to fetch popular animes: %v", err)
+		return nil, err
+	}
+
+	popularAnimes := make([]models.AnimeDto, len(animes.Page.Media))
+	for i, a := range animes.Page.Media {
+		d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
+		if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
+			log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
+			continue
+		}
+		popularAnimes[i] = models.AnimeDto{}.FromRepository(d)
+		go s.refresher.MaybeRefresh(context.Background(), d.MalID.Int32)
+	}
+
+	if err := s.redis.Set(ctx, key, popularAnimes, 24*time.Hour); err != nil {
+		log.Printf("failed to cache popular animes: %v", err)
+	} else {
+		log.Printf("cached %d popular animes", len(popularAnimes))
+	}
+
+	return popularAnimes, nil
+}
+
+func (s *Service) GetAnimesByGenre(ctx context.Context, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
+	if page < 1 || size < 1 {
+		return models.Pagination[models.AnimeDto]{}, fmt.Errorf("invalid pagination parameters: page=%d, size=%d", page, size)
+	}
+
+	if size > 100 {
+		return models.Pagination[models.AnimeDto]{}, fmt.Errorf("size too large: maximum is 100, got %d", size)
+	}
+
+	offset := int32((page - 1) * size)
+	limit := int32(size)
+
+	rows, err := s.repo.GetAnimeByGenre(ctx, repository.GetAnimeByGenreParams{
+		Genre:  pgtype.Text{String: genre, Valid: true},
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return models.Pagination[models.AnimeDto]{}, err
+	}
+
+	for _, r := range rows {
+		go s.refresher.MaybeRefresh(context.Background(), r.MalID.Int32)
+	}
+
+	total, err := s.repo.GetAnimeByGenreCount(ctx, pgtype.Text{String: genre, Valid: true})
+	if err != nil {
+		return models.Pagination[models.AnimeDto]{}, err
+	}
+
+	items := make([]models.AnimeDto, len(rows))
+	for i, a := range rows {
+		items[i] = models.AnimeDto{}.FromRepository(a)
+	}
+
+	totalPages := int((total + int64(size) - 1) / int64(size))
+	return models.Pagination[models.AnimeDto]{
+		PageInfo: models.PageInfo{
+			CurrentPage: page,
+			TotalPages:  totalPages,
+			HasNextPage: page < totalPages,
+			HasPrevPage: page > 1,
+		},
+		Items: items,
+	}, nil
+}

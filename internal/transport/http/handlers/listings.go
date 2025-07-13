@@ -14,7 +14,10 @@ func MountAnimeListingsRoutes(r chi.Router, svc *animeSvc.Service) {
 	r.Get("/seasonal", seasonalAnimes(svc))
 	r.Get("/random", randomAnime(svc))
 	r.Get("/genres", listGenres(svc))
+	r.Get("/genres/{genre}", animeByGenre(svc))
 	r.Get("/search", searchAnimes(svc))
+	r.Get("/trending", trendingAnimes(svc))
+	r.Get("/popular", popularAnimes(svc))
 }
 
 func listRecentlyUpdated(svc *animeSvc.Service) http.HandlerFunc {
@@ -116,6 +119,54 @@ func searchAnimes(svc *animeSvc.Service) http.HandlerFunc {
 		if err != nil {
 			log.Printf("failed to search animes: %v", err)
 			jsonError(w, http.StatusInternalServerError, "failed to search animes")
+			return
+		}
+		jsonOK(w, resp)
+	}
+}
+
+func animeByGenre(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		genre := chi.URLParam(r, "genre")
+		if genre == "" {
+			jsonError(w, http.StatusBadRequest, "genre is required")
+			return
+		}
+
+		page, size, err := parsePagination(r, 1, 30)
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		resp, err := svc.GetAnimesByGenre(r.Context(), genre, page, size)
+		if err != nil {
+			log.Printf("failed to fetch animes by genre %s: %v", genre, err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch animes by genre")
+			return
+		}
+		jsonOK(w, resp)
+	}
+}
+
+func trendingAnimes(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.GetTrendingAnimes(r.Context())
+		if err != nil {
+			log.Printf("failed to fetch trending animes: %v", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch trending animes")
+			return
+		}
+		jsonOK(w, resp)
+	}
+}
+
+func popularAnimes(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.GetPopularAnimes(r.Context())
+		if err != nil {
+			log.Printf("failed to fetch popular animes: %v", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch popular animes")
 			return
 		}
 		jsonOK(w, resp)

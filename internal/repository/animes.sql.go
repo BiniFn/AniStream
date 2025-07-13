@@ -111,6 +111,19 @@ func (q *Queries) GetAnimeByGenre(ctx context.Context, arg GetAnimeByGenreParams
 	return items, nil
 }
 
+const getAnimeByGenreCount = `-- name: GetAnimeByGenreCount :one
+SELECT COUNT(*)
+FROM animes
+WHERE genre ILIKE '%' || $1 || '%'
+`
+
+func (q *Queries) GetAnimeByGenreCount(ctx context.Context, genre pgtype.Text) (int64, error) {
+	row := q.db.QueryRow(ctx, getAnimeByGenreCount, genre)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getAnimeByHiAnimeId = `-- name: GetAnimeByHiAnimeId :one
 SELECT id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector
 FROM animes

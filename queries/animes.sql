@@ -24,6 +24,10 @@ FROM animes
 WHERE genre ILIKE '%' || sqlc.arg(genre) || '%'
 ORDER BY updated_at DESC
 LIMIT $1 OFFSET $2;
+-- name: GetAnimeByGenreCount :one
+SELECT COUNT(*)
+FROM animes
+WHERE genre ILIKE '%' || sqlc.arg(genre) || '%';
 -- name: GetAnimeBySeason :many
 SELECT animes.*,
   sqlc.embed(anime_metadata)
