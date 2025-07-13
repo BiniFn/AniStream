@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/coeeter/aniways/internal/anilist"
 	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/hianime"
 	"github.com/coeeter/aniways/internal/models"
@@ -18,25 +19,28 @@ import (
 )
 
 type Service struct {
-	repo      *repository.Queries
-	refresher *MetadataRefresher
-	scraper   *hianime.HianimeScraper
-	malClient *myanimelist.Client
-	redis     *cache.RedisClient
+	repo          *repository.Queries
+	refresher     *MetadataRefresher
+	scraper       *hianime.HianimeScraper
+	malClient     *myanimelist.Client
+	anilistClient *anilist.Client
+	redis         *cache.RedisClient
 }
 
 func New(
 	repo *repository.Queries,
 	refresher *MetadataRefresher,
 	malClient *myanimelist.Client,
+	anilistClient *anilist.Client,
 	redis *cache.RedisClient,
 ) *Service {
 	return &Service{
-		repo:      repo,
-		refresher: refresher,
-		malClient: malClient,
-		scraper:   hianime.NewHianimeScraper(),
-		redis:     redis,
+		repo:          repo,
+		refresher:     refresher,
+		malClient:     malClient,
+		anilistClient: anilistClient,
+		scraper:       hianime.NewHianimeScraper(),
+		redis:         redis,
 	}
 }
 
@@ -372,4 +376,74 @@ func (s *Service) GetRandomAnimeByGenre(ctx context.Context, genre string) (mode
 		return models.AnimeDto{}, err
 	}
 	return models.AnimeDto{}.FromRepository(data), nil
+}
+
+func (s *Service) GetSeasonalAnimes(ctx context.Context) ([]models.SeasonalAnimeDto, error) {
+	key := "seasonal_animes"
+	var cachedAnimes []models.SeasonalAnimeDto
+	if ok, err := s.redis.Get(ctx, key, &cachedAnimes); err != nil {
+		log.Printf("failed to get seasonal animes from cache: %v", err)
+	} else if ok {
+		log.Printf("found %d seasonal animes in cache", len(cachedAnimes))
+		return cachedAnimes, nil
+	}
+
+	year := time.Now().Year()
+	month := time.Now().Month()
+
+	season := "WINTER"
+	switch month {
+	case time.February, time.March, time.April:
+		season = "WINTER"
+	case time.May, time.June, time.July:
+		season = "SPRING"
+	case time.August, time.September, time.October:
+		season = "SUMMER"
+	case time.November, time.December, time.January:
+		season = "FALL"
+	}
+	animes, err := s.anilistClient.GetSeasonalMedia(ctx, year, season)
+	if err != nil {
+		log.Printf("failed to fetch seasonal animes for year %d season %s: %v", year, season, err)
+		return nil, err
+	}
+
+	dbAnimes := make([]repository.Anime, len(animes.Page.Media))
+	for i, a := range animes.Page.Media {
+		d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
+		if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
+			log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
+			continue
+		}
+		dbAnimes[i] = d
+	}
+
+	seasonalAnimes := make([]models.SeasonalAnimeDto, len(animes.Page.Media))
+	for i, a := range animes.Page.Media {
+		dbAnime := dbAnimes[i]
+		startDate := time.Date(
+			a.StartDate.Year,
+			time.Month(a.StartDate.Month),
+			a.StartDate.Day,
+			0, 0, 0, 0,
+			time.UTC,
+		)
+		seasonalAnimes[i] = models.SeasonalAnimeDto{
+			ID:             dbAnime.ID,
+			BannerImageURL: a.BannerImage,
+			Description:    a.Description,
+			Type:           string(a.Type),
+			StartDate:      startDate.UnixMilli(),
+			Episodes:       int32(a.Episodes),
+			Anime:          models.AnimeDto{}.FromRepository(dbAnime),
+		}
+	}
+
+	if err := s.redis.Set(ctx, key, seasonalAnimes, 30*24*time.Hour); err != nil {
+		log.Printf("failed to cache seasonal animes: %v", err)
+	} else {
+		log.Printf("cached %d seasonal animes", len(seasonalAnimes))
+	}
+
+	return seasonalAnimes, nil
 }

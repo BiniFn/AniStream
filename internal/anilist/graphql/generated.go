@@ -8,90 +8,797 @@ import (
 	"github.com/Khan/genqlient/graphql"
 )
 
-// GetMediaByMalIdMedia includes the requested fields of the GraphQL type Media.
+// GetAnimeDetailsMedia includes the requested fields of the GraphQL type Media.
 // The GraphQL type's documentation follows.
 //
 // Anime or Manga
-type GetMediaByMalIdMedia struct {
+type GetAnimeDetailsMedia struct {
 	// The id of the media
 	Id int `json:"id"`
+	// The mal id of the media
+	IdMal int `json:"idMal"`
 	// The official titles of the media in various languages
-	Title GetMediaByMalIdMediaTitle `json:"title"`
+	Title GetAnimeDetailsMediaTitle `json:"title"`
+	// The type of the media; anime or manga
+	Type MediaType `json:"type"`
+	// The banner image of the media
+	BannerImage string `json:"bannerImage"`
+	// The cover images of the media
+	CoverImage GetAnimeDetailsMediaCoverImage `json:"coverImage"`
+	// Short description of the media's story and characters
+	Description string `json:"description"`
+	// The format the media was released in
+	Format MediaFormat `json:"format"`
+	// The amount of episodes the anime has when complete
+	Episodes int `json:"episodes"`
+	// The first official release date of the media
+	StartDate GetAnimeDetailsMediaStartDateFuzzyDate `json:"startDate"`
 }
 
-// GetId returns GetMediaByMalIdMedia.Id, and is useful for accessing the field via an interface.
-func (v *GetMediaByMalIdMedia) GetId() int { return v.Id }
+// GetId returns GetAnimeDetailsMedia.Id, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetId() int { return v.Id }
 
-// GetTitle returns GetMediaByMalIdMedia.Title, and is useful for accessing the field via an interface.
-func (v *GetMediaByMalIdMedia) GetTitle() GetMediaByMalIdMediaTitle { return v.Title }
+// GetIdMal returns GetAnimeDetailsMedia.IdMal, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetIdMal() int { return v.IdMal }
 
-// GetMediaByMalIdMediaTitle includes the requested fields of the GraphQL type MediaTitle.
+// GetTitle returns GetAnimeDetailsMedia.Title, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetTitle() GetAnimeDetailsMediaTitle { return v.Title }
+
+// GetType returns GetAnimeDetailsMedia.Type, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetType() MediaType { return v.Type }
+
+// GetBannerImage returns GetAnimeDetailsMedia.BannerImage, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetBannerImage() string { return v.BannerImage }
+
+// GetCoverImage returns GetAnimeDetailsMedia.CoverImage, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetCoverImage() GetAnimeDetailsMediaCoverImage { return v.CoverImage }
+
+// GetDescription returns GetAnimeDetailsMedia.Description, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetDescription() string { return v.Description }
+
+// GetFormat returns GetAnimeDetailsMedia.Format, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetFormat() MediaFormat { return v.Format }
+
+// GetEpisodes returns GetAnimeDetailsMedia.Episodes, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetEpisodes() int { return v.Episodes }
+
+// GetStartDate returns GetAnimeDetailsMedia.StartDate, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMedia) GetStartDate() GetAnimeDetailsMediaStartDateFuzzyDate {
+	return v.StartDate
+}
+
+// GetAnimeDetailsMediaCoverImage includes the requested fields of the GraphQL type MediaCoverImage.
+type GetAnimeDetailsMediaCoverImage struct {
+	// The cover image url of the media at a large size
+	Large string `json:"large"`
+	// The cover image url of the media at its largest size. If this size isn't available, large will be provided instead.
+	ExtraLarge string `json:"extraLarge"`
+}
+
+// GetLarge returns GetAnimeDetailsMediaCoverImage.Large, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMediaCoverImage) GetLarge() string { return v.Large }
+
+// GetExtraLarge returns GetAnimeDetailsMediaCoverImage.ExtraLarge, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMediaCoverImage) GetExtraLarge() string { return v.ExtraLarge }
+
+// GetAnimeDetailsMediaStartDateFuzzyDate includes the requested fields of the GraphQL type FuzzyDate.
+// The GraphQL type's documentation follows.
+//
+// Date object that allows for incomplete date values (fuzzy)
+type GetAnimeDetailsMediaStartDateFuzzyDate struct {
+	// Numeric Year (2017)
+	Year int `json:"year"`
+	// Numeric Month (3)
+	Month int `json:"month"`
+	// Numeric Day (24)
+	Day int `json:"day"`
+}
+
+// GetYear returns GetAnimeDetailsMediaStartDateFuzzyDate.Year, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMediaStartDateFuzzyDate) GetYear() int { return v.Year }
+
+// GetMonth returns GetAnimeDetailsMediaStartDateFuzzyDate.Month, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMediaStartDateFuzzyDate) GetMonth() int { return v.Month }
+
+// GetDay returns GetAnimeDetailsMediaStartDateFuzzyDate.Day, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMediaStartDateFuzzyDate) GetDay() int { return v.Day }
+
+// GetAnimeDetailsMediaTitle includes the requested fields of the GraphQL type MediaTitle.
 // The GraphQL type's documentation follows.
 //
 // The official titles of the media in various languages
-type GetMediaByMalIdMediaTitle struct {
+type GetAnimeDetailsMediaTitle struct {
 	// The romanization of the native language title
 	Romaji string `json:"romaji"`
-	// The official english title
-	English string `json:"english"`
-	// Official title in it's native language
-	Native string `json:"native"`
 }
 
-// GetRomaji returns GetMediaByMalIdMediaTitle.Romaji, and is useful for accessing the field via an interface.
-func (v *GetMediaByMalIdMediaTitle) GetRomaji() string { return v.Romaji }
+// GetRomaji returns GetAnimeDetailsMediaTitle.Romaji, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsMediaTitle) GetRomaji() string { return v.Romaji }
 
-// GetEnglish returns GetMediaByMalIdMediaTitle.English, and is useful for accessing the field via an interface.
-func (v *GetMediaByMalIdMediaTitle) GetEnglish() string { return v.English }
-
-// GetNative returns GetMediaByMalIdMediaTitle.Native, and is useful for accessing the field via an interface.
-func (v *GetMediaByMalIdMediaTitle) GetNative() string { return v.Native }
-
-// GetMediaByMalIdResponse is returned by GetMediaByMalId on success.
-type GetMediaByMalIdResponse struct {
+// GetAnimeDetailsResponse is returned by GetAnimeDetails on success.
+type GetAnimeDetailsResponse struct {
 	// Media query
-	Media GetMediaByMalIdMedia `json:"Media"`
+	Media GetAnimeDetailsMedia `json:"Media"`
 }
 
-// GetMedia returns GetMediaByMalIdResponse.Media, and is useful for accessing the field via an interface.
-func (v *GetMediaByMalIdResponse) GetMedia() GetMediaByMalIdMedia { return v.Media }
+// GetMedia returns GetAnimeDetailsResponse.Media, and is useful for accessing the field via an interface.
+func (v *GetAnimeDetailsResponse) GetMedia() GetAnimeDetailsMedia { return v.Media }
 
-// __GetMediaByMalIdInput is used internally by genqlient
-type __GetMediaByMalIdInput struct {
+// GetPopularAnimePage includes the requested fields of the GraphQL type Page.
+// The GraphQL type's documentation follows.
+//
+// Page of data
+type GetPopularAnimePage struct {
+	Media []GetPopularAnimePageMedia `json:"media"`
+}
+
+// GetMedia returns GetPopularAnimePage.Media, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePage) GetMedia() []GetPopularAnimePageMedia { return v.Media }
+
+// GetPopularAnimePageMedia includes the requested fields of the GraphQL type Media.
+// The GraphQL type's documentation follows.
+//
+// Anime or Manga
+type GetPopularAnimePageMedia struct {
+	// The id of the media
+	Id int `json:"id"`
+	// The mal id of the media
+	IdMal int `json:"idMal"`
+	// The official titles of the media in various languages
+	Title GetPopularAnimePageMediaTitle `json:"title"`
+	// The type of the media; anime or manga
+	Type MediaType `json:"type"`
+	// The banner image of the media
+	BannerImage string `json:"bannerImage"`
+	// The cover images of the media
+	CoverImage GetPopularAnimePageMediaCoverImage `json:"coverImage"`
+	// Short description of the media's story and characters
+	Description string `json:"description"`
+	// The format the media was released in
+	Format MediaFormat `json:"format"`
+	// The amount of episodes the anime has when complete
+	Episodes int `json:"episodes"`
+	// The first official release date of the media
+	StartDate GetPopularAnimePageMediaStartDateFuzzyDate `json:"startDate"`
+}
+
+// GetId returns GetPopularAnimePageMedia.Id, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetId() int { return v.Id }
+
+// GetIdMal returns GetPopularAnimePageMedia.IdMal, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetIdMal() int { return v.IdMal }
+
+// GetTitle returns GetPopularAnimePageMedia.Title, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetTitle() GetPopularAnimePageMediaTitle { return v.Title }
+
+// GetType returns GetPopularAnimePageMedia.Type, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetType() MediaType { return v.Type }
+
+// GetBannerImage returns GetPopularAnimePageMedia.BannerImage, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetBannerImage() string { return v.BannerImage }
+
+// GetCoverImage returns GetPopularAnimePageMedia.CoverImage, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetCoverImage() GetPopularAnimePageMediaCoverImage {
+	return v.CoverImage
+}
+
+// GetDescription returns GetPopularAnimePageMedia.Description, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetDescription() string { return v.Description }
+
+// GetFormat returns GetPopularAnimePageMedia.Format, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetFormat() MediaFormat { return v.Format }
+
+// GetEpisodes returns GetPopularAnimePageMedia.Episodes, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetEpisodes() int { return v.Episodes }
+
+// GetStartDate returns GetPopularAnimePageMedia.StartDate, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMedia) GetStartDate() GetPopularAnimePageMediaStartDateFuzzyDate {
+	return v.StartDate
+}
+
+// GetPopularAnimePageMediaCoverImage includes the requested fields of the GraphQL type MediaCoverImage.
+type GetPopularAnimePageMediaCoverImage struct {
+	// The cover image url of the media at a large size
+	Large string `json:"large"`
+	// The cover image url of the media at its largest size. If this size isn't available, large will be provided instead.
+	ExtraLarge string `json:"extraLarge"`
+}
+
+// GetLarge returns GetPopularAnimePageMediaCoverImage.Large, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMediaCoverImage) GetLarge() string { return v.Large }
+
+// GetExtraLarge returns GetPopularAnimePageMediaCoverImage.ExtraLarge, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMediaCoverImage) GetExtraLarge() string { return v.ExtraLarge }
+
+// GetPopularAnimePageMediaStartDateFuzzyDate includes the requested fields of the GraphQL type FuzzyDate.
+// The GraphQL type's documentation follows.
+//
+// Date object that allows for incomplete date values (fuzzy)
+type GetPopularAnimePageMediaStartDateFuzzyDate struct {
+	// Numeric Year (2017)
+	Year int `json:"year"`
+	// Numeric Month (3)
+	Month int `json:"month"`
+	// Numeric Day (24)
+	Day int `json:"day"`
+}
+
+// GetYear returns GetPopularAnimePageMediaStartDateFuzzyDate.Year, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMediaStartDateFuzzyDate) GetYear() int { return v.Year }
+
+// GetMonth returns GetPopularAnimePageMediaStartDateFuzzyDate.Month, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMediaStartDateFuzzyDate) GetMonth() int { return v.Month }
+
+// GetDay returns GetPopularAnimePageMediaStartDateFuzzyDate.Day, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMediaStartDateFuzzyDate) GetDay() int { return v.Day }
+
+// GetPopularAnimePageMediaTitle includes the requested fields of the GraphQL type MediaTitle.
+// The GraphQL type's documentation follows.
+//
+// The official titles of the media in various languages
+type GetPopularAnimePageMediaTitle struct {
+	// The romanization of the native language title
+	Romaji string `json:"romaji"`
+}
+
+// GetRomaji returns GetPopularAnimePageMediaTitle.Romaji, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimePageMediaTitle) GetRomaji() string { return v.Romaji }
+
+// GetPopularAnimeResponse is returned by GetPopularAnime on success.
+type GetPopularAnimeResponse struct {
+	Page GetPopularAnimePage `json:"page"`
+}
+
+// GetPage returns GetPopularAnimeResponse.Page, and is useful for accessing the field via an interface.
+func (v *GetPopularAnimeResponse) GetPage() GetPopularAnimePage { return v.Page }
+
+// GetSeasonalAnimePage includes the requested fields of the GraphQL type Page.
+// The GraphQL type's documentation follows.
+//
+// Page of data
+type GetSeasonalAnimePage struct {
+	Media []GetSeasonalAnimePageMedia `json:"media"`
+}
+
+// GetMedia returns GetSeasonalAnimePage.Media, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePage) GetMedia() []GetSeasonalAnimePageMedia { return v.Media }
+
+// GetSeasonalAnimePageMedia includes the requested fields of the GraphQL type Media.
+// The GraphQL type's documentation follows.
+//
+// Anime or Manga
+type GetSeasonalAnimePageMedia struct {
+	// The id of the media
+	Id int `json:"id"`
+	// The mal id of the media
+	IdMal int `json:"idMal"`
+	// The official titles of the media in various languages
+	Title GetSeasonalAnimePageMediaTitle `json:"title"`
+	// The type of the media; anime or manga
+	Type MediaType `json:"type"`
+	// The banner image of the media
+	BannerImage string `json:"bannerImage"`
+	// The cover images of the media
+	CoverImage GetSeasonalAnimePageMediaCoverImage `json:"coverImage"`
+	// Short description of the media's story and characters
+	Description string `json:"description"`
+	// The format the media was released in
+	Format MediaFormat `json:"format"`
+	// The amount of episodes the anime has when complete
+	Episodes int `json:"episodes"`
+	// The first official release date of the media
+	StartDate GetSeasonalAnimePageMediaStartDateFuzzyDate `json:"startDate"`
+}
+
+// GetId returns GetSeasonalAnimePageMedia.Id, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetId() int { return v.Id }
+
+// GetIdMal returns GetSeasonalAnimePageMedia.IdMal, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetIdMal() int { return v.IdMal }
+
+// GetTitle returns GetSeasonalAnimePageMedia.Title, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetTitle() GetSeasonalAnimePageMediaTitle { return v.Title }
+
+// GetType returns GetSeasonalAnimePageMedia.Type, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetType() MediaType { return v.Type }
+
+// GetBannerImage returns GetSeasonalAnimePageMedia.BannerImage, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetBannerImage() string { return v.BannerImage }
+
+// GetCoverImage returns GetSeasonalAnimePageMedia.CoverImage, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetCoverImage() GetSeasonalAnimePageMediaCoverImage {
+	return v.CoverImage
+}
+
+// GetDescription returns GetSeasonalAnimePageMedia.Description, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetDescription() string { return v.Description }
+
+// GetFormat returns GetSeasonalAnimePageMedia.Format, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetFormat() MediaFormat { return v.Format }
+
+// GetEpisodes returns GetSeasonalAnimePageMedia.Episodes, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetEpisodes() int { return v.Episodes }
+
+// GetStartDate returns GetSeasonalAnimePageMedia.StartDate, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMedia) GetStartDate() GetSeasonalAnimePageMediaStartDateFuzzyDate {
+	return v.StartDate
+}
+
+// GetSeasonalAnimePageMediaCoverImage includes the requested fields of the GraphQL type MediaCoverImage.
+type GetSeasonalAnimePageMediaCoverImage struct {
+	// The cover image url of the media at a large size
+	Large string `json:"large"`
+	// The cover image url of the media at its largest size. If this size isn't available, large will be provided instead.
+	ExtraLarge string `json:"extraLarge"`
+}
+
+// GetLarge returns GetSeasonalAnimePageMediaCoverImage.Large, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMediaCoverImage) GetLarge() string { return v.Large }
+
+// GetExtraLarge returns GetSeasonalAnimePageMediaCoverImage.ExtraLarge, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMediaCoverImage) GetExtraLarge() string { return v.ExtraLarge }
+
+// GetSeasonalAnimePageMediaStartDateFuzzyDate includes the requested fields of the GraphQL type FuzzyDate.
+// The GraphQL type's documentation follows.
+//
+// Date object that allows for incomplete date values (fuzzy)
+type GetSeasonalAnimePageMediaStartDateFuzzyDate struct {
+	// Numeric Year (2017)
+	Year int `json:"year"`
+	// Numeric Month (3)
+	Month int `json:"month"`
+	// Numeric Day (24)
+	Day int `json:"day"`
+}
+
+// GetYear returns GetSeasonalAnimePageMediaStartDateFuzzyDate.Year, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMediaStartDateFuzzyDate) GetYear() int { return v.Year }
+
+// GetMonth returns GetSeasonalAnimePageMediaStartDateFuzzyDate.Month, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMediaStartDateFuzzyDate) GetMonth() int { return v.Month }
+
+// GetDay returns GetSeasonalAnimePageMediaStartDateFuzzyDate.Day, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMediaStartDateFuzzyDate) GetDay() int { return v.Day }
+
+// GetSeasonalAnimePageMediaTitle includes the requested fields of the GraphQL type MediaTitle.
+// The GraphQL type's documentation follows.
+//
+// The official titles of the media in various languages
+type GetSeasonalAnimePageMediaTitle struct {
+	// The romanization of the native language title
+	Romaji string `json:"romaji"`
+}
+
+// GetRomaji returns GetSeasonalAnimePageMediaTitle.Romaji, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimePageMediaTitle) GetRomaji() string { return v.Romaji }
+
+// GetSeasonalAnimeResponse is returned by GetSeasonalAnime on success.
+type GetSeasonalAnimeResponse struct {
+	Page GetSeasonalAnimePage `json:"page"`
+}
+
+// GetPage returns GetSeasonalAnimeResponse.Page, and is useful for accessing the field via an interface.
+func (v *GetSeasonalAnimeResponse) GetPage() GetSeasonalAnimePage { return v.Page }
+
+// GetTrendingAnimePage includes the requested fields of the GraphQL type Page.
+// The GraphQL type's documentation follows.
+//
+// Page of data
+type GetTrendingAnimePage struct {
+	Media []GetTrendingAnimePageMedia `json:"media"`
+}
+
+// GetMedia returns GetTrendingAnimePage.Media, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePage) GetMedia() []GetTrendingAnimePageMedia { return v.Media }
+
+// GetTrendingAnimePageMedia includes the requested fields of the GraphQL type Media.
+// The GraphQL type's documentation follows.
+//
+// Anime or Manga
+type GetTrendingAnimePageMedia struct {
+	// The id of the media
+	Id int `json:"id"`
+	// The mal id of the media
+	IdMal int `json:"idMal"`
+	// The official titles of the media in various languages
+	Title GetTrendingAnimePageMediaTitle `json:"title"`
+	// The type of the media; anime or manga
+	Type MediaType `json:"type"`
+	// The banner image of the media
+	BannerImage string `json:"bannerImage"`
+	// The cover images of the media
+	CoverImage GetTrendingAnimePageMediaCoverImage `json:"coverImage"`
+	// Short description of the media's story and characters
+	Description string `json:"description"`
+	// The format the media was released in
+	Format MediaFormat `json:"format"`
+	// The amount of episodes the anime has when complete
+	Episodes int `json:"episodes"`
+	// The first official release date of the media
+	StartDate GetTrendingAnimePageMediaStartDateFuzzyDate `json:"startDate"`
+}
+
+// GetId returns GetTrendingAnimePageMedia.Id, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetId() int { return v.Id }
+
+// GetIdMal returns GetTrendingAnimePageMedia.IdMal, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetIdMal() int { return v.IdMal }
+
+// GetTitle returns GetTrendingAnimePageMedia.Title, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetTitle() GetTrendingAnimePageMediaTitle { return v.Title }
+
+// GetType returns GetTrendingAnimePageMedia.Type, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetType() MediaType { return v.Type }
+
+// GetBannerImage returns GetTrendingAnimePageMedia.BannerImage, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetBannerImage() string { return v.BannerImage }
+
+// GetCoverImage returns GetTrendingAnimePageMedia.CoverImage, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetCoverImage() GetTrendingAnimePageMediaCoverImage {
+	return v.CoverImage
+}
+
+// GetDescription returns GetTrendingAnimePageMedia.Description, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetDescription() string { return v.Description }
+
+// GetFormat returns GetTrendingAnimePageMedia.Format, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetFormat() MediaFormat { return v.Format }
+
+// GetEpisodes returns GetTrendingAnimePageMedia.Episodes, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetEpisodes() int { return v.Episodes }
+
+// GetStartDate returns GetTrendingAnimePageMedia.StartDate, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMedia) GetStartDate() GetTrendingAnimePageMediaStartDateFuzzyDate {
+	return v.StartDate
+}
+
+// GetTrendingAnimePageMediaCoverImage includes the requested fields of the GraphQL type MediaCoverImage.
+type GetTrendingAnimePageMediaCoverImage struct {
+	// The cover image url of the media at a large size
+	Large string `json:"large"`
+	// The cover image url of the media at its largest size. If this size isn't available, large will be provided instead.
+	ExtraLarge string `json:"extraLarge"`
+}
+
+// GetLarge returns GetTrendingAnimePageMediaCoverImage.Large, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMediaCoverImage) GetLarge() string { return v.Large }
+
+// GetExtraLarge returns GetTrendingAnimePageMediaCoverImage.ExtraLarge, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMediaCoverImage) GetExtraLarge() string { return v.ExtraLarge }
+
+// GetTrendingAnimePageMediaStartDateFuzzyDate includes the requested fields of the GraphQL type FuzzyDate.
+// The GraphQL type's documentation follows.
+//
+// Date object that allows for incomplete date values (fuzzy)
+type GetTrendingAnimePageMediaStartDateFuzzyDate struct {
+	// Numeric Year (2017)
+	Year int `json:"year"`
+	// Numeric Month (3)
+	Month int `json:"month"`
+	// Numeric Day (24)
+	Day int `json:"day"`
+}
+
+// GetYear returns GetTrendingAnimePageMediaStartDateFuzzyDate.Year, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMediaStartDateFuzzyDate) GetYear() int { return v.Year }
+
+// GetMonth returns GetTrendingAnimePageMediaStartDateFuzzyDate.Month, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMediaStartDateFuzzyDate) GetMonth() int { return v.Month }
+
+// GetDay returns GetTrendingAnimePageMediaStartDateFuzzyDate.Day, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMediaStartDateFuzzyDate) GetDay() int { return v.Day }
+
+// GetTrendingAnimePageMediaTitle includes the requested fields of the GraphQL type MediaTitle.
+// The GraphQL type's documentation follows.
+//
+// The official titles of the media in various languages
+type GetTrendingAnimePageMediaTitle struct {
+	// The romanization of the native language title
+	Romaji string `json:"romaji"`
+}
+
+// GetRomaji returns GetTrendingAnimePageMediaTitle.Romaji, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimePageMediaTitle) GetRomaji() string { return v.Romaji }
+
+// GetTrendingAnimeResponse is returned by GetTrendingAnime on success.
+type GetTrendingAnimeResponse struct {
+	Page GetTrendingAnimePage `json:"page"`
+}
+
+// GetPage returns GetTrendingAnimeResponse.Page, and is useful for accessing the field via an interface.
+func (v *GetTrendingAnimeResponse) GetPage() GetTrendingAnimePage { return v.Page }
+
+// The format the media was released in
+type MediaFormat string
+
+const (
+	// Anime broadcast on television
+	MediaFormatTv MediaFormat = "TV"
+	// Anime which are under 15 minutes in length and broadcast on television
+	MediaFormatTvShort MediaFormat = "TV_SHORT"
+	// Anime movies with a theatrical release
+	MediaFormatMovie MediaFormat = "MOVIE"
+	// Special episodes that have been included in DVD/Blu-ray releases, picture dramas, pilots, etc
+	MediaFormatSpecial MediaFormat = "SPECIAL"
+	// (Original Video Animation) Anime that have been released directly on DVD/Blu-ray without originally going through a theatrical release or television broadcast
+	MediaFormatOva MediaFormat = "OVA"
+	// (Original Net Animation) Anime that have been originally released online or are only available through streaming services.
+	MediaFormatOna MediaFormat = "ONA"
+	// Short anime released as a music video
+	MediaFormatMusic MediaFormat = "MUSIC"
+	// Professionally published manga with more than one chapter
+	MediaFormatManga MediaFormat = "MANGA"
+	// Written books released as a series of light novels
+	MediaFormatNovel MediaFormat = "NOVEL"
+	// Manga with just one chapter
+	MediaFormatOneShot MediaFormat = "ONE_SHOT"
+)
+
+var AllMediaFormat = []MediaFormat{
+	MediaFormatTv,
+	MediaFormatTvShort,
+	MediaFormatMovie,
+	MediaFormatSpecial,
+	MediaFormatOva,
+	MediaFormatOna,
+	MediaFormatMusic,
+	MediaFormatManga,
+	MediaFormatNovel,
+	MediaFormatOneShot,
+}
+
+type MediaSeason string
+
+const (
+	// Months December to February
+	MediaSeasonWinter MediaSeason = "WINTER"
+	// Months March to May
+	MediaSeasonSpring MediaSeason = "SPRING"
+	// Months June to August
+	MediaSeasonSummer MediaSeason = "SUMMER"
+	// Months September to November
+	MediaSeasonFall MediaSeason = "FALL"
+)
+
+var AllMediaSeason = []MediaSeason{
+	MediaSeasonWinter,
+	MediaSeasonSpring,
+	MediaSeasonSummer,
+	MediaSeasonFall,
+}
+
+// Media type enum, anime or manga.
+type MediaType string
+
+const (
+	// Japanese Anime
+	MediaTypeAnime MediaType = "ANIME"
+	// Asian comic
+	MediaTypeManga MediaType = "MANGA"
+)
+
+var AllMediaType = []MediaType{
+	MediaTypeAnime,
+	MediaTypeManga,
+}
+
+// __GetAnimeDetailsInput is used internally by genqlient
+type __GetAnimeDetailsInput struct {
 	IdMal int `json:"idMal"`
 }
 
-// GetIdMal returns __GetMediaByMalIdInput.IdMal, and is useful for accessing the field via an interface.
-func (v *__GetMediaByMalIdInput) GetIdMal() int { return v.IdMal }
+// GetIdMal returns __GetAnimeDetailsInput.IdMal, and is useful for accessing the field via an interface.
+func (v *__GetAnimeDetailsInput) GetIdMal() int { return v.IdMal }
 
-// The query executed by GetMediaByMalId.
-const GetMediaByMalId_Operation = `
-query GetMediaByMalId ($idMal: Int!) {
-	Media(idMal: $idMal) {
+// __GetSeasonalAnimeInput is used internally by genqlient
+type __GetSeasonalAnimeInput struct {
+	Year   int         `json:"year"`
+	Season MediaSeason `json:"season"`
+}
+
+// GetYear returns __GetSeasonalAnimeInput.Year, and is useful for accessing the field via an interface.
+func (v *__GetSeasonalAnimeInput) GetYear() int { return v.Year }
+
+// GetSeason returns __GetSeasonalAnimeInput.Season, and is useful for accessing the field via an interface.
+func (v *__GetSeasonalAnimeInput) GetSeason() MediaSeason { return v.Season }
+
+// The query executed by GetAnimeDetails.
+const GetAnimeDetails_Operation = `
+query GetAnimeDetails ($idMal: Int!) {
+	Media(idMal: $idMal, type: ANIME) {
 		id
+		idMal
 		title {
 			romaji
-			english
-			native
+		}
+		type
+		bannerImage
+		coverImage {
+			large
+			extraLarge
+		}
+		description
+		format
+		episodes
+		startDate {
+			year
+			month
+			day
 		}
 	}
 }
 `
 
-func GetMediaByMalId(
+func GetAnimeDetails(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	idMal int,
-) (data_ *GetMediaByMalIdResponse, err_ error) {
+) (data_ *GetAnimeDetailsResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "GetMediaByMalId",
-		Query:  GetMediaByMalId_Operation,
-		Variables: &__GetMediaByMalIdInput{
+		OpName: "GetAnimeDetails",
+		Query:  GetAnimeDetails_Operation,
+		Variables: &__GetAnimeDetailsInput{
 			IdMal: idMal,
 		},
 	}
 
-	data_ = &GetMediaByMalIdResponse{}
+	data_ = &GetAnimeDetailsResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by GetPopularAnime.
+const GetPopularAnime_Operation = `
+query GetPopularAnime {
+	page: Page(page: 1, perPage: 10) {
+		media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+			id
+			idMal
+			title {
+				romaji
+			}
+			type
+			bannerImage
+			coverImage {
+				large
+				extraLarge
+			}
+			description
+			format
+			episodes
+			startDate {
+				year
+				month
+				day
+			}
+		}
+	}
+}
+`
+
+func GetPopularAnime(
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *GetPopularAnimeResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetPopularAnime",
+		Query:  GetPopularAnime_Operation,
+	}
+
+	data_ = &GetPopularAnimeResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by GetSeasonalAnime.
+const GetSeasonalAnime_Operation = `
+query GetSeasonalAnime ($year: Int!, $season: MediaSeason!) {
+	page: Page(page: 1, perPage: 10) {
+		media(season: $season, seasonYear: $year, sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+			id
+			idMal
+			title {
+				romaji
+			}
+			type
+			bannerImage
+			coverImage {
+				large
+				extraLarge
+			}
+			description
+			format
+			episodes
+			startDate {
+				year
+				month
+				day
+			}
+		}
+	}
+}
+`
+
+func GetSeasonalAnime(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	year int,
+	season MediaSeason,
+) (data_ *GetSeasonalAnimeResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetSeasonalAnime",
+		Query:  GetSeasonalAnime_Operation,
+		Variables: &__GetSeasonalAnimeInput{
+			Year:   year,
+			Season: season,
+		},
+	}
+
+	data_ = &GetSeasonalAnimeResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The query executed by GetTrendingAnime.
+const GetTrendingAnime_Operation = `
+query GetTrendingAnime {
+	page: Page(page: 1, perPage: 10) {
+		media(sort: TRENDING_DESC, type: ANIME, isAdult: false, startDate_greater: 19800101) {
+			id
+			idMal
+			title {
+				romaji
+			}
+			type
+			bannerImage
+			coverImage {
+				large
+				extraLarge
+			}
+			description
+			format
+			episodes
+			startDate {
+				year
+				month
+				day
+			}
+		}
+	}
+}
+`
+
+func GetTrendingAnime(
+	ctx_ context.Context,
+	client_ graphql.Client,
+) (data_ *GetTrendingAnimeResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "GetTrendingAnime",
+		Query:  GetTrendingAnime_Operation,
+	}
+
+	data_ = &GetTrendingAnimeResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

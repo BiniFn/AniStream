@@ -20,6 +20,7 @@ func MountAnimeRoutes(r chi.Router, svc *animeSvc.Service) {
 	r.Get("/recently-updated", listRecentlyUpdated(svc))
 	r.Get("/search", searchAnimes(svc))
 	r.Get("/random", randomAnime(svc))
+	r.Get("/seasonal", seasonalAnimes(svc))
 }
 
 func getAnimeByID(svc *animeSvc.Service) http.HandlerFunc {
@@ -222,6 +223,18 @@ func randomAnime(svc *animeSvc.Service) http.HandlerFunc {
 			}
 		}
 
+		jsonOK(w, resp)
+	}
+}
+
+func seasonalAnimes(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.GetSeasonalAnimes(r.Context())
+		if err != nil {
+			log.Printf("failed to fetch seasonal animes: %v", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch seasonal animes")
+			return
+		}
 		jsonOK(w, resp)
 	}
 }

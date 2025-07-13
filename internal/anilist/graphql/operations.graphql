@@ -1,10 +1,112 @@
-query GetMediaByMalId($idMal: Int!) {
-  Media(idMal: $idMal) {
+query GetSeasonalAnime($year: Int!, $season: MediaSeason!) {
+  page: Page(page: 1, perPage: 10) {
+    media(
+      season: $season
+      seasonYear: $year
+      sort: POPULARITY_DESC
+      type: ANIME
+      isAdult: false
+    ) {
+      id
+      idMal
+      title {
+        romaji
+      }
+      type
+      bannerImage
+      coverImage {
+        large
+        extraLarge
+      }
+      description
+      format
+      episodes
+      startDate {
+        year
+        month
+        day
+      }
+    }
+  }
+}
+
+query GetTrendingAnime {
+  page: Page(page: 1, perPage: 10) {
+    media(
+      sort: TRENDING_DESC
+      type: ANIME
+      isAdult: false
+      startDate_greater: 19800101
+    ) {
+      id
+      idMal
+      title {
+        romaji
+      }
+      type
+      bannerImage
+      coverImage {
+        large
+        extraLarge
+      }
+      description
+      format
+      episodes
+      startDate {
+        year
+        month
+        day
+      }
+    }
+  }
+}
+
+query GetPopularAnime {
+  page: Page(page: 1, perPage: 10) {
+    media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+      id
+      idMal
+      title {
+        romaji
+      }
+      type
+      bannerImage
+      coverImage {
+        large
+        extraLarge
+      }
+      description
+      format
+      episodes
+      startDate {
+        year
+        month
+        day
+      }
+    }
+  }
+}
+
+query GetAnimeDetails($idMal: Int!) {
+  Media(idMal: $idMal, type: ANIME) {
     id
+    idMal
     title {
       romaji
-      english
-      native
+    }
+    type
+    bannerImage
+    coverImage {
+      large
+      extraLarge
+    }
+    description
+    format
+    episodes
+    startDate {
+      year
+      month
+      day
     }
   }
 }

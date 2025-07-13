@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/coeeter/aniways/internal/anilist"
 	"github.com/coeeter/aniways/internal/api/handlers"
 	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/config"
@@ -19,7 +20,8 @@ func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, re
 			ClientSecret: env.MyAnimeListClientSecret,
 		})
 		refresher := animeSvc.NewRefresher(repo, malClient)
-		svc := animeSvc.New(repo, refresher, malClient, redis)
+		anilistClient := anilist.New()
+		svc := animeSvc.New(repo, refresher, malClient, anilistClient, redis)
 
 		handlers.MountAnimeRoutes(r, svc)
 	})

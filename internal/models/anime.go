@@ -233,3 +233,13 @@ func (s StreamingDataDto) FromScraper(data streaming.ScrapedUnencryptedSources) 
 		}(data.Tracks),
 	}
 }
+
+type SeasonalAnimeDto struct {
+	ID             string   `json:"id"`
+	BannerImageURL string   `json:"bannerImageUrl"`
+	Description    string   `json:"description"`
+	StartDate      int64    `json:"startDate"`
+	Type           string   `json:"type"`
+	Episodes       int32    `json:"episodes"`
+	Anime          AnimeDto `json:"anime"`
+}
