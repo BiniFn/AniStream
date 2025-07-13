@@ -13,6 +13,7 @@ import (
 func MountAnimeRoutes(r chi.Router, svc *animeSvc.Service) {
 	r.Get("/{id}", getAnimeByID(svc))
 	r.Get("/{id}/trailer", getAnimeTrailer(svc))
+	r.Get("/{id}/banner", getAnimeBanner(svc))
 	r.Get("/{id}/episodes", getAnimeEpisodes(svc))
 	r.Get("/{id}/episodes/{episodeID}", getServersForEpisode(svc))
 	r.Get("/sources/{serverID}", getStreamingData(svc))
@@ -86,6 +87,26 @@ func getAnimeTrailer(svc *animeSvc.Service) http.HandlerFunc {
 			return
 		}
 		jsonOK(w, resp)
+	}
+}
+
+func getAnimeBanner(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if id == "" {
+			jsonError(w, http.StatusBadRequest, "anime ID is required")
+			return
+		}
+
+		resp, err := svc.GetAnimeBanner(r.Context(), id)
+		if err != nil {
+			log.Printf("failed to fetch banner for anime %s: %v", id, err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime banner")
+			return
+		}
+		jsonOK(w, struct {
+			Url string `json:"url"`
+		}{Url: resp})
 	}
 }
 

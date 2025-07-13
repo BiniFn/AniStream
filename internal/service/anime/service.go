@@ -447,3 +447,41 @@ func (s *Service) GetSeasonalAnimes(ctx context.Context) ([]models.SeasonalAnime
 
 	return seasonalAnimes, nil
 }
+
+func (s *Service) GetAnimeBanner(ctx context.Context, id string) (string, error) {
+	key := fmt.Sprintf("anime_banner:%s", id)
+
+	var cachedBanner string
+	if ok, err := s.redis.Get(ctx, key, &cachedBanner); err != nil {
+		log.Printf("failed to get banner from cache: %v", err)
+	} else if ok {
+		log.Printf("found banner in cache for anime ID %s: %s", id, cachedBanner)
+		return cachedBanner, nil
+	}
+
+	a, err := s.repo.GetAnimeById(ctx, id)
+	if err != nil {
+		log.Printf("failed to fetch anime by ID %s: %v", id, err)
+		return "", err
+	}
+
+	anime, err := s.anilistClient.GetAnimeDetails(ctx, int(a.MalID.Int32))
+	if err != nil {
+		log.Printf("failed to fetch anime details from Anilist for MAL ID %d: %v", a.MalID.Int32, err)
+		return "", err
+	}
+
+	bannerURL := anime.Media.GetBannerImage()
+	if bannerURL == "" {
+		log.Printf("no banner image found for anime ID %s", id)
+		return "", fmt.Errorf("no banner image found for anime ID %s", id)
+	}
+
+	if err := s.redis.Set(ctx, key, bannerURL, 30*24*time.Hour); err != nil {
+		log.Printf("failed to cache banner for anime ID %s: %v", id, err)
+	} else {
+		log.Printf("cached banner for anime ID %s: %s", id, bannerURL)
+	}
+
+	return bannerURL, nil
+}
