@@ -13,6 +13,7 @@ func MountAnimeRoutes(r chi.Router, svc *animeSvc.Service) {
 		r.Get("/", getAnimeByID(svc))
 		r.Get("/trailer", getAnimeTrailer(svc))
 		r.Get("/banner", getAnimeBanner(svc))
+		r.Get("/franchise", franchise(svc))
 	})
 }
 
@@ -69,5 +70,23 @@ func getAnimeBanner(svc *animeSvc.Service) http.HandlerFunc {
 		jsonOK(w, struct {
 			Url string `json:"url"`
 		}{Url: resp})
+	}
+}
+
+func franchise(svc *animeSvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		animeID := chi.URLParam(r, "id")
+		if animeID == "" {
+			jsonError(w, http.StatusBadRequest, "anime ID is required")
+			return
+		}
+
+		resp, err := svc.GetAnimeRelations(r.Context(), animeID)
+		if err != nil {
+			log.Printf("failed to fetch franchise for anime ID %s: %v", animeID, err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch franchise")
+			return
+		}
+		jsonOK(w, resp)
 	}
 }

@@ -243,3 +243,8 @@ type SeasonalAnimeDto struct {
 	Episodes       int32    `json:"episodes"`
 	Anime          AnimeDto `json:"anime"`
 }
+
+type RelationsDto struct {
+	WatchOrder []AnimeDto `json:"watchOrder"`
+	Related    []AnimeDto `json:"related"`
+}

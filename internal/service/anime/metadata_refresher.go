@@ -2,16 +2,13 @@ package anime
 
 import (
 	"context"
-	"database/sql"
-	"errors"
+	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/coeeter/aniways/internal/client/myanimelist"
 	"github.com/coeeter/aniways/internal/repository"
-	"github.com/jackc/pgx/v5"
-	"golang.org/x/sync/semaphore"
 	"golang.org/x/time/rate"
 )
 
@@ -28,44 +25,30 @@ type MetadataRefresher struct {
 	malClient *myanimelist.Client
 	ttl       time.Duration
 	limiter   *rate.Limiter
-	sem       *semaphore.Weighted
 	queue     chan int32
 	inFlight  map[int32]struct{}
 	mu        sync.Mutex
 }
 
-// New creates a MetadataRefresher with sensible defaults:
-//   - 20 concurrent workers
-//   - queue size 1000
-//   - 30-day TTL
-//   - ~60 MAL API calls per minute
 func NewRefresher(repo *repository.Queries, malClient *myanimelist.Client) *MetadataRefresher {
 	m := &MetadataRefresher{
 		repo:      repo,
 		malClient: malClient,
 		ttl:       defaultTTL,
 		limiter:   rate.NewLimiter(defaultMALRate, 1),
-		sem:       semaphore.NewWeighted(int64(defaultWorkerCount)),
 		queue:     make(chan int32, defaultQueueSize),
 		inFlight:  make(map[int32]struct{}),
 	}
-	for i := 0; i < defaultWorkerCount; i++ {
+	for range defaultWorkerCount {
 		go m.worker()
 	}
 	return m
 }
 
-func (m *MetadataRefresher) MaybeRefresh(ctx context.Context, malID int32) {
-	row, err := m.repo.GetAnimeMetadataByMalId(ctx, malID)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
-			log.Printf("metadata lookup error for MAL %d: %v", malID, err)
-			return
-		}
-	} else {
-		if time.Since(row.UpdatedAt.Time) < m.ttl {
-			return
-		}
+func (m *MetadataRefresher) Enqueue(malID int32) {
+	if malID <= 0 {
+		log.Printf("invalid MAL ID %d, skipping metadata refresh", malID)
+		return
 	}
 
 	m.mu.Lock()
@@ -76,74 +59,77 @@ func (m *MetadataRefresher) MaybeRefresh(ctx context.Context, malID int32) {
 	m.inFlight[malID] = struct{}{}
 	m.mu.Unlock()
 
-	m.queue <- malID
+	select {
+	case m.queue <- malID:
+	default:
+		m.clearInFlight(malID)
+		log.Printf("queue full, dropping metadata refresh for MAL ID %d", malID)
+	}
 }
 
 func (m *MetadataRefresher) worker() {
 	for malID := range m.queue {
 		row, err := m.repo.GetAnimeMetadataByMalId(context.Background(), malID)
 		if err == nil && time.Since(row.UpdatedAt.Time) < m.ttl {
-			m.mu.Lock()
-			delete(m.inFlight, malID)
-			m.mu.Unlock()
+			m.clearInFlight(malID)
 			continue
 		}
 
 		if err := m.limiter.Wait(context.Background()); err != nil {
 			log.Printf("rate limiter error: %v", err)
-		}
-
-		if err := m.sem.Acquire(context.Background(), 1); err != nil {
+			m.clearInFlight(malID)
 			continue
 		}
 
-		go func(id int32) {
-			defer m.sem.Release(1)
-			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-			defer cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		dto, err := m.malClient.GetAnimeMetadata(ctx, int(malID))
+		cancel()
+		if err != nil {
+			log.Printf("MAL fetch failed for %d: %v", malID, err)
+			m.clearInFlight(malID)
+			continue
+		}
 
-			dto, err := m.malClient.GetAnimeMetadata(ctx, int(id))
-			if err != nil {
-				log.Printf("MAL fetch failed for %d: %v", id, err)
-			} else {
-				meta := dto.ToRepository()
-				params := repository.InsertAnimeMetadataParams{
-					MalID:              meta.MalID,
-					Description:        meta.Description,
-					MainPictureUrl:     meta.MainPictureUrl,
-					MediaType:          meta.MediaType,
-					Rating:             meta.Rating,
-					AiringStatus:       meta.AiringStatus,
-					AvgEpisodeDuration: meta.AvgEpisodeDuration,
-					TotalEpisodes:      meta.TotalEpisodes,
-					Studio:             meta.Studio,
-					Rank:               meta.Rank,
-					Mean:               meta.Mean,
-					Scoringusers:       meta.Scoringusers,
-					Popularity:         meta.Popularity,
-					AiringStartDate:    meta.AiringStartDate,
-					AiringEndDate:      meta.AiringEndDate,
-					Source:             meta.Source,
-					SeasonYear:         meta.SeasonYear,
-					Season:             meta.Season,
-					TrailerEmbedUrl:    meta.TrailerEmbedUrl,
-				}
-				if err := m.repo.InsertAnimeMetadata(ctx, params); err != nil {
-					log.Printf("metadata upsert failed for %d: %v", id, err)
-				}
-			}
+		meta := dto.ToRepository()
+		params := repository.InsertAnimeMetadataParams{
+			MalID:              meta.MalID,
+			Description:        meta.Description,
+			MainPictureUrl:     meta.MainPictureUrl,
+			MediaType:          meta.MediaType,
+			Rating:             meta.Rating,
+			AiringStatus:       meta.AiringStatus,
+			AvgEpisodeDuration: meta.AvgEpisodeDuration,
+			TotalEpisodes:      meta.TotalEpisodes,
+			Studio:             meta.Studio,
+			Rank:               meta.Rank,
+			Mean:               meta.Mean,
+			Scoringusers:       meta.Scoringusers,
+			Popularity:         meta.Popularity,
+			AiringStartDate:    meta.AiringStartDate,
+			AiringEndDate:      meta.AiringEndDate,
+			Source:             meta.Source,
+			SeasonYear:         meta.SeasonYear,
+			Season:             meta.Season,
+			TrailerEmbedUrl:    meta.TrailerEmbedUrl,
+		}
+		if err := m.repo.InsertAnimeMetadata(ctx, params); err != nil {
+			log.Printf("metadata upsert failed for %d: %v", malID, err)
+		}
 
-			// clear in-flight flag
-			m.mu.Lock()
-			delete(m.inFlight, id)
-			m.mu.Unlock()
-		}(malID)
+		m.clearInFlight(malID)
 	}
 }
 
-// RefreshBlocking performs one immediate fetch/upsert under rate- and concurrency- limits.
-// Use this in GetAnimeByID when you need fresh data before returning.
+func (m *MetadataRefresher) clearInFlight(malID int32) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.inFlight, malID)
+}
+
 func (m *MetadataRefresher) RefreshBlocking(ctx context.Context, malID int32) error {
+	if malID <= 0 {
+		return fmt.Errorf("invalid MAL ID %d", malID)
+	}
 	if err := m.limiter.Wait(ctx); err != nil {
 		return err
 	}
@@ -175,6 +161,14 @@ func (m *MetadataRefresher) RefreshBlocking(ctx context.Context, malID int32) er
 		TrailerEmbedUrl:    meta.TrailerEmbedUrl,
 	}
 
-	err = m.repo.InsertAnimeMetadata(ctx, params)
-	return err
+	return m.repo.InsertAnimeMetadata(ctx, params)
+}
+
+func (m *MetadataRefresher) Close() {
+	close(m.queue) // stop workers
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for malID := range m.inFlight {
+		delete(m.inFlight, malID) // clear any remaining in-flight entries
+	}
 }

@@ -6,12 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/client/anilist"
 	"github.com/coeeter/aniways/internal/client/hianime"
 	"github.com/coeeter/aniways/internal/client/myanimelist"
+	"github.com/coeeter/aniways/internal/client/shikimori"
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5"
@@ -19,12 +21,13 @@ import (
 )
 
 type Service struct {
-	repo          *repository.Queries
-	refresher     *MetadataRefresher
-	scraper       *hianime.HianimeScraper
-	malClient     *myanimelist.Client
-	anilistClient *anilist.Client
-	redis         *cache.RedisClient
+	repo            *repository.Queries
+	refresher       *MetadataRefresher
+	scraper         *hianime.HianimeScraper
+	malClient       *myanimelist.Client
+	anilistClient   *anilist.Client
+	shikimoriClient *shikimori.Client
+	redis           *cache.RedisClient
 }
 
 func New(
@@ -32,15 +35,17 @@ func New(
 	refresher *MetadataRefresher,
 	malClient *myanimelist.Client,
 	anilistClient *anilist.Client,
+	shikimoriClient *shikimori.Client,
 	redis *cache.RedisClient,
 ) *Service {
 	return &Service{
-		repo:          repo,
-		refresher:     refresher,
-		malClient:     malClient,
-		anilistClient: anilistClient,
-		scraper:       hianime.NewHianimeScraper(),
-		redis:         redis,
+		repo:            repo,
+		refresher:       refresher,
+		malClient:       malClient,
+		anilistClient:   anilistClient,
+		shikimoriClient: shikimoriClient,
+		scraper:         hianime.NewHianimeScraper(),
+		redis:           redis,
 	}
 }
 
@@ -68,7 +73,7 @@ func (s *Service) GetRecentlyUpdatedAnimes(
 	}
 
 	for _, r := range rows {
-		go s.refresher.MaybeRefresh(context.Background(), r.MalID.Int32)
+		s.refresher.Enqueue(r.MalID.Int32)
 	}
 
 	total, err := s.repo.GetRecentlyUpdatedAnimesCount(ctx)
@@ -130,22 +135,15 @@ func (s *Service) GetAnimeByID(
 }
 
 func (s *Service) GetAnimeGenres(ctx context.Context) ([]string, error) {
-	key := "anime_genres"
 	var genres []string
-	if ok, err := s.redis.Get(ctx, key, &genres); err != nil {
-		log.Printf("failed to get genres from cache: %v", err)
-	} else if ok {
-		log.Printf("found %d genres in cache", len(genres))
-		return genres, nil
-	}
 
-	genres, err := s.repo.GetAllGenres(ctx)
+	_, err := s.redis.GetOrFill(ctx, "anime_genres", &genres, 30*24*time.Hour, func(ctx context.Context) (any, error) {
+		return s.repo.GetAllGenres(ctx)
+	})
+
 	if err != nil {
+		log.Printf("failed to get anime genres from cache: %v", err)
 		return nil, err
-	}
-
-	if err := s.redis.Set(ctx, key, genres, 30*24*time.Hour); err != nil {
-		log.Printf("failed to cache genres: %v", err)
 	}
 
 	return genres, nil
@@ -198,43 +196,38 @@ func (s *Service) GetAnimeTrailer(ctx context.Context, id string) (*models.Trail
 }
 
 func (s *Service) GetAnimeEpisodes(ctx context.Context, id string) ([]models.EpisodeDto, error) {
-	key := fmt.Sprintf("anime_episodes:%s", id)
 	var cachedEpisodes []models.EpisodeDto
-	if ok, err := s.redis.Get(ctx, key, &cachedEpisodes); err != nil {
-		log.Printf("failed to get episodes from cache: %v", err)
-	} else if ok {
-		log.Printf("found %d episodes in cache for anime ID %s", len(cachedEpisodes), id)
-		return cachedEpisodes, nil
-	}
 
-	a, err := s.repo.GetAnimeById(ctx, id)
+	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_episodes:%s", id), &cachedEpisodes, 7*24*time.Hour, func(ctx context.Context) (any, error) {
+		a, err := s.repo.GetAnimeById(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+
+		episodes, err := s.scraper.GetAnimeEpisodes(ctx, a.HiAnimeID)
+		if err != nil {
+			log.Printf("failed to fetch episodes for anime ID %s: %v", id, err)
+			return nil, err
+		}
+
+		if len(episodes) == 0 {
+			log.Printf("no episodes found for anime ID %s", id)
+			return nil, fmt.Errorf("no episodes found for anime ID %s", id)
+		}
+
+		episodeDtos := make([]models.EpisodeDto, len(episodes))
+		for i, ep := range episodes {
+			episodeDtos[i] = models.EpisodeDto{}.FromScraper(ep)
+		}
+		return episodeDtos, nil
+	})
+
 	if err != nil {
+		log.Printf("failed to get anime episodes from cache: %v", err)
 		return nil, err
 	}
 
-	episodes, err := s.scraper.GetAnimeEpisodes(ctx, a.HiAnimeID)
-	if err != nil {
-		log.Printf("failed to fetch episodes for anime ID %s: %v", id, err)
-		return nil, err
-	}
-
-	if len(episodes) == 0 {
-		log.Printf("no episodes found for anime ID %s", id)
-		return nil, fmt.Errorf("no episodes found for anime ID %s", id)
-	}
-
-	episodeDtos := make([]models.EpisodeDto, len(episodes))
-	for i, ep := range episodes {
-		episodeDtos[i] = models.EpisodeDto{}.FromScraper(ep)
-	}
-
-	if err := s.redis.Set(ctx, key, episodeDtos, 7*24*time.Hour); err != nil {
-		log.Printf("failed to cache episodes for anime ID %s: %v", id, err)
-	} else {
-		log.Printf("cached %d episodes for anime ID %s", len(episodeDtos), id)
-	}
-
-	return episodeDtos, nil
+	return cachedEpisodes, nil
 }
 
 func (s *Service) SearchAnimes(ctx context.Context, query, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
@@ -260,7 +253,7 @@ func (s *Service) SearchAnimes(ctx context.Context, query, genre string, page, s
 	}
 
 	for _, r := range rows {
-		go s.refresher.MaybeRefresh(context.Background(), r.MalID.Int32)
+		s.refresher.Enqueue(r.MalID.Int32)
 	}
 
 	total, err := s.repo.SearchAnimesCount(ctx, repository.SearchAnimesCountParams{
@@ -288,41 +281,36 @@ func (s *Service) SearchAnimes(ctx context.Context, query, genre string, page, s
 }
 
 func (s *Service) GetServersForEpisode(ctx context.Context, id, episodeID string) (models.ServerDto, error) {
-	key := fmt.Sprintf("anime_servers:%s:episode:%s", id, episodeID)
 	var cachedServers models.ServerDto
-	if ok, err := s.redis.Get(ctx, key, &cachedServers); err != nil {
-		log.Printf("failed to get servers from cache: %v", err)
-	} else if ok {
-		log.Printf("found %d servers in cache for anime ID %s episode %s", len(cachedServers.Sub)+len(cachedServers.Dub)+len(cachedServers.Raw), id, episodeID)
-		return cachedServers, nil
-	}
 
-	a, err := s.repo.GetAnimeById(ctx, id)
+	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_servers:%s:episode:%s", id, episodeID), &cachedServers, 24*time.Hour, func(ctx context.Context) (any, error) {
+		a, err := s.repo.GetAnimeById(ctx, id)
+		if err != nil {
+			log.Printf("failed to fetch anime by ID %s: %v", id, err)
+			return models.ServerDto{}, err
+		}
+
+		servers, err := s.scraper.GetEpisodeServers(ctx, a.HiAnimeID, episodeID)
+		if err != nil {
+			log.Printf("failed to fetch servers for anime ID %s episode %s: %v", id, episodeID, err)
+			return models.ServerDto{}, err
+		}
+
+		if len(servers) == 0 {
+			log.Printf("no servers found for anime ID %s episode %s", id, episodeID)
+			return models.ServerDto{}, fmt.Errorf("no servers found for anime ID %s episode %s", id, episodeID)
+		}
+
+		serverDto := models.ServerDto{}.FromScraper(servers)
+		return serverDto, nil
+	})
+
 	if err != nil {
-		log.Printf("failed to fetch anime by ID %s: %v", id, err)
+		log.Printf("failed to get servers for episode from cache: %v", err)
 		return models.ServerDto{}, err
 	}
 
-	servers, err := s.scraper.GetEpisodeServers(ctx, a.HiAnimeID, episodeID)
-	if err != nil {
-		log.Printf("failed to fetch servers for anime ID %s episode %s: %v", id, episodeID, err)
-		return models.ServerDto{}, err
-	}
-
-	if len(servers) == 0 {
-		log.Printf("no servers found for anime ID %s episode %s", id, episodeID)
-		return models.ServerDto{}, fmt.Errorf("no servers found for anime ID %s episode %s", id, episodeID)
-	}
-
-	serverDto := models.ServerDto{}.FromScraper(servers)
-
-	if err := s.redis.Set(ctx, key, serverDto, 24*time.Hour); err != nil {
-		log.Printf("failed to cache servers for anime ID %s episode %s: %v", id, episodeID, err)
-	} else {
-		log.Printf("cached %d servers for anime ID %s episode %s", len(serverDto.Sub)+len(serverDto.Dub)+len(serverDto.Raw), id, episodeID)
-	}
-
-	return serverDto, nil
+	return cachedServers, nil
 }
 
 func (s *Service) GetStreamingData(ctx context.Context, serverID, streamType, serverName string) (models.StreamingDataDto, error) {
@@ -330,30 +318,25 @@ func (s *Service) GetStreamingData(ctx context.Context, serverID, streamType, se
 		return models.StreamingDataDto{}, fmt.Errorf("serverID, streamType, and serverName are required")
 	}
 
-	key := fmt.Sprintf("streaming_data:%s:%s:%s", serverID, streamType, serverName)
 	var cachedData models.StreamingDataDto
-	if ok, err := s.redis.Get(ctx, key, &cachedData); err != nil {
-		log.Printf("failed to get streaming data from cache: %v", err)
-	} else if ok {
-		log.Printf("found streaming data in cache for server %s type %s name %s", serverID, streamType, serverName)
-		return cachedData, nil
-	}
+	key := fmt.Sprintf("streaming_data:%s:%s:%s", serverID, streamType, serverName)
+	_, err := s.redis.GetOrFill(ctx, key, &cachedData, 24*time.Hour, func(ctx context.Context) (any, error) {
+		data, err := s.scraper.GetStreamingData(ctx, serverID, streamType, serverName)
+		if err != nil {
+			log.Printf("failed to fetch streaming data for server %s type %s name %s: %v", serverID, streamType, serverName, err)
+			return models.StreamingDataDto{}, err
+		}
 
-	data, err := s.scraper.GetStreamingData(ctx, serverID, streamType, serverName)
+		dto := models.StreamingDataDto{}.FromScraper(data)
+		return dto, nil
+	})
+
 	if err != nil {
-		log.Printf("failed to fetch streaming data for server %s type %s name %s: %v", serverID, streamType, serverName, err)
+		log.Printf("failed to get streaming data from cache: %v", err)
 		return models.StreamingDataDto{}, err
 	}
 
-	dto := models.StreamingDataDto{}.FromScraper(data)
-
-	if err := s.redis.Set(ctx, key, dto, 24*time.Hour); err != nil {
-		log.Printf("failed to cache streaming data for server %s type %s name %s: %v", serverID, streamType, serverName, err)
-	} else {
-		log.Printf("cached streaming data for server %s type %s name %s", serverID, streamType, serverName)
-	}
-
-	return dto, nil
+	return cachedData, nil
 }
 
 func (s *Service) GetRandomAnime(ctx context.Context) (models.AnimeDto, error) {
@@ -363,7 +346,7 @@ func (s *Service) GetRandomAnime(ctx context.Context) (models.AnimeDto, error) {
 		return models.AnimeDto{}, err
 	}
 
-	go s.refresher.MaybeRefresh(context.Background(), data.MalID.Int32)
+	s.refresher.Enqueue(data.MalID.Int32)
 
 	return models.AnimeDto{}.FromRepository(data), nil
 }
@@ -379,190 +362,172 @@ func (s *Service) GetRandomAnimeByGenre(ctx context.Context, genre string) (mode
 		return models.AnimeDto{}, err
 	}
 
-	go s.refresher.MaybeRefresh(context.Background(), data.MalID.Int32)
+	s.refresher.Enqueue(data.MalID.Int32)
 
 	return models.AnimeDto{}.FromRepository(data), nil
 }
 
 func (s *Service) GetSeasonalAnimes(ctx context.Context) ([]models.SeasonalAnimeDto, error) {
-	key := "seasonal_animes"
 	var cachedAnimes []models.SeasonalAnimeDto
-	if ok, err := s.redis.Get(ctx, key, &cachedAnimes); err != nil {
-		log.Printf("failed to get seasonal animes from cache: %v", err)
-	} else if ok {
-		log.Printf("found %d seasonal animes in cache", len(cachedAnimes))
-		return cachedAnimes, nil
-	}
 
-	year := time.Now().Year()
-	month := time.Now().Month()
+	_, err := s.redis.GetOrFill(ctx, "seasonal_animes", &cachedAnimes, 30*24*time.Hour, func(ctx context.Context) (any, error) {
+		now := time.Now()
+		ref := now.AddDate(0, -1, 0)
+		year := ref.Year()
 
-	season := "WINTER"
-	switch month {
-	case time.February, time.March, time.April:
-		season = "WINTER"
-	case time.May, time.June, time.July:
-		season = "SPRING"
-	case time.August, time.September, time.October:
-		season = "SUMMER"
-	case time.November, time.December, time.January:
-		season = "FALL"
-	}
-	animes, err := s.anilistClient.GetSeasonalMedia(ctx, year, season)
+		var season string
+		switch ref.Month() {
+		case time.January, time.February, time.March:
+			season = "WINTER"
+		case time.April, time.May, time.June:
+			season = "SPRING"
+		case time.July, time.August, time.September:
+			season = "SUMMER"
+		default:
+			season = "FALL"
+		}
+		animes, err := s.anilistClient.GetSeasonalMedia(ctx, year, season)
+		if err != nil {
+			log.Printf("failed to fetch seasonal animes for year %d season %s: %v", year, season, err)
+			return nil, err
+		}
+
+		dbAnimes := make([]repository.Anime, len(animes.Page.Media))
+		for i, a := range animes.Page.Media {
+			d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
+			if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
+				log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
+				continue
+			}
+			dbAnimes[i] = d
+			s.refresher.Enqueue(d.MalID.Int32)
+		}
+
+		seasonalAnimes := make([]models.SeasonalAnimeDto, len(animes.Page.Media))
+		for i, a := range animes.Page.Media {
+			dbAnime := dbAnimes[i]
+			startDate := time.Date(
+				a.StartDate.Year,
+				time.Month(a.StartDate.Month),
+				a.StartDate.Day,
+				0, 0, 0, 0,
+				time.UTC,
+			)
+			seasonalAnimes[i] = models.SeasonalAnimeDto{
+				ID:             dbAnime.ID,
+				BannerImageURL: a.BannerImage,
+				Description:    a.Description,
+				Type:           string(a.Type),
+				StartDate:      startDate.UnixMilli(),
+				Episodes:       int32(a.Episodes),
+				Anime:          models.AnimeDto{}.FromRepository(dbAnime),
+			}
+		}
+
+		return seasonalAnimes, nil
+	})
+
 	if err != nil {
-		log.Printf("failed to fetch seasonal animes for year %d season %s: %v", year, season, err)
+		log.Printf("failed to fetch seasonal animes: %v", err)
 		return nil, err
 	}
 
-	dbAnimes := make([]repository.Anime, len(animes.Page.Media))
-	for i, a := range animes.Page.Media {
-		d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
-		if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
-			log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
-			continue
-		}
-		dbAnimes[i] = d
-		go s.refresher.MaybeRefresh(context.Background(), d.MalID.Int32)
-	}
-
-	seasonalAnimes := make([]models.SeasonalAnimeDto, len(animes.Page.Media))
-	for i, a := range animes.Page.Media {
-		dbAnime := dbAnimes[i]
-		startDate := time.Date(
-			a.StartDate.Year,
-			time.Month(a.StartDate.Month),
-			a.StartDate.Day,
-			0, 0, 0, 0,
-			time.UTC,
-		)
-		seasonalAnimes[i] = models.SeasonalAnimeDto{
-			ID:             dbAnime.ID,
-			BannerImageURL: a.BannerImage,
-			Description:    a.Description,
-			Type:           string(a.Type),
-			StartDate:      startDate.UnixMilli(),
-			Episodes:       int32(a.Episodes),
-			Anime:          models.AnimeDto{}.FromRepository(dbAnime),
-		}
-	}
-
-	if err := s.redis.Set(ctx, key, seasonalAnimes, 30*24*time.Hour); err != nil {
-		log.Printf("failed to cache seasonal animes: %v", err)
-	} else {
-		log.Printf("cached %d seasonal animes", len(seasonalAnimes))
-	}
-
-	return seasonalAnimes, nil
+	return cachedAnimes, nil
 }
 
 func (s *Service) GetAnimeBanner(ctx context.Context, id string) (string, error) {
-	key := fmt.Sprintf("anime_banner:%s", id)
-
 	var cachedBanner string
-	if ok, err := s.redis.Get(ctx, key, &cachedBanner); err != nil {
-		log.Printf("failed to get banner from cache: %v", err)
-	} else if ok {
-		log.Printf("found banner in cache for anime ID %s: %s", id, cachedBanner)
-		return cachedBanner, nil
-	}
+	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_banner:%s", id), &cachedBanner, 30*24*time.Hour, func(ctx context.Context) (any, error) {
+		a, err := s.repo.GetAnimeById(ctx, id)
+		if err != nil {
+			log.Printf("failed to fetch anime by ID %s: %v", id, err)
+			return "", err
+		}
 
-	a, err := s.repo.GetAnimeById(ctx, id)
+		anime, err := s.anilistClient.GetAnimeDetails(ctx, int(a.MalID.Int32))
+		if err != nil {
+			log.Printf("failed to fetch anime details from Anilist for MAL ID %d: %v", a.MalID.Int32, err)
+			return "", err
+		}
+
+		bannerURL := anime.Media.GetBannerImage()
+		if bannerURL == "" {
+			log.Printf("no banner image found for anime ID %s", id)
+			return "", fmt.Errorf("no banner image found for anime ID %s", id)
+		}
+
+		return bannerURL, nil
+	})
+
 	if err != nil {
-		log.Printf("failed to fetch anime by ID %s: %v", id, err)
+		log.Printf("failed to get anime banner from cache: %v", err)
 		return "", err
 	}
 
-	anime, err := s.anilistClient.GetAnimeDetails(ctx, int(a.MalID.Int32))
-	if err != nil {
-		log.Printf("failed to fetch anime details from Anilist for MAL ID %d: %v", a.MalID.Int32, err)
-		return "", err
-	}
-
-	bannerURL := anime.Media.GetBannerImage()
-	if bannerURL == "" {
-		log.Printf("no banner image found for anime ID %s", id)
-		return "", fmt.Errorf("no banner image found for anime ID %s", id)
-	}
-
-	if err := s.redis.Set(ctx, key, bannerURL, 30*24*time.Hour); err != nil {
-		log.Printf("failed to cache banner for anime ID %s: %v", id, err)
-	} else {
-		log.Printf("cached banner for anime ID %s: %s", id, bannerURL)
-	}
-
-	return bannerURL, nil
+	return cachedBanner, nil
 }
 
 func (s *Service) GetTrendingAnimes(ctx context.Context) ([]models.AnimeDto, error) {
-	key := "trending_animes"
 	var cachedAnimes []models.AnimeDto
-	if ok, err := s.redis.Get(ctx, key, &cachedAnimes); err != nil {
-		log.Printf("failed to get trending animes from cache: %v", err)
-	} else if ok {
-		log.Printf("found %d trending animes in cache", len(cachedAnimes))
-		return cachedAnimes, nil
-	}
 
-	animes, err := s.anilistClient.GetTrendingAnime(ctx)
+	_, err := s.redis.GetOrFill(ctx, "trending_animes", &cachedAnimes, 24*time.Hour, func(ctx context.Context) (any, error) {
+		animes, err := s.anilistClient.GetTrendingAnime(ctx)
+		if err != nil {
+			log.Printf("failed to fetch trending animes: %v", err)
+			return nil, err
+		}
+
+		trendingAnimes := make([]models.AnimeDto, len(animes.Page.Media))
+		for i, a := range animes.Page.Media {
+			d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
+			if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
+				log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
+				continue
+			}
+			trendingAnimes[i] = models.AnimeDto{}.FromRepository(d)
+			s.refresher.Enqueue(d.MalID.Int32)
+		}
+
+		return trendingAnimes, nil
+	})
+
 	if err != nil {
-		log.Printf("failed to fetch trending animes: %v", err)
+		log.Printf("failed to get trending animes from cache: %v", err)
 		return nil, err
 	}
 
-	trendingAnimes := make([]models.AnimeDto, len(animes.Page.Media))
-	for i, a := range animes.Page.Media {
-		d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
-		if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
-			log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
-			continue
-		}
-		trendingAnimes[i] = models.AnimeDto{}.FromRepository(d)
-		go s.refresher.MaybeRefresh(context.Background(), d.MalID.Int32)
-	}
-
-	if err := s.redis.Set(ctx, key, trendingAnimes, 24*time.Hour); err != nil {
-		log.Printf("failed to cache trending animes: %v", err)
-	} else {
-		log.Printf("cached %d trending animes", len(trendingAnimes))
-	}
-
-	return trendingAnimes, nil
+	return cachedAnimes, nil
 }
 
 func (s *Service) GetPopularAnimes(ctx context.Context) ([]models.AnimeDto, error) {
-	key := "popular_animes"
 	var cachedAnimes []models.AnimeDto
-	if ok, err := s.redis.Get(ctx, key, &cachedAnimes); err != nil {
-		log.Printf("failed to get popular animes from cache: %v", err)
-	} else if ok {
-		log.Printf("found %d popular animes in cache", len(cachedAnimes))
-		return cachedAnimes, nil
-	}
+	_, err := s.redis.GetOrFill(ctx, "popular_animes", &cachedAnimes, 24*time.Hour, func(ctx context.Context) (any, error) {
+		animes, err := s.anilistClient.GetPopularAnime(ctx)
+		if err != nil {
+			log.Printf("failed to fetch popular animes: %v", err)
+			return nil, err
+		}
 
-	animes, err := s.anilistClient.GetPopularAnime(ctx)
+		popularAnimes := make([]models.AnimeDto, len(animes.Page.Media))
+		for i, a := range animes.Page.Media {
+			d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
+			if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
+				log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
+				continue
+			}
+			popularAnimes[i] = models.AnimeDto{}.FromRepository(d)
+			s.refresher.Enqueue(d.MalID.Int32)
+		}
+
+		return popularAnimes, nil
+	})
+
 	if err != nil {
-		log.Printf("failed to fetch popular animes: %v", err)
+		log.Printf("failed to get popular animes from cache: %v", err)
 		return nil, err
 	}
 
-	popularAnimes := make([]models.AnimeDto, len(animes.Page.Media))
-	for i, a := range animes.Page.Media {
-		d, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: int32(a.IdMal), Valid: true})
-		if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
-			log.Printf("failed to fetch anime by MAL ID %d: %v", a.IdMal, err)
-			continue
-		}
-		popularAnimes[i] = models.AnimeDto{}.FromRepository(d)
-		go s.refresher.MaybeRefresh(context.Background(), d.MalID.Int32)
-	}
-
-	if err := s.redis.Set(ctx, key, popularAnimes, 24*time.Hour); err != nil {
-		log.Printf("failed to cache popular animes: %v", err)
-	} else {
-		log.Printf("cached %d popular animes", len(popularAnimes))
-	}
-
-	return popularAnimes, nil
+	return cachedAnimes, nil
 }
 
 func (s *Service) GetAnimesByGenre(ctx context.Context, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
@@ -587,7 +552,7 @@ func (s *Service) GetAnimesByGenre(ctx context.Context, genre string, page, size
 	}
 
 	for _, r := range rows {
-		go s.refresher.MaybeRefresh(context.Background(), r.MalID.Int32)
+		s.refresher.Enqueue(r.MalID.Int32)
 	}
 
 	total, err := s.repo.GetAnimeByGenreCount(ctx, pgtype.Text{String: genre, Valid: true})
@@ -610,4 +575,102 @@ func (s *Service) GetAnimesByGenre(ctx context.Context, genre string, page, size
 		},
 		Items: items,
 	}, nil
+}
+
+func (s *Service) GetAnimeRelations(ctx context.Context, animeID string) (models.RelationsDto, error) {
+	cachedKey := fmt.Sprintf("anime_relations:%s", animeID)
+	var cachedRelations models.RelationsDto
+
+	_, err := s.redis.GetOrFill(ctx, cachedKey, &cachedRelations, 7*24*time.Hour, func(ctx context.Context) (any, error) {
+		anime, err := s.repo.GetAnimeById(ctx, animeID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+				return models.RelationsDto{}, nil
+			}
+			log.Printf("failed to fetch anime by ID %s: %v", animeID, err)
+			return models.RelationsDto{}, err
+		}
+
+		if !anime.MalID.Valid || anime.MalID.Int32 <= 0 {
+			log.Printf("invalid MAL ID for anime ID %s: %v", animeID, anime.MalID)
+			return models.RelationsDto{}, fmt.Errorf("invalid MAL ID for anime ID %s", animeID)
+		}
+
+		malID := int(anime.MalID.Int32)
+		fr, err := s.shikimoriClient.GetAnimeFranchise(ctx, malID)
+		if err != nil {
+			log.Printf("failed to fetch franchise for MAL ID %d: %v", malID, err)
+			return models.RelationsDto{}, err
+		}
+
+		watchIDs := deriveWatchOrder(fr, malID)
+		relatedIDs := deriveRelated(fr, malID, watchIDs)
+		fullIDs := deriveFullFranchise(fr)
+
+		rows, err := s.repo.GetAnimesByMalIds(ctx, func(ids []int) []int32 {
+			out := make([]int32, 0, len(ids))
+			for _, id := range ids {
+				out = append(out, int32(id))
+			}
+			return out
+		}(fullIDs))
+		if err != nil {
+			log.Printf("failed to fetch related animes by MAL IDs %v: %v", fullIDs, err)
+			return models.RelationsDto{}, fmt.Errorf("failed to fetch related animes: %w", err)
+		}
+
+		dtoMap := make(map[int32]models.AnimeDto, len(rows))
+		for _, r := range rows {
+			dtoMap[r.MalID.Int32] = models.AnimeDto{}.FromRepository(r)
+			s.refresher.Enqueue(r.MalID.Int32)
+		}
+
+		sliceDto := func(ids []int) []models.AnimeDto {
+			out := make([]models.AnimeDto, 0, len(ids))
+			for _, id := range ids {
+				if dto, ok := dtoMap[int32(id)]; ok {
+					out = append(out, dto)
+				} else {
+					log.Printf("no anime found for MAL ID %d", id)
+				}
+			}
+			return out
+		}
+
+		reverse := func(ids []int) []int {
+			out := make([]int, len(ids))
+			for i, id := range ids {
+				out[len(ids)-1-i] = id
+			}
+			return out
+		}
+
+		var relations models.RelationsDto
+
+		if len(watchIDs) > 1 && slices.Contains(watchIDs, malID) {
+			relations = models.RelationsDto{
+				WatchOrder: sliceDto(watchIDs),
+				Related:    sliceDto(reverse(relatedIDs)),
+			}
+		} else {
+			relations = models.RelationsDto{
+				WatchOrder: []models.AnimeDto{},
+				Related: sliceDto(func(ids []int) []int {
+					if len(ids) == 1 {
+						return []int{}
+					}
+					return reverse(ids)
+				}(fullIDs)),
+			}
+		}
+
+		return relations, nil
+	})
+
+	if err != nil {
+		log.Printf("failed to get anime relations from cache: %v", err)
+		return models.RelationsDto{}, err
+	}
+
+	return cachedRelations, nil
 }
