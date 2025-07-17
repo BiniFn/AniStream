@@ -582,119 +582,6 @@ func (q *Queries) InsertAnime(ctx context.Context, arg InsertAnimeParams) error 
 	return err
 }
 
-const insertAnimeMetadata = `-- name: InsertAnimeMetadata :exec
-INSERT INTO anime_metadata (
-    mal_id,
-    description,
-    main_picture_url,
-    media_type,
-    rating,
-    airing_status,
-    avg_episode_duration,
-    total_episodes,
-    studio,
-    rank,
-    mean,
-    scoringUsers,
-    popularity,
-    airing_start_date,
-    airing_end_date,
-    source,
-    trailer_embed_url,
-    season_year,
-    season
-  )
-VALUES (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    $7,
-    $8,
-    $9,
-    $10,
-    $11,
-    $12,
-    $13,
-    $14,
-    $15,
-    $16,
-    $17,
-    $18,
-    $19
-  ) ON CONFLICT (mal_id) DO
-UPDATE
-SET description = EXCLUDED.description,
-  main_picture_url = EXCLUDED.main_picture_url,
-  media_type = EXCLUDED.media_type,
-  rating = EXCLUDED.rating,
-  airing_status = EXCLUDED.airing_status,
-  avg_episode_duration = EXCLUDED.avg_episode_duration,
-  total_episodes = EXCLUDED.total_episodes,
-  studio = EXCLUDED.studio,
-  rank = EXCLUDED.rank,
-  mean = EXCLUDED.mean,
-  scoringUsers = EXCLUDED.scoringUsers,
-  popularity = EXCLUDED.popularity,
-  airing_start_date = EXCLUDED.airing_start_date,
-  airing_end_date = EXCLUDED.airing_end_date,
-  source = EXCLUDED.source,
-  trailer_embed_url = EXCLUDED.trailer_embed_url,
-  season_year = EXCLUDED.season_year,
-  season = EXCLUDED.season,
-  updated_at = NOW()
-RETURNING mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringusers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season, created_at, updated_at
-`
-
-type InsertAnimeMetadataParams struct {
-	MalID              int32
-	Description        pgtype.Text
-	MainPictureUrl     pgtype.Text
-	MediaType          pgtype.Text
-	Rating             Rating
-	AiringStatus       AiringStatus
-	AvgEpisodeDuration pgtype.Int4
-	TotalEpisodes      pgtype.Int4
-	Studio             pgtype.Text
-	Rank               pgtype.Int4
-	Mean               pgtype.Float8
-	Scoringusers       pgtype.Int4
-	Popularity         pgtype.Int4
-	AiringStartDate    pgtype.Text
-	AiringEndDate      pgtype.Text
-	Source             pgtype.Text
-	TrailerEmbedUrl    pgtype.Text
-	SeasonYear         pgtype.Int4
-	Season             Season
-}
-
-func (q *Queries) InsertAnimeMetadata(ctx context.Context, arg InsertAnimeMetadataParams) error {
-	_, err := q.db.Exec(ctx, insertAnimeMetadata,
-		arg.MalID,
-		arg.Description,
-		arg.MainPictureUrl,
-		arg.MediaType,
-		arg.Rating,
-		arg.AiringStatus,
-		arg.AvgEpisodeDuration,
-		arg.TotalEpisodes,
-		arg.Studio,
-		arg.Rank,
-		arg.Mean,
-		arg.Scoringusers,
-		arg.Popularity,
-		arg.AiringStartDate,
-		arg.AiringEndDate,
-		arg.Source,
-		arg.TrailerEmbedUrl,
-		arg.SeasonYear,
-		arg.Season,
-	)
-	return err
-}
-
 type InsertMultipleAnimeMetadatasParams struct {
 	MalID              int32
 	Description        pgtype.Text
@@ -888,32 +775,92 @@ func (q *Queries) UpdateAnime(ctx context.Context, arg UpdateAnimeParams) error 
 	return err
 }
 
-const updateAnimeMetadata = `-- name: UpdateAnimeMetadata :exec
+const updateAnimeMetadataTrailer = `-- name: UpdateAnimeMetadataTrailer :exec
 UPDATE anime_metadata
-SET description = $1,
-  main_picture_url = $2,
-  media_type = $3,
-  rating = $4,
-  airing_status = $5,
-  avg_episode_duration = $6,
-  total_episodes = $7,
-  studio = $8,
-  rank = $9,
-  mean = $10,
-  scoringUsers = $11,
-  popularity = $12,
-  airing_start_date = $13,
-  airing_end_date = $14,
-  source = $15,
-  trailer_embed_url = $16,
-  season_year = $17,
-  season = $18,
+SET trailer_embed_url = $1,
   updated_at = NOW()
-WHERE mal_id = $19
+WHERE mal_id = $2
 RETURNING mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringusers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season, created_at, updated_at
 `
 
-type UpdateAnimeMetadataParams struct {
+type UpdateAnimeMetadataTrailerParams struct {
+	TrailerEmbedUrl pgtype.Text
+	MalID           int32
+}
+
+func (q *Queries) UpdateAnimeMetadataTrailer(ctx context.Context, arg UpdateAnimeMetadataTrailerParams) error {
+	_, err := q.db.Exec(ctx, updateAnimeMetadataTrailer, arg.TrailerEmbedUrl, arg.MalID)
+	return err
+}
+
+const upsertAnimeMetadata = `-- name: UpsertAnimeMetadata :exec
+INSERT INTO anime_metadata (
+    mal_id,
+    description,
+    main_picture_url,
+    media_type,
+    rating,
+    airing_status,
+    avg_episode_duration,
+    total_episodes,
+    studio,
+    rank,
+    mean,
+    scoringUsers,
+    popularity,
+    airing_start_date,
+    airing_end_date,
+    source,
+    trailer_embed_url,
+    season_year,
+    season
+  )
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9,
+    $10,
+    $11,
+    $12,
+    $13,
+    $14,
+    $15,
+    $16,
+    $17,
+    $18,
+    $19
+  ) ON CONFLICT (mal_id) DO
+UPDATE
+SET description = EXCLUDED.description,
+  main_picture_url = EXCLUDED.main_picture_url,
+  media_type = EXCLUDED.media_type,
+  rating = EXCLUDED.rating,
+  airing_status = EXCLUDED.airing_status,
+  avg_episode_duration = EXCLUDED.avg_episode_duration,
+  total_episodes = EXCLUDED.total_episodes,
+  studio = EXCLUDED.studio,
+  rank = EXCLUDED.rank,
+  mean = EXCLUDED.mean,
+  scoringUsers = EXCLUDED.scoringUsers,
+  popularity = EXCLUDED.popularity,
+  airing_start_date = EXCLUDED.airing_start_date,
+  airing_end_date = EXCLUDED.airing_end_date,
+  source = EXCLUDED.source,
+  trailer_embed_url = EXCLUDED.trailer_embed_url,
+  season_year = EXCLUDED.season_year,
+  season = EXCLUDED.season,
+  updated_at = NOW()
+RETURNING mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringusers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season, created_at, updated_at
+`
+
+type UpsertAnimeMetadataParams struct {
+	MalID              int32
 	Description        pgtype.Text
 	MainPictureUrl     pgtype.Text
 	MediaType          pgtype.Text
@@ -932,11 +879,11 @@ type UpdateAnimeMetadataParams struct {
 	TrailerEmbedUrl    pgtype.Text
 	SeasonYear         pgtype.Int4
 	Season             Season
-	MalID              int32
 }
 
-func (q *Queries) UpdateAnimeMetadata(ctx context.Context, arg UpdateAnimeMetadataParams) error {
-	_, err := q.db.Exec(ctx, updateAnimeMetadata,
+func (q *Queries) UpsertAnimeMetadata(ctx context.Context, arg UpsertAnimeMetadataParams) error {
+	_, err := q.db.Exec(ctx, upsertAnimeMetadata,
+		arg.MalID,
 		arg.Description,
 		arg.MainPictureUrl,
 		arg.MediaType,
@@ -955,7 +902,6 @@ func (q *Queries) UpdateAnimeMetadata(ctx context.Context, arg UpdateAnimeMetada
 		arg.TrailerEmbedUrl,
 		arg.SeasonYear,
 		arg.Season,
-		arg.MalID,
 	)
 	return err
 }

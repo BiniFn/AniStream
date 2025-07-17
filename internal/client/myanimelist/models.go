@@ -87,3 +87,51 @@ func (m MalAnimeMetadata) ToRepository() *repository.AnimeMetadatum {
 		Season:             season,
 	}
 }
+
+func (m MalAnimeMetadata) ToUpsertParams() repository.UpsertAnimeMetadataParams {
+	mainPictureUrl := m.MainPicture.Large
+	if mainPictureUrl == "" {
+		mainPictureUrl = m.MainPicture.Medium
+	}
+
+	rating := repository.RatingUnknown
+	if m.Rating != "" {
+		rating = repository.Rating(m.Rating)
+	}
+
+	airingStatus := repository.AiringStatusUnknown
+	if m.Status != "" {
+		airingStatus = repository.AiringStatus(m.Status)
+	}
+
+	season := repository.SeasonUnknown
+	if m.StartSeason.Season != "" {
+		season = repository.Season(m.StartSeason.Season)
+	}
+
+	studio := "Unknown"
+	if len(m.Studios) > 0 && m.Studios[0].Name != "" {
+		studio = m.Studios[0].Name
+	}
+
+	return repository.UpsertAnimeMetadataParams{
+		MalID:              int32(m.MalID),
+		Description:        pgtype.Text{String: m.Synopsis, Valid: true},
+		MainPictureUrl:     pgtype.Text{String: mainPictureUrl, Valid: true},
+		MediaType:          pgtype.Text{String: m.MediaType, Valid: true},
+		Rating:             rating,
+		AiringStatus:       airingStatus,
+		AvgEpisodeDuration: pgtype.Int4{Int32: int32(m.AvgEpDuration), Valid: true},
+		TotalEpisodes:      pgtype.Int4{Int32: int32(m.NumEpisodes), Valid: true},
+		Studio:             pgtype.Text{String: studio, Valid: true},
+		Rank:               pgtype.Int4{Int32: int32(m.Rank), Valid: true},
+		Mean:               pgtype.Float8{Float64: m.Mean, Valid: true},
+		Scoringusers:       pgtype.Int4{Int32: int32(m.NumScoringUsers), Valid: true},
+		Popularity:         pgtype.Int4{Int32: int32(m.Popularity), Valid: true},
+		AiringStartDate:    pgtype.Text{String: m.StartDate, Valid: true},
+		AiringEndDate:      pgtype.Text{String: m.EndDate, Valid: true},
+		Source:             pgtype.Text{String: m.Source, Valid: true},
+		SeasonYear:         pgtype.Int4{Int32: int32(m.StartSeason.Year), Valid: true},
+		Season:             season,
+	}
+}

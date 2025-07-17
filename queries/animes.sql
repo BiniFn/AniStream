@@ -177,7 +177,7 @@ SET ename = sqlc.arg(ename),
   updated_at = COALESCE(sqlc.arg(updated_at), NOW())
 WHERE id = sqlc.arg(id)
 RETURNING *;
--- name: InsertAnimeMetadata :exec
+-- name: UpsertAnimeMetadata :exec
 INSERT INTO anime_metadata (
     mal_id,
     description,
@@ -284,26 +284,9 @@ VALUES (
     sqlc.arg(season_year),
     sqlc.arg(season)
   );
--- name: UpdateAnimeMetadata :exec
+-- name: UpdateAnimeMetadataTrailer :exec
 UPDATE anime_metadata
-SET description = sqlc.arg(description),
-  main_picture_url = sqlc.arg(main_picture_url),
-  media_type = sqlc.arg(media_type),
-  rating = sqlc.arg(rating),
-  airing_status = sqlc.arg(airing_status),
-  avg_episode_duration = sqlc.arg(avg_episode_duration),
-  total_episodes = sqlc.arg(total_episodes),
-  studio = sqlc.arg(studio),
-  rank = sqlc.arg(rank),
-  mean = sqlc.arg(mean),
-  scoringUsers = sqlc.arg(scoringUsers),
-  popularity = sqlc.arg(popularity),
-  airing_start_date = sqlc.arg(airing_start_date),
-  airing_end_date = sqlc.arg(airing_end_date),
-  source = sqlc.arg(source),
-  trailer_embed_url = sqlc.arg(trailer_embed_url),
-  season_year = sqlc.arg(season_year),
-  season = sqlc.arg(season),
+SET trailer_embed_url = sqlc.arg(trailer_embed_url),
   updated_at = NOW()
 WHERE mal_id = sqlc.arg(mal_id)
 RETURNING *;

@@ -83,40 +83,21 @@ func (m *MetadataRefresher) worker() {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		dto, err := m.malClient.GetAnimeMetadata(ctx, int(malID))
-		cancel()
 		if err != nil {
 			log.Printf("MAL fetch failed for %d: %v", malID, err)
 			m.clearInFlight(malID)
+			cancel()
 			continue
 		}
 
-		meta := dto.ToRepository()
-		params := repository.InsertAnimeMetadataParams{
-			MalID:              meta.MalID,
-			Description:        meta.Description,
-			MainPictureUrl:     meta.MainPictureUrl,
-			MediaType:          meta.MediaType,
-			Rating:             meta.Rating,
-			AiringStatus:       meta.AiringStatus,
-			AvgEpisodeDuration: meta.AvgEpisodeDuration,
-			TotalEpisodes:      meta.TotalEpisodes,
-			Studio:             meta.Studio,
-			Rank:               meta.Rank,
-			Mean:               meta.Mean,
-			Scoringusers:       meta.Scoringusers,
-			Popularity:         meta.Popularity,
-			AiringStartDate:    meta.AiringStartDate,
-			AiringEndDate:      meta.AiringEndDate,
-			Source:             meta.Source,
-			SeasonYear:         meta.SeasonYear,
-			Season:             meta.Season,
-			TrailerEmbedUrl:    meta.TrailerEmbedUrl,
-		}
-		if err := m.repo.InsertAnimeMetadata(ctx, params); err != nil {
+		params := dto.ToUpsertParams()
+		if err := m.repo.UpsertAnimeMetadata(ctx, params); err != nil {
 			log.Printf("metadata upsert failed for %d: %v", malID, err)
+			cancel()
 		}
 
 		m.clearInFlight(malID)
+		cancel()
 	}
 }
 
@@ -138,30 +119,9 @@ func (m *MetadataRefresher) RefreshBlocking(ctx context.Context, malID int32) er
 	if err != nil {
 		return err
 	}
-	meta := dto.ToRepository()
-	params := repository.InsertAnimeMetadataParams{
-		MalID:              meta.MalID,
-		Description:        meta.Description,
-		MainPictureUrl:     meta.MainPictureUrl,
-		MediaType:          meta.MediaType,
-		Rating:             meta.Rating,
-		AiringStatus:       meta.AiringStatus,
-		AvgEpisodeDuration: meta.AvgEpisodeDuration,
-		TotalEpisodes:      meta.TotalEpisodes,
-		Studio:             meta.Studio,
-		Rank:               meta.Rank,
-		Mean:               meta.Mean,
-		Scoringusers:       meta.Scoringusers,
-		Popularity:         meta.Popularity,
-		AiringStartDate:    meta.AiringStartDate,
-		AiringEndDate:      meta.AiringEndDate,
-		Source:             meta.Source,
-		SeasonYear:         meta.SeasonYear,
-		Season:             meta.Season,
-		TrailerEmbedUrl:    meta.TrailerEmbedUrl,
-	}
+	params := dto.ToUpsertParams()
 
-	return m.repo.InsertAnimeMetadata(ctx, params)
+	return m.repo.UpsertAnimeMetadata(ctx, params)
 }
 
 func (m *MetadataRefresher) Close() {
