@@ -21,7 +21,6 @@ func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, re
 			ClientSecret: env.MyAnimeListClientSecret,
 		})
 		refresher := animeSvc.NewRefresher(repo, malClient)
-		defer refresher.Close()
 		anilistClient := anilist.New()
 		shikimoriClient := shikimori.NewClient(redis)
 		svc := animeSvc.New(repo, refresher, malClient, anilistClient, shikimoriClient, redis)

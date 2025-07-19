@@ -123,12 +123,3 @@ func (m *MetadataRefresher) RefreshBlocking(ctx context.Context, malID int32) er
 
 	return m.repo.UpsertAnimeMetadata(ctx, params)
 }
-
-func (m *MetadataRefresher) Close() {
-	close(m.queue) // stop workers
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	for malID := range m.inFlight {
-		delete(m.inFlight, malID) // clear any remaining in-flight entries
-	}
-}
