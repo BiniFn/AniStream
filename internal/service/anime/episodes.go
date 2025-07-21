@@ -116,19 +116,19 @@ func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, stre
 
 	key := fmt.Sprintf("source:%s:%s:%s", id, episodeID, streamType)
 	if _, err := s.redis.GetOrFill(ctx, key, &cached, 24*time.Hour, func(ctx context.Context) (any, error) {
-		data, err := s.scraper.GetStreamingData(ctx, episodeID, streamType, "megaplay")
+		data, err := s.scraper.GetEpisodeStream(ctx, episodeID, streamType)
 		if err != nil {
 			log.Printf("failed to fetch episode stream for anime ID %s episode %s type %s: %v", id, episodeID, streamType, err)
 			return models.EpisodeSourceDto{}, err
 		}
 
 		encoder := base64.StdEncoding
-		p := encoder.EncodeToString([]byte(data.Source))
+		p := encoder.EncodeToString([]byte(data))
 		s := "megaplay"
 
 		return models.EpisodeSourceDto{
 			URL:    fmt.Sprintf("/proxy?p=%s&s=%s", p, s),
-			RawURL: data.Source,
+			RawURL: data,
 		}, nil
 	}); err != nil {
 		log.Printf("failed to get episode stream for anime ID %s episode %s type %s from cache: %v", id, episodeID, streamType, err)
@@ -136,30 +136,4 @@ func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, stre
 	}
 
 	return cached, nil
-}
-
-func (s *AnimeService) GetStreamingData(ctx context.Context, serverID, streamType, serverName string) (models.StreamingDataDto, error) {
-	if serverID == "" || streamType == "" || serverName == "" {
-		return models.StreamingDataDto{}, fmt.Errorf("serverID, streamType, and serverName are required")
-	}
-
-	var cachedData models.StreamingDataDto
-	key := fmt.Sprintf("streaming_data:%s:%s:%s", serverID, streamType, serverName)
-	_, err := s.redis.GetOrFill(ctx, key, &cachedData, 24*time.Hour, func(ctx context.Context) (any, error) {
-		data, err := s.scraper.GetStreamingData(ctx, serverID, streamType, serverName)
-		if err != nil {
-			log.Printf("failed to fetch streaming data for server %s type %s name %s: %v", serverID, streamType, serverName, err)
-			return models.StreamingDataDto{}, err
-		}
-
-		dto := models.StreamingDataDto{}.FromScraper(data)
-		return dto, nil
-	})
-
-	if err != nil {
-		log.Printf("failed to get streaming data from cache: %v", err)
-		return models.StreamingDataDto{}, err
-	}
-
-	return cachedData, nil
 }
