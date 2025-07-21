@@ -1,0 +1,3 @@
+ALTER TABLE sessions
+ALTER COLUMN expires_at
+DROP DEFAULT;

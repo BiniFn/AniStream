@@ -32,10 +32,15 @@ func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, re
 		handlers.MountAnimeEpisodesRoutes(r, svc)
 	})
 
+	cld, _ := cloudinary.NewFromParams(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinaryAPISecret)
+	userService := users.NewUserService(repo, cld)
+
 	r.Route("/users", func(r chi.Router) {
-		cld, _ := cloudinary.NewFromParams(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinaryAPISecret)
-		userService := users.NewUserService(repo, cld)
 		handlers.MountUsersRoutes(r, userService)
+	})
+
+	r.Route("/auth", func(r chi.Router) {
+		handlers.MountAuthRoutes(r, userService)
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {

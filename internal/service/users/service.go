@@ -125,6 +125,22 @@ func (s *UserService) AuthenticateUser(ctx context.Context, email, password stri
 	return User{}.FromRepository(user), nil
 }
 
+func (s *UserService) CreateSession(ctx context.Context, userID string) (repository.Session, error) {
+	session, err := s.repo.CreateSession(ctx, userID)
+	if err != nil {
+		return repository.Session{}, err
+	}
+	return session, nil
+}
+
+func (s *UserService) GetUserBySessionID(ctx context.Context, sessionID string) (User, error) {
+	user, err := s.repo.GetUserBySessionID(ctx, sessionID)
+	if err != nil {
+		return User{}, err
+	}
+	return User{}.FromRepository(user), nil
+}
+
 func (s *UserService) UpdatePassword(ctx context.Context, id, oldPassword, newPassword string) error {
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
