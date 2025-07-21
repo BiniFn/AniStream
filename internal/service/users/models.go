@@ -25,3 +25,9 @@ func (u User) FromRepository(user repository.User) User {
 		UpdatedAt:      user.UpdatedAt.Time,
 	}
 }
+
+type CreateUser struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

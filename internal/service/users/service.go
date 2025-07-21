@@ -3,19 +3,32 @@ package users
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
+var (
+	ErrPasswordTooLong  = fmt.Errorf("password too long")
+	ErrUserDoesNotExist = fmt.Errorf("user does not exist")
+	ErrUsernameTaken    = fmt.Errorf("username taken")
+	ErrEmailTaken       = fmt.Errorf("email taken")
+	ErrInvalidAuth      = fmt.Errorf("invalid authentication")
+)
+
 type UserService struct {
 	repo *repository.Queries
+	cld  *cloudinary.Cloudinary
 }
 
-func NewUserService(repo *repository.Queries) *UserService {
+func NewUserService(repo *repository.Queries, cld *cloudinary.Cloudinary) *UserService {
 	return &UserService{
 		repo: repo,
+		cld:  cld,
 	}
 }
 
@@ -39,7 +52,7 @@ func (s *UserService) CreateUser(ctx context.Context, username, email, password 
 	passwordsBytes := []byte(password)
 
 	if len(passwordsBytes) > 72 {
-		return User{}, fmt.Errorf("password too long")
+		return User{}, ErrPasswordTooLong
 	}
 
 	hash, err := bcrypt.GenerateFromPassword(passwordsBytes, bcrypt.DefaultCost)
@@ -54,19 +67,34 @@ func (s *UserService) CreateUser(ctx context.Context, username, email, password 
 		ProfilePicture: pgtype.Text{String: "", Valid: false},
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			if strings.Contains(err.Error(), "users_username_key") {
+				return User{}, ErrUsernameTaken
+			}
+			if strings.Contains(err.Error(), "users_email_key") {
+				return User{}, ErrEmailTaken
+			}
+		}
 		return User{}, err
 	}
 	return User{}.FromRepository(user), nil
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, id string, username, email, profilePicture string) (User, error) {
+func (s *UserService) UpdateUser(ctx context.Context, id, username, email string) (User, error) {
 	user, err := s.repo.UpdateUser(ctx, repository.UpdateUserParams{
-		ID:             id,
-		Username:       username,
-		Email:          email,
-		ProfilePicture: pgtype.Text{String: profilePicture, Valid: len(profilePicture) > 0},
+		ID:       id,
+		Username: username,
+		Email:    email,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			if strings.Contains(err.Error(), "users_username_key") {
+				return User{}, ErrUsernameTaken
+			}
+			if strings.Contains(err.Error(), "users_email_key") {
+				return User{}, ErrEmailTaken
+			}
+		}
 		return User{}, err
 	}
 	return User{}.FromRepository(user), nil
@@ -87,11 +115,11 @@ func (s *UserService) DeleteUser(ctx context.Context, email, password string) er
 func (s *UserService) AuthenticateUser(ctx context.Context, email, password string) (User, error) {
 	user, err := s.repo.GetUserByEmail(ctx, email)
 	if err != nil {
-		return User{}, err
+		return User{}, ErrInvalidAuth
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return User{}, fmt.Errorf("invalid credentials")
+		return User{}, ErrInvalidAuth
 	}
 
 	return User{}.FromRepository(user), nil
@@ -100,11 +128,11 @@ func (s *UserService) AuthenticateUser(ctx context.Context, email, password stri
 func (s *UserService) UpdatePassword(ctx context.Context, id, oldPassword, newPassword string) error {
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
-		return err
+		return ErrInvalidAuth
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword)); err != nil {
-		return fmt.Errorf("invalid old password")
+		return ErrInvalidAuth
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
@@ -133,6 +161,25 @@ func (s *UserService) ResetPassword(ctx context.Context, id, newPassword string)
 		PasswordHash: string(hash),
 	})
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, image []byte) error {
+	if _, err := s.repo.GetUserByID(ctx, id); err != nil {
+		return ErrUserDoesNotExist
+	}
+
+	result, err := s.cld.Upload.Upload(ctx, image, uploader.UploadParams{})
+	if err != nil {
+		return err
+	}
+
+	if err := s.repo.UpdateProfilePicture(ctx, repository.UpdateProfilePictureParams{
+		ID:             id,
+		ProfilePicture: pgtype.Text{String: result.SecureURL, Valid: len(result.SecureURL) > 0},
+	}); err != nil {
 		return err
 	}
 	return nil

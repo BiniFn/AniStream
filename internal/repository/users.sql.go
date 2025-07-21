@@ -129,32 +129,43 @@ func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) 
 	return err
 }
 
+const updateProfilePicture = `-- name: UpdateProfilePicture :exec
+UPDATE users
+SET
+  profile_picture = $1
+WHERE
+  id = $2
+`
+
+type UpdateProfilePictureParams struct {
+	ProfilePicture pgtype.Text
+	ID             string
+}
+
+func (q *Queries) UpdateProfilePicture(ctx context.Context, arg UpdateProfilePictureParams) error {
+	_, err := q.db.Exec(ctx, updateProfilePicture, arg.ProfilePicture, arg.ID)
+	return err
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
   username = $1,
-  email = $2,
-  profile_picture = $3
+  email = $2
 WHERE
-  id = $4
+  id = $3
 RETURNING
   id, username, email, password_hash, profile_picture, created_at, updated_at
 `
 
 type UpdateUserParams struct {
-	Username       string
-	Email          string
-	ProfilePicture pgtype.Text
-	ID             string
+	Username string
+	Email    string
+	ID       string
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUser,
-		arg.Username,
-		arg.Email,
-		arg.ProfilePicture,
-		arg.ID,
-	)
+	row := q.db.QueryRow(ctx, updateUser, arg.Username, arg.Email, arg.ID)
 	var i User
 	err := row.Scan(
 		&i.ID,

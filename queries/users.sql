@@ -31,8 +31,7 @@ RETURNING
 UPDATE users
 SET
   username = sqlc.arg (username),
-  email = sqlc.arg (email),
-  profile_picture = sqlc.arg (profile_picture)
+  email = sqlc.arg (email)
 WHERE
   id = sqlc.arg (id)
 RETURNING
@@ -47,5 +46,12 @@ WHERE
 UPDATE users
 SET
   password_hash = sqlc.arg (password_hash)
+WHERE
+  id = sqlc.arg (id);
+
+-- name: UpdateProfilePicture :exec
+UPDATE users
+SET
+  profile_picture = sqlc.arg (profile_picture)
 WHERE
   id = sqlc.arg (id);
