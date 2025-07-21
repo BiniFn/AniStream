@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/coeeter/aniways/internal/models"
 	animeSvc "github.com/coeeter/aniways/internal/service/anime"
 	"github.com/go-chi/chi/v5"
 )
@@ -55,7 +54,7 @@ func randomAnime(svc *animeSvc.AnimeService) http.HandlerFunc {
 		genre := r.URL.Query().Get("genre")
 
 		var (
-			resp models.AnimeDto
+			resp animeSvc.AnimeDto
 			err  error
 		)
 

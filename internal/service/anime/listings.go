@@ -16,10 +16,10 @@ import (
 func (s *AnimeService) GetRecentlyUpdatedAnimes(
 	ctx context.Context,
 	page, size int,
-) (models.Pagination[models.AnimeDto], error) {
+) (models.Pagination[AnimeDto], error) {
 	limit, offset, err := utils.ValidatePaginationParams(page, size)
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
 	rows, err := s.repo.GetRecentlyUpdatedAnimes(ctx, repository.GetRecentlyUpdatedAnimesParams{
@@ -27,7 +27,7 @@ func (s *AnimeService) GetRecentlyUpdatedAnimes(
 		Offset: offset,
 	})
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
 	for _, r := range rows {
@@ -36,17 +36,17 @@ func (s *AnimeService) GetRecentlyUpdatedAnimes(
 
 	total, err := s.repo.GetRecentlyUpdatedAnimesCount(ctx)
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
-	items := make([]models.AnimeDto, len(rows))
+	items := make([]AnimeDto, len(rows))
 	for i, a := range rows {
-		items[i] = models.AnimeDto{}.FromRepository(a)
+		items[i] = AnimeDto{}.FromRepository(a)
 	}
 
 	pageSize := int64(limit)
 	pageInfo := utils.PageInfo(page, pageSize, total)
-	return models.Pagination[models.AnimeDto]{
+	return models.Pagination[AnimeDto]{
 		PageInfo: pageInfo,
 		Items:    items,
 	}, nil
@@ -67,10 +67,10 @@ func (s *AnimeService) GetAnimeGenres(ctx context.Context) ([]string, error) {
 	return genres, nil
 }
 
-func (s *AnimeService) SearchAnimes(ctx context.Context, query, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
+func (s *AnimeService) SearchAnimes(ctx context.Context, query, genre string, page, size int) (models.Pagination[AnimeDto], error) {
 	limit, offset, err := utils.ValidatePaginationParams(page, size)
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
 	rows, err := s.repo.SearchAnimes(ctx, repository.SearchAnimesParams{
@@ -80,7 +80,7 @@ func (s *AnimeService) SearchAnimes(ctx context.Context, query, genre string, pa
 		Offset: offset,
 	})
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
 	for _, r := range rows {
@@ -91,54 +91,54 @@ func (s *AnimeService) SearchAnimes(ctx context.Context, query, genre string, pa
 		Query: query,
 	})
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
-	items := make([]models.AnimeDto, len(rows))
+	items := make([]AnimeDto, len(rows))
 	for i, a := range rows {
-		items[i] = models.AnimeDto{}.FromSearch(a)
+		items[i] = AnimeDto{}.FromSearch(a)
 	}
 
 	pageSize := int64(limit)
 	pageInfo := utils.PageInfo(page, pageSize, total)
-	return models.Pagination[models.AnimeDto]{
+	return models.Pagination[AnimeDto]{
 		PageInfo: pageInfo,
 		Items:    items,
 	}, nil
 }
 
-func (s *AnimeService) GetRandomAnime(ctx context.Context) (models.AnimeDto, error) {
+func (s *AnimeService) GetRandomAnime(ctx context.Context) (AnimeDto, error) {
 	data, err := s.repo.GetRandomAnime(ctx)
 	if err != nil {
 		log.Printf("failed to fetch random anime: %v", err)
-		return models.AnimeDto{}, err
+		return AnimeDto{}, err
 	}
 
 	s.refresher.Enqueue(data.MalID.Int32)
 
-	return models.AnimeDto{}.FromRepository(data), nil
+	return AnimeDto{}.FromRepository(data), nil
 }
 
-func (s *AnimeService) GetRandomAnimeByGenre(ctx context.Context, genre string) (models.AnimeDto, error) {
+func (s *AnimeService) GetRandomAnimeByGenre(ctx context.Context, genre string) (AnimeDto, error) {
 	if genre == "" {
-		return models.AnimeDto{}, fmt.Errorf("genre is required")
+		return AnimeDto{}, fmt.Errorf("genre is required")
 	}
 
 	data, err := s.repo.GetRandomAnimeByGenre(ctx, pgtype.Text{String: genre, Valid: true})
 	if err != nil {
 		log.Printf("failed to fetch random anime by genre %s: %v", genre, err)
-		return models.AnimeDto{}, err
+		return AnimeDto{}, err
 	}
 
 	s.refresher.Enqueue(data.MalID.Int32)
 
-	return models.AnimeDto{}.FromRepository(data), nil
+	return AnimeDto{}.FromRepository(data), nil
 }
 
-func (s *AnimeService) GetAnimesByGenre(ctx context.Context, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
+func (s *AnimeService) GetAnimesByGenre(ctx context.Context, genre string, page, size int) (models.Pagination[AnimeDto], error) {
 	limit, offset, err := utils.ValidatePaginationParams(page, size)
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
 	rows, err := s.repo.GetAnimeByGenre(ctx, repository.GetAnimeByGenreParams{
@@ -147,7 +147,7 @@ func (s *AnimeService) GetAnimesByGenre(ctx context.Context, genre string, page,
 		Offset: offset,
 	})
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
 	for _, r := range rows {
@@ -156,17 +156,17 @@ func (s *AnimeService) GetAnimesByGenre(ctx context.Context, genre string, page,
 
 	total, err := s.repo.GetAnimeByGenreCount(ctx, pgtype.Text{String: genre, Valid: true})
 	if err != nil {
-		return models.Pagination[models.AnimeDto]{}, err
+		return models.Pagination[AnimeDto]{}, err
 	}
 
-	items := make([]models.AnimeDto, len(rows))
+	items := make([]AnimeDto, len(rows))
 	for i, a := range rows {
-		items[i] = models.AnimeDto{}.FromRepository(a)
+		items[i] = AnimeDto{}.FromRepository(a)
 	}
 
 	pageSize := int64(limit)
 	pageInfo := utils.PageInfo(page, pageSize, total)
-	return models.Pagination[models.AnimeDto]{
+	return models.Pagination[AnimeDto]{
 		PageInfo: pageInfo,
 		Items:    items,
 	}, nil
@@ -209,8 +209,8 @@ func fetchAnimeDtosFromAnilist[T any](
 	return rows, rowMap, nil
 }
 
-func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]models.SeasonalAnimeDto, error) {
-	var cachedAnimes []models.SeasonalAnimeDto
+func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]SeasonalAnimeDto, error) {
+	var cachedAnimes []SeasonalAnimeDto
 
 	_, err := s.redis.GetOrFill(ctx, "seasonal_animes", &cachedAnimes, 30*24*time.Hour, func(ctx context.Context) (any, error) {
 		now := time.Now()
@@ -242,7 +242,7 @@ func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]models.Seasonal
 			return nil, err
 		}
 
-		seasonalAnimes := make([]models.SeasonalAnimeDto, 0, len(animes.Page.Media))
+		seasonalAnimes := make([]SeasonalAnimeDto, 0, len(animes.Page.Media))
 		for _, a := range animes.Page.Media {
 			id := int32(a.IdMal)
 			dbAnime, ok := dtoMap[id]
@@ -256,14 +256,14 @@ func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]models.Seasonal
 				0, 0, 0, 0,
 				time.UTC,
 			)
-			seasonalAnimes = append(seasonalAnimes, models.SeasonalAnimeDto{
+			seasonalAnimes = append(seasonalAnimes, SeasonalAnimeDto{
 				ID:             dbAnime.ID,
 				BannerImageURL: a.BannerImage,
 				Description:    a.Description,
 				Type:           string(a.Type),
 				StartDate:      startDate.UnixMilli(),
 				Episodes:       int32(a.Episodes),
-				Anime:          models.AnimeDto{}.FromRepository(dbAnime),
+				Anime:          AnimeDto{}.FromRepository(dbAnime),
 			})
 		}
 
@@ -278,8 +278,8 @@ func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]models.Seasonal
 	return cachedAnimes, nil
 }
 
-func (s *AnimeService) GetTrendingAnimes(ctx context.Context) ([]models.AnimeDto, error) {
-	var cachedAnimes []models.AnimeDto
+func (s *AnimeService) GetTrendingAnimes(ctx context.Context) ([]AnimeDto, error) {
+	var cachedAnimes []AnimeDto
 
 	_, err := s.redis.GetOrFill(ctx, "trending_animes", &cachedAnimes, 24*time.Hour, func(ctx context.Context) (any, error) {
 		animes, err := s.anilistClient.GetTrendingAnime(ctx)
@@ -296,14 +296,14 @@ func (s *AnimeService) GetTrendingAnimes(ctx context.Context) ([]models.AnimeDto
 			return nil, err
 		}
 
-		trendingAnimes := make([]models.AnimeDto, 0, len(animes.Page.Media))
+		trendingAnimes := make([]AnimeDto, 0, len(animes.Page.Media))
 		for _, a := range animes.Page.Media {
 			id := int32(a.IdMal)
 			dbAnime, ok := dtoMap[id]
 			if !ok {
 				continue
 			}
-			trendingAnimes = append(trendingAnimes, models.AnimeDto{}.FromRepository(dbAnime))
+			trendingAnimes = append(trendingAnimes, AnimeDto{}.FromRepository(dbAnime))
 		}
 
 		return trendingAnimes, nil
@@ -317,8 +317,8 @@ func (s *AnimeService) GetTrendingAnimes(ctx context.Context) ([]models.AnimeDto
 	return cachedAnimes, nil
 }
 
-func (s *AnimeService) GetPopularAnimes(ctx context.Context) ([]models.AnimeDto, error) {
-	var cachedAnimes []models.AnimeDto
+func (s *AnimeService) GetPopularAnimes(ctx context.Context) ([]AnimeDto, error) {
+	var cachedAnimes []AnimeDto
 	_, err := s.redis.GetOrFill(ctx, "popular_animes", &cachedAnimes, 24*time.Hour, func(ctx context.Context) (any, error) {
 		animes, err := s.anilistClient.GetPopularAnime(ctx)
 		if err != nil {
@@ -334,14 +334,14 @@ func (s *AnimeService) GetPopularAnimes(ctx context.Context) ([]models.AnimeDto,
 			return nil, err
 		}
 
-		popularAnimes := make([]models.AnimeDto, 0, len(animes.Page.Media))
+		popularAnimes := make([]AnimeDto, 0, len(animes.Page.Media))
 		for _, a := range animes.Page.Media {
 			id := int32(a.IdMal)
 			dbAnime, ok := dtoMap[id]
 			if !ok {
 				continue
 			}
-			popularAnimes = append(popularAnimes, models.AnimeDto{}.FromRepository(dbAnime))
+			popularAnimes = append(popularAnimes, AnimeDto{}.FromRepository(dbAnime))
 		}
 
 		return popularAnimes, nil

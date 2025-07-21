@@ -1,4 +1,4 @@
-package models
+package anime
 
 import (
 	"encoding/base64"

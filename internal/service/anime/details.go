@@ -9,7 +9,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -18,7 +17,7 @@ import (
 func (s *AnimeService) GetAnimeByID(
 	ctx context.Context,
 	id string,
-) (*models.AnimeWithMetadataDto, error) {
+) (*AnimeWithMetadataDto, error) {
 	a, err := s.repo.GetAnimeById(ctx, id)
 	if err != nil {
 		return nil, err
@@ -33,7 +32,7 @@ func (s *AnimeService) GetAnimeByID(
 	} else {
 		// If metadata is fresh, return it
 		if time.Since(m.UpdatedAt.Time) < s.refresher.ttl {
-			dto := models.AnimeWithMetadataDto{}.FromRepository(a, m)
+			dto := AnimeWithMetadataDto{}.FromRepository(a, m)
 			return &dto, nil
 		}
 	}
@@ -46,12 +45,12 @@ func (s *AnimeService) GetAnimeByID(
 		return nil, err
 	}
 
-	dto := models.AnimeWithMetadataDto{}.FromRepository(a, m)
+	dto := AnimeWithMetadataDto{}.FromRepository(a, m)
 
 	return &dto, nil
 }
 
-func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*models.TrailerDto, error) {
+func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*TrailerDto, error) {
 	a, err := s.GetAnimeByID(ctx, id)
 	if err != nil || a == nil {
 		return nil, err
@@ -77,7 +76,7 @@ func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*models.
 		}
 		log.Printf("updated trailer for MAL ID %d: %s", a.MalID, a.Metadata.TrailerEmbedURL)
 	}
-	return &models.TrailerDto{Trailer: a.Metadata.TrailerEmbedURL}, nil
+	return &TrailerDto{Trailer: a.Metadata.TrailerEmbedURL}, nil
 }
 
 func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (string, error) {
@@ -112,30 +111,30 @@ func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (string, e
 	return cachedBanner, nil
 }
 
-func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (models.RelationsDto, error) {
+func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (RelationsDto, error) {
 	cachedKey := fmt.Sprintf("anime_relations:%s", animeID)
-	var cachedRelations models.RelationsDto
+	var cachedRelations RelationsDto
 
 	_, err := s.redis.GetOrFill(ctx, cachedKey, &cachedRelations, 7*24*time.Hour, func(ctx context.Context) (any, error) {
 		anime, err := s.repo.GetAnimeById(ctx, animeID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
-				return models.RelationsDto{}, nil
+				return RelationsDto{}, nil
 			}
 			log.Printf("failed to fetch anime by ID %s: %v", animeID, err)
-			return models.RelationsDto{}, err
+			return RelationsDto{}, err
 		}
 
 		if !anime.MalID.Valid || anime.MalID.Int32 <= 0 {
 			log.Printf("invalid MAL ID for anime ID %s: %v", animeID, anime.MalID)
-			return models.RelationsDto{}, fmt.Errorf("invalid MAL ID for anime ID %s", animeID)
+			return RelationsDto{}, fmt.Errorf("invalid MAL ID for anime ID %s", animeID)
 		}
 
 		malID := int(anime.MalID.Int32)
 		fr, err := s.shikimoriClient.GetAnimeFranchise(ctx, malID)
 		if err != nil {
 			log.Printf("failed to fetch franchise for MAL ID %d: %v", malID, err)
-			return models.RelationsDto{}, err
+			return RelationsDto{}, err
 		}
 
 		watchIDs := deriveWatchOrder(fr, malID)
@@ -151,17 +150,17 @@ func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (m
 		}(fullIDs))
 		if err != nil {
 			log.Printf("failed to fetch related animes by MAL IDs %v: %v", fullIDs, err)
-			return models.RelationsDto{}, fmt.Errorf("failed to fetch related animes: %w", err)
+			return RelationsDto{}, fmt.Errorf("failed to fetch related animes: %w", err)
 		}
 
-		dtoMap := make(map[int32]models.AnimeDto, len(rows))
+		dtoMap := make(map[int32]AnimeDto, len(rows))
 		for _, r := range rows {
-			dtoMap[r.MalID.Int32] = models.AnimeDto{}.FromRepository(r)
+			dtoMap[r.MalID.Int32] = AnimeDto{}.FromRepository(r)
 			s.refresher.Enqueue(r.MalID.Int32)
 		}
 
-		sliceDto := func(ids []int) []models.AnimeDto {
-			out := make([]models.AnimeDto, 0, len(ids))
+		sliceDto := func(ids []int) []AnimeDto {
+			out := make([]AnimeDto, 0, len(ids))
 			for _, id := range ids {
 				if dto, ok := dtoMap[int32(id)]; ok {
 					out = append(out, dto)
@@ -178,16 +177,16 @@ func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (m
 			return out
 		}
 
-		var relations models.RelationsDto
+		var relations RelationsDto
 
 		if len(watchIDs) > 1 && slices.Contains(watchIDs, malID) {
-			relations = models.RelationsDto{
+			relations = RelationsDto{
 				WatchOrder: sliceDto(watchIDs),
 				Related:    sliceDto(reverse(relatedIDs)),
 			}
 		} else {
-			relations = models.RelationsDto{
-				WatchOrder: []models.AnimeDto{},
+			relations = RelationsDto{
+				WatchOrder: []AnimeDto{},
 				Related: sliceDto(func(ids []int) []int {
 					if len(ids) == 1 {
 						return []int{}
@@ -202,7 +201,7 @@ func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (m
 
 	if err != nil {
 		log.Printf("failed to get anime relations from cache: %v", err)
-		return models.RelationsDto{}, err
+		return RelationsDto{}, err
 	}
 
 	return cachedRelations, nil

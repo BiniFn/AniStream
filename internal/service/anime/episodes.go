@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	"github.com/coeeter/aniways/internal/models"
 )
 
-func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]models.EpisodeDto, error) {
-	var cachedEpisodes []models.EpisodeDto
+func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]EpisodeDto, error) {
+	var cachedEpisodes []EpisodeDto
 
 	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_episodes:%s", id), &cachedEpisodes, 7*24*time.Hour, func(ctx context.Context) (any, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
@@ -30,9 +28,9 @@ func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]model
 			return nil, fmt.Errorf("no episodes found for anime ID %s", id)
 		}
 
-		episodeDtos := make([]models.EpisodeDto, len(episodes))
+		episodeDtos := make([]EpisodeDto, len(episodes))
 		for i, ep := range episodes {
-			episodeDtos[i] = models.EpisodeDto{}.FromScraper(ep)
+			episodeDtos[i] = EpisodeDto{}.FromScraper(ep)
 		}
 		return episodeDtos, nil
 	})
@@ -78,22 +76,22 @@ func (s *AnimeService) GetEpisodeLangs(ctx context.Context, id, episodeID string
 	return cachedLangs, nil
 }
 
-func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, streamType string) (models.EpisodeSourceDto, error) {
-	var cached models.EpisodeSourceDto
+func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, streamType string) (EpisodeSourceDto, error) {
+	var cached EpisodeSourceDto
 
 	key := fmt.Sprintf("source:%s:%s:%s", id, episodeID, streamType)
 	if _, err := s.redis.GetOrFill(ctx, key, &cached, 24*time.Hour, func(ctx context.Context) (any, error) {
 		data, err := s.scraper.GetEpisodeStream(ctx, episodeID, streamType)
 		if err != nil {
 			log.Printf("failed to fetch episode stream for anime ID %s episode %s type %s: %v", id, episodeID, streamType, err)
-			return models.EpisodeSourceDto{}, err
+			return EpisodeSourceDto{}, err
 		}
 
 		encoder := base64.StdEncoding
 		p := encoder.EncodeToString([]byte(data))
 		s := "megaplay"
 
-		return models.EpisodeSourceDto{
+		return EpisodeSourceDto{
 			URL:    fmt.Sprintf("/proxy?p=%s&s=%s", p, s),
 			RawURL: data,
 		}, nil
@@ -105,24 +103,24 @@ func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, stre
 	return cached, nil
 }
 
-func (s *AnimeService) GetStreamMetadata(ctx context.Context, id, episodeID, streamType string) (models.StreamingMetadataDto, error) {
-	var cached models.StreamingMetadataDto
+func (s *AnimeService) GetStreamMetadata(ctx context.Context, id, episodeID, streamType string) (StreamingMetadataDto, error) {
+	var cached StreamingMetadataDto
 
 	key := fmt.Sprintf("metadata:%s:%s:%s", id, episodeID, streamType)
 	if _, err := s.redis.GetOrFill(ctx, key, &cached, 24*time.Hour, func(ctx context.Context) (any, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
 		if err != nil {
 			log.Printf("failed to fetch anime metadata for ID %s: %v", id, err)
-			return models.StreamingMetadataDto{}, err
+			return StreamingMetadataDto{}, err
 		}
 
 		data, err := s.scraper.GetStreamMetadata(ctx, a.HiAnimeID, episodeID, streamType)
 		if err != nil {
 			log.Printf("failed to fetch stream metadata for anime ID %s episode %s type %s: %v", id, episodeID, streamType, err)
-			return models.StreamingMetadataDto{}, err
+			return StreamingMetadataDto{}, err
 		}
 
-		return models.StreamingMetadataDto{}.FromScraper(data), nil
+		return StreamingMetadataDto{}.FromScraper(data), nil
 	}); err != nil {
 		log.Printf("failed to get stream metadata for anime ID %s episode %s type %s from cache: %v", id, episodeID, streamType, err)
 		return cached, err
