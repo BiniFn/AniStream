@@ -4,13 +4,10 @@ import (
 	"context"
 	"net/http"
 	"time"
-
-	"github.com/coeeter/aniways/internal/client/hianime/streams"
 )
 
 type HianimeScraper struct {
 	catalog *HianimeCatalog
-	stream  *streams.Streams
 }
 
 func NewHianimeScraper() *HianimeScraper {
@@ -25,7 +22,6 @@ func NewHianimeScraper() *HianimeScraper {
 
 	return &HianimeScraper{
 		catalog: NewCatalog(NewFetcher("https://hianimez.to", client)),
-		stream:  streams.NewStreams(client),
 	}
 }
 
@@ -75,5 +71,12 @@ func (s *HianimeScraper) GetEpisodeStream(
 	ctx context.Context,
 	episodeID, streamType string,
 ) (string, error) {
-	return s.stream.GetStreamingSource(ctx, episodeID, streamType)
+	return s.catalog.StreamSource(ctx, episodeID, streamType)
+}
+
+func (s *HianimeScraper) GetStreamMetadata(
+	ctx context.Context,
+	hianimeID, episodeID, streamType string,
+) (ScrapedStreamMetadata, error) {
+	return s.catalog.StreamMetadata(ctx, hianimeID, episodeID, streamType)
 }

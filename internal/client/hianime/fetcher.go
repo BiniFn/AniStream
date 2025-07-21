@@ -13,12 +13,12 @@ import (
 
 type HianimeFetcher struct {
 	baseURL string
-	client  *http.Client
+	Client  *http.Client
 }
 
 func NewFetcher(baseURL string, client *http.Client) *HianimeFetcher {
 	return &HianimeFetcher{
-		client:  client,
+		Client:  client,
 		baseURL: baseURL,
 	}
 }
@@ -52,7 +52,7 @@ func (f *HianimeFetcher) GetDocument(
 		req.Header.Set(key, value)
 	}
 
-	resp, err := f.client.Do(req)
+	resp, err := f.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (f *HianimeFetcher) GetAjax(ctx context.Context, path string, headers map[s
 		req.Header.Set(key, value)
 	}
 
-	resp, err := f.client.Do(req)
+	resp, err := f.Client.Do(req)
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch AJAX content: %w", err)
 	}

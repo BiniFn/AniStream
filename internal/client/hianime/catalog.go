@@ -3,11 +3,17 @@ package hianime
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"golang.org/x/net/html"
 )
 
 type HianimeCatalog struct {
@@ -309,4 +315,201 @@ func (c *HianimeCatalog) EpisodeLangs(ctx context.Context, hiAnimeID, episodeID 
 	}
 
 	return langs, nil
+}
+
+func (c *HianimeCatalog) StreamSource(ctx context.Context, episodeID, streamType string) (string, error) {
+	url := fmt.Sprintf("https://megaplay.buzz/stream/s-2/%s/%s", episodeID, streamType)
+	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req.Header.Set("Referer", "https://megaplay.buzz")
+	resp, err := c.fetcher.Client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	mediaID, exists := doc.Find("#megaplay-player").Attr("data-id")
+	if mediaID == "" || !exists {
+		return "", fmt.Errorf("no media ID found in Megaplay streaming data")
+	}
+
+	ajax := fmt.Sprintf("https://megaplay.buzz/stream/getSources?id=%s", mediaID)
+	ajaxReq, _ := http.NewRequestWithContext(ctx, "GET", ajax, nil)
+	ajaxReq.Header.Set("Referer", "https://megaplay.buzz")
+	ajaxReq.Header.Set("Origin", url)
+	ajaxReq.Header.Set("X-Requested-With", "XMLHttpRequest")
+	ajaxResp, err := c.fetcher.Client.Do(ajaxReq)
+	if err != nil {
+		return "", err
+	}
+	defer ajaxResp.Body.Close()
+
+	var meta struct {
+		Sources struct {
+			File string `json:"file"`
+		} `json:"sources"`
+	}
+	if err := json.NewDecoder(ajaxResp.Body).Decode(&meta); err != nil {
+		return "", err
+	}
+	if meta.Sources.File == "" {
+		return "", fmt.Errorf("no sources in Megaplay response")
+	}
+
+	return meta.Sources.File, nil
+}
+
+func (c *HianimeCatalog) StreamMetadata(
+	ctx context.Context,
+	hianimeID, episodeID, streamType string,
+) (ScrapedStreamMetadata, error) {
+	servers, err := c.EpisodeServers(ctx, hianimeID, episodeID)
+	if err != nil {
+		return ScrapedStreamMetadata{}, err
+	}
+
+	var serverID string
+	for _, server := range servers {
+		if server.Type == streamType {
+			serverID = server.ServerID
+			break
+		}
+	}
+
+	headers := map[string]string{
+		"Referer":          c.fetcher.baseURL,
+		"X-Requested-With": "XMLHttpRequest",
+	}
+
+	var data struct {
+		Link string `json:"link"`
+	}
+	ok, err := c.fetcher.GetAjax(ctx, "/ajax/v2/episode/sources?id="+serverID, headers, &data)
+	if err != nil {
+		return ScrapedStreamMetadata{}, err
+	}
+	if !ok {
+		return ScrapedStreamMetadata{}, fmt.Errorf("failed to fetch sources")
+	}
+
+	parsedURL, err := url.Parse(data.Link)
+	if err != nil {
+		return ScrapedStreamMetadata{}, err
+	}
+
+	parts := strings.Split(parsedURL.Path, "/")
+	xrax := parts[len(parts)-1]
+	parsedURL.Path = strings.Join(parts[:len(parts)-1], "/")
+	parsedURL.RawQuery = ""
+	origin := parsedURL.String()
+
+	token, err := c.extractToken(ctx, data.Link)
+	if err != nil {
+		return ScrapedStreamMetadata{}, fmt.Errorf("failed to extract token: %w", err)
+	}
+
+	ajaxURL := fmt.Sprintf("%s/getSources?id=%s&_k=%s", origin, xrax, token)
+
+	ajaxReq, _ := http.NewRequestWithContext(ctx, "GET", ajaxURL, nil)
+	ajaxResp, err := c.fetcher.Client.Do(ajaxReq)
+	if err != nil {
+		return ScrapedStreamMetadata{}, err
+	}
+	defer ajaxResp.Body.Close()
+
+	var enc ScrapedStreamMetadata
+	if err := json.NewDecoder(ajaxResp.Body).Decode(&enc); err != nil {
+		return ScrapedStreamMetadata{}, err
+	}
+
+	return enc, nil
+}
+
+var (
+	// 4. window.<key> = "value";
+	reWindowString = regexp.MustCompile(`window\.(\w+)\s*=\s*["']([\w-]+)["']`)
+	// 5. window.<key> = { ... };
+	reWindowObject = regexp.MustCompile(`window\.(\w+)\s*=\s*(\{[\s\S]*?\});`)
+	// 5b. extract all string literals inside an object literal
+	reQuotedString = regexp.MustCompile(`["']([^"']+)["']`)
+)
+
+func (c *HianimeCatalog) extractToken(ctx context.Context, url string) (string, error) {
+	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req.Header.Set("Referer", "https://hianimez.to/")
+	resp, err := c.fetcher.Client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	rawBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+	htmlStr := string(rawBytes)
+
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlStr))
+	if err != nil {
+		return "", err
+	}
+
+	if meta, exists := doc.Find(`meta[name="_gg_fb"]`).Attr("content"); exists && meta != "" {
+		return meta, nil
+	}
+
+	if dpi, exists := doc.Find(`[data-dpi]`).Attr("data-dpi"); exists && dpi != "" {
+		return dpi, nil
+	}
+
+	foundNonce := ""
+	doc.Find("script[nonce]").EachWithBreak(func(i int, s *goquery.Selection) bool {
+		if strings.Contains(s.Text(), "empty nonce script") {
+			foundNonce, _ = s.Attr("nonce")
+			return false // break loop
+		}
+		return true
+	})
+	if foundNonce != "" {
+		return foundNonce, nil
+	}
+
+	if m := reWindowString.FindAllStringSubmatch(htmlStr, -1); len(m) > 0 {
+		// take the first match’s value (sub‑match 2)
+		return m[0][2], nil
+	}
+
+	if m := reWindowObject.FindAllStringSubmatch(htmlStr, -1); len(m) > 0 {
+		for _, sub := range m {
+			objLiteral := sub[2]
+			allStrings := reQuotedString.FindAllStringSubmatch(objLiteral, -1)
+			if len(allStrings) == 0 {
+				continue
+			}
+			var sb strings.Builder
+			for _, sm := range allStrings {
+				sb.WriteString(sm[1])
+			}
+			if token := sb.String(); len(token) >= 20 {
+				return token, nil
+			}
+		}
+	}
+
+	tokenizer := html.NewTokenizer(strings.NewReader(htmlStr))
+	const key = "_is_th:"
+	for {
+		switch tokenizer.Next() {
+		case html.ErrorToken:
+			return "", nil
+		case html.CommentToken:
+			data := strings.TrimSpace(string(tokenizer.Text()))
+			if strings.HasPrefix(data, key) {
+				return strings.TrimPrefix(data, key), nil
+			}
+		}
+	}
 }

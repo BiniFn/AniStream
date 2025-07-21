@@ -137,3 +137,29 @@ func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, stre
 
 	return cached, nil
 }
+
+func (s *AnimeService) GetStreamMetadata(ctx context.Context, id, episodeID, streamType string) (models.StreamingMetadataDto, error) {
+	var cached models.StreamingMetadataDto
+
+	key := fmt.Sprintf("metadata:%s:%s:%s", id, episodeID, streamType)
+	if _, err := s.redis.GetOrFill(ctx, key, &cached, 24*time.Hour, func(ctx context.Context) (any, error) {
+		a, err := s.repo.GetAnimeById(ctx, id)
+		if err != nil {
+			log.Printf("failed to fetch anime metadata for ID %s: %v", id, err)
+			return models.StreamingMetadataDto{}, err
+		}
+
+		data, err := s.scraper.GetStreamMetadata(ctx, a.HiAnimeID, episodeID, streamType)
+		if err != nil {
+			log.Printf("failed to fetch stream metadata for anime ID %s episode %s type %s: %v", id, episodeID, streamType, err)
+			return models.StreamingMetadataDto{}, err
+		}
+
+		return models.StreamingMetadataDto{}.FromScraper(data), nil
+	}); err != nil {
+		log.Printf("failed to get stream metadata for anime ID %s episode %s type %s from cache: %v", id, episodeID, streamType, err)
+		return cached, err
+	}
+
+	return cached, nil
+}

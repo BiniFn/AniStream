@@ -4,7 +4,6 @@ import (
 	"sort"
 
 	"github.com/coeeter/aniways/internal/client/hianime"
-	"github.com/coeeter/aniways/internal/client/hianime/streaming"
 	"github.com/coeeter/aniways/internal/repository"
 )
 
@@ -190,13 +189,10 @@ type EpisodeSourceDto struct {
 	RawURL string `json:"rawUrl"`
 }
 
-type StreamingDataDto struct {
-	Source     string     `json:"source"`
-	ServerName string     `json:"serverName"`
-	Type       string     `json:"type"`
-	Intro      SegmentDto `json:"intro"`
-	Outro      SegmentDto `json:"outro"`
-	Tracks     []TrackDto `json:"tracks"`
+type StreamingMetadataDto struct {
+	Intro  SegmentDto `json:"intro"`
+	Outro  SegmentDto `json:"outro"`
+	Tracks []TrackDto `json:"tracks"`
 }
 
 type SegmentDto struct {
@@ -211,11 +207,8 @@ type TrackDto struct {
 	Default bool   `json:"default,omitempty"`
 }
 
-func (s StreamingDataDto) FromScraper(data streaming.ScrapedUnencryptedSources) StreamingDataDto {
-	return StreamingDataDto{
-		Source:     data.Source,
-		ServerName: data.ServerName,
-		Type:       data.Type,
+func (s StreamingMetadataDto) FromScraper(data hianime.ScrapedStreamMetadata) StreamingMetadataDto {
+	return StreamingMetadataDto{
 		Intro: SegmentDto{
 			Start: data.Intro.Start,
 			End:   data.Intro.End,
@@ -224,7 +217,7 @@ func (s StreamingDataDto) FromScraper(data streaming.ScrapedUnencryptedSources) 
 			Start: data.Outro.Start,
 			End:   data.Outro.End,
 		},
-		Tracks: func(t []streaming.ScrapedTrack) []TrackDto {
+		Tracks: func(t []hianime.ScrapedTrack) []TrackDto {
 			tracks := make([]TrackDto, len(t))
 			for i, track := range t {
 				tracks[i] = TrackDto{
