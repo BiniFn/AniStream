@@ -4,7 +4,6 @@ go 1.24.1
 
 require (
 	github.com/Khan/genqlient v0.8.1
-	github.com/Luzifer/go-openssl/v4 v4.2.4
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.2
@@ -13,6 +12,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/redis/go-redis/v9 v9.11.0
+	golang.org/x/net v0.39.0
 	golang.org/x/time v0.12.0
 )
 
@@ -30,7 +30,6 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.30 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.37.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 )

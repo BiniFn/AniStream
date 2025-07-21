@@ -11,7 +11,6 @@ import (
 func MountAnimeEpisodesRoutes(r chi.Router, svc *animeSvc.AnimeService) {
 	r.Route("/{id}/episodes", func(r chi.Router) {
 		r.Get("/", getAnimeEpisodes(svc))
-		r.Get("/{episodeID}/servers", getServersForEpisode(svc))
 		r.Get("/{episodeID}/langs", getEpisodeLangs(svc))
 		r.Get("/{episodeID}/stream/{type}", getEpisodeStream(svc))
 		r.Get("/{episodeID}/stream/{type}/metadata", getEpisodeStreamMetadata(svc))
@@ -31,30 +30,6 @@ func getAnimeEpisodes(svc *animeSvc.AnimeService) http.HandlerFunc {
 		if err != nil {
 			log.Printf("failed to fetch anime episodes for ID %s: %v", id, err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch anime episodes")
-			return
-		}
-		jsonOK(w, resp)
-	}
-}
-
-func getServersForEpisode(svc *animeSvc.AnimeService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		if id == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
-			return
-		}
-
-		episodeID := chi.URLParam(r, "episodeID")
-		if episodeID == "" {
-			jsonError(w, http.StatusBadRequest, "episode ID is required")
-			return
-		}
-
-		resp, err := svc.GetServersForEpisode(r.Context(), id, episodeID)
-		if err != nil {
-			log.Printf("failed to fetch servers for episode %s of anime %s: %v", episodeID, id, err)
-			jsonError(w, http.StatusInternalServerError, "failed to fetch servers for episode")
 			return
 		}
 		jsonOK(w, resp)

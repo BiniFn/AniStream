@@ -45,39 +45,6 @@ func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]model
 	return cachedEpisodes, nil
 }
 
-func (s *AnimeService) GetServersForEpisode(ctx context.Context, id, episodeID string) (models.ServerDto, error) {
-	var cachedServers models.ServerDto
-
-	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_servers:%s:episode:%s", id, episodeID), &cachedServers, 24*time.Hour, func(ctx context.Context) (any, error) {
-		a, err := s.repo.GetAnimeById(ctx, id)
-		if err != nil {
-			log.Printf("failed to fetch anime by ID %s: %v", id, err)
-			return models.ServerDto{}, err
-		}
-
-		servers, err := s.scraper.GetEpisodeServers(ctx, a.HiAnimeID, episodeID)
-		if err != nil {
-			log.Printf("failed to fetch servers for anime ID %s episode %s: %v", id, episodeID, err)
-			return models.ServerDto{}, err
-		}
-
-		if len(servers) == 0 {
-			log.Printf("no servers found for anime ID %s episode %s", id, episodeID)
-			return models.ServerDto{}, fmt.Errorf("no servers found for anime ID %s episode %s", id, episodeID)
-		}
-
-		serverDto := models.ServerDto{}.FromScraper(servers)
-		return serverDto, nil
-	})
-
-	if err != nil {
-		log.Printf("failed to get servers for episode from cache: %v", err)
-		return models.ServerDto{}, err
-	}
-
-	return cachedServers, nil
-}
-
 func (s *AnimeService) GetEpisodeLangs(ctx context.Context, id, episodeID string) ([]string, error) {
 	var langs []string
 

@@ -126,7 +126,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	u, _ := url.Parse(targetURL)
 	ext := path.Ext(u.Path)
 
-	if ext == ".m3u8" {
+	if ext == ".m3u8" || ext == ".vtt" {
 		w.Header().Del("Content-Length")
 	}
 
@@ -153,7 +153,11 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 			if !strings.HasPrefix(line, "#") {
 				e := strings.ToLower(path.Ext(line))
-				if _, ok := allowedExts[e]; ok {
+				parts := strings.Split(e, "#")
+				// For .vtt thumbnail contents
+				if len(parts) > 1 {
+					out = encodeProxyURL(line) + "#" + parts[1]
+				} else if _, ok := allowedExts[e]; ok {
 					out = encodeProxyURL(line)
 				}
 			}

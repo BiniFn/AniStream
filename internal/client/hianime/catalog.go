@@ -376,6 +376,9 @@ func (c *HianimeCatalog) StreamMetadata(
 		if server.Type == streamType {
 			serverID = server.ServerID
 			break
+		} else if streamType == "sub" && server.Type == "raw" {
+			serverID = server.ServerID
+			break
 		}
 	}
 

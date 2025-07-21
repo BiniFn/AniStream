@@ -1,7 +1,8 @@
 package models
 
 import (
-	"sort"
+	"encoding/base64"
+	"fmt"
 
 	"github.com/coeeter/aniways/internal/client/hianime"
 	"github.com/coeeter/aniways/internal/repository"
@@ -136,54 +137,6 @@ func (e EpisodeDto) FromScraper(episode hianime.ScrapedEpisodeDto) EpisodeDto {
 	}
 }
 
-type IndividualServerDto struct {
-	Type       string `json:"type"`
-	ServerName string `json:"serverName"`
-	ServerID   string `json:"serverId"`
-}
-
-type ServerDto struct {
-	Sub []IndividualServerDto `json:"sub"`
-	Dub []IndividualServerDto `json:"dub"`
-	Raw []IndividualServerDto `json:"raw"`
-}
-
-func sortByName(s []IndividualServerDto) {
-	sort.Slice(s, func(i, j int) bool {
-		return s[i].ServerName < s[j].ServerName
-	})
-}
-
-func (s ServerDto) FromScraper(servers []hianime.ScrapedEpisodeServerDto) ServerDto {
-	sub, dub, raw := []IndividualServerDto{}, []IndividualServerDto{}, []IndividualServerDto{}
-
-	for _, server := range servers {
-		dto := IndividualServerDto{
-			Type:       server.Type,
-			ServerName: server.ServerName,
-			ServerID:   server.ServerID,
-		}
-		switch server.Type {
-		case "sub":
-			sub = append(sub, dto)
-		case "dub":
-			dub = append(dub, dto)
-		case "raw":
-			raw = append(raw, dto)
-		}
-	}
-
-	sortByName(sub)
-	sortByName(dub)
-	sortByName(raw)
-
-	return ServerDto{
-		Sub: sub,
-		Dub: dub,
-		Raw: raw,
-	}
-}
-
 type EpisodeSourceDto struct {
 	URL    string `json:"url"`
 	RawURL string `json:"rawUrl"`
@@ -201,7 +154,8 @@ type SegmentDto struct {
 }
 
 type TrackDto struct {
-	File    string `json:"file"`
+	URL     string `json:"url"`
+	Raw     string `json:"raw"`
 	Kind    string `json:"kind"`
 	Label   string `json:"label,omitempty"`
 	Default bool   `json:"default,omitempty"`
@@ -220,8 +174,13 @@ func (s StreamingMetadataDto) FromScraper(data hianime.ScrapedStreamMetadata) St
 		Tracks: func(t []hianime.ScrapedTrack) []TrackDto {
 			tracks := make([]TrackDto, len(t))
 			for i, track := range t {
+				encoder := base64.StdEncoding
+				p := encoder.EncodeToString([]byte(track.File))
+				s := "hd"
+
 				tracks[i] = TrackDto{
-					File:    track.File,
+					URL:     fmt.Sprintf("/proxy?p=%s&s=%s", p, s),
+					Raw:     track.File,
 					Kind:    track.Kind,
 					Label:   track.Label,
 					Default: track.Default,
