@@ -9,16 +9,18 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAnimeEpisodesRoutes(r chi.Router, svc *animeSvc.Service) {
+func MountAnimeEpisodesRoutes(r chi.Router, svc *animeSvc.AnimeService) {
 	r.Route("/{id}/episodes", func(r chi.Router) {
 		r.Get("/", getAnimeEpisodes(svc))
-		r.Get("/{episodeID}", getServersForEpisode(svc))
+		r.Get("/{episodeID}/servers", getServersForEpisode(svc))
+		r.Get("/{episodeID}/langs", getEpisodeLangs(svc))
+		r.Get("/{episodeID}/stream/{type}", getEpisodeStream(svc))
 	})
 
 	r.Get("/sources/{serverID}", getStreamingData(svc))
 }
 
-func getAnimeEpisodes(svc *animeSvc.Service) http.HandlerFunc {
+func getAnimeEpisodes(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		if id == "" {
@@ -36,7 +38,7 @@ func getAnimeEpisodes(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func getServersForEpisode(svc *animeSvc.Service) http.HandlerFunc {
+func getServersForEpisode(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		if id == "" {
@@ -60,7 +62,61 @@ func getServersForEpisode(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func getStreamingData(svc *animeSvc.Service) http.HandlerFunc {
+func getEpisodeLangs(svc *animeSvc.AnimeService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if id == "" {
+			jsonError(w, http.StatusBadRequest, "anime ID is required")
+			return
+		}
+
+		episodeID := chi.URLParam(r, "episodeID")
+		if episodeID == "" {
+			jsonError(w, http.StatusBadRequest, "episode ID is required")
+			return
+		}
+
+		resp, err := svc.GetEpisodeLangs(r.Context(), id, episodeID)
+		if err != nil {
+			log.Printf("failed to fetch languages for episode %s of anime %s: %v", episodeID, id, err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch languages for episode")
+			return
+		}
+		jsonOK(w, resp)
+	}
+}
+
+func getEpisodeStream(svc *animeSvc.AnimeService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if id == "" {
+			jsonError(w, http.StatusBadRequest, "anime ID is required")
+			return
+		}
+
+		episodeID := chi.URLParam(r, "episodeID")
+		if episodeID == "" {
+			jsonError(w, http.StatusBadRequest, "episode ID is required")
+			return
+		}
+
+		streamType := chi.URLParam(r, "type")
+		if streamType == "" {
+			jsonError(w, http.StatusBadRequest, "stream type is required")
+			return
+		}
+
+		resp, err := svc.GetEpisodeStream(r.Context(), id, episodeID, streamType)
+		if err != nil {
+			log.Printf("failed to fetch stream for episode %s of anime %s: %v", episodeID, id, err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch stream for episode")
+			return
+		}
+		jsonOK(w, resp)
+	}
+}
+
+func getStreamingData(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		serverID := chi.URLParam(r, "serverID")
 		if serverID == "" {

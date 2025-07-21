@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAnimeListingsRoutes(r chi.Router, svc *animeSvc.Service) {
+func MountAnimeListingsRoutes(r chi.Router, svc *animeSvc.AnimeService) {
 	r.Get("/recently-updated", listRecentlyUpdated(svc))
 	r.Get("/seasonal", seasonalAnimes(svc))
 	r.Get("/random", randomAnime(svc))
@@ -20,7 +20,7 @@ func MountAnimeListingsRoutes(r chi.Router, svc *animeSvc.Service) {
 	r.Get("/popular", popularAnimes(svc))
 }
 
-func listRecentlyUpdated(svc *animeSvc.Service) http.HandlerFunc {
+func listRecentlyUpdated(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		page, size, err := parsePagination(r, 1, 30)
 		if err != nil {
@@ -38,7 +38,7 @@ func listRecentlyUpdated(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func seasonalAnimes(svc *animeSvc.Service) http.HandlerFunc {
+func seasonalAnimes(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := svc.GetSeasonalAnimes(r.Context())
 		if err != nil {
@@ -50,7 +50,7 @@ func seasonalAnimes(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func randomAnime(svc *animeSvc.Service) http.HandlerFunc {
+func randomAnime(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		genre := r.URL.Query().Get("genre")
 
@@ -79,7 +79,7 @@ func randomAnime(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func listGenres(svc *animeSvc.Service) http.HandlerFunc {
+func listGenres(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := svc.GetAnimeGenres(r.Context())
 		if err != nil {
@@ -91,7 +91,7 @@ func listGenres(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func searchAnimes(svc *animeSvc.Service) http.HandlerFunc {
+func searchAnimes(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query().Get("q")
 		if query == "" {
@@ -125,7 +125,7 @@ func searchAnimes(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func animeByGenre(svc *animeSvc.Service) http.HandlerFunc {
+func animeByGenre(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		genre := chi.URLParam(r, "genre")
 		if genre == "" {
@@ -149,7 +149,7 @@ func animeByGenre(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func trendingAnimes(svc *animeSvc.Service) http.HandlerFunc {
+func trendingAnimes(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := svc.GetTrendingAnimes(r.Context())
 		if err != nil {
@@ -161,7 +161,7 @@ func trendingAnimes(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func popularAnimes(svc *animeSvc.Service) http.HandlerFunc {
+func popularAnimes(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := svc.GetPopularAnimes(r.Context())
 		if err != nil {

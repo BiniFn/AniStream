@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAnimeRoutes(r chi.Router, svc *animeSvc.Service) {
+func MountAnimeRoutes(r chi.Router, svc *animeSvc.AnimeService) {
 	r.Route("/{id}", func(r chi.Router) {
 		r.Get("/", getAnimeByID(svc))
 		r.Get("/trailer", getAnimeTrailer(svc))
@@ -17,7 +17,7 @@ func MountAnimeRoutes(r chi.Router, svc *animeSvc.Service) {
 	})
 }
 
-func getAnimeByID(svc *animeSvc.Service) http.HandlerFunc {
+func getAnimeByID(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		if id == "" {
@@ -35,7 +35,7 @@ func getAnimeByID(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func getAnimeTrailer(svc *animeSvc.Service) http.HandlerFunc {
+func getAnimeTrailer(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		if id == "" {
@@ -53,7 +53,7 @@ func getAnimeTrailer(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func getAnimeBanner(svc *animeSvc.Service) http.HandlerFunc {
+func getAnimeBanner(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		if id == "" {
@@ -73,7 +73,7 @@ func getAnimeBanner(svc *animeSvc.Service) http.HandlerFunc {
 	}
 }
 
-func franchise(svc *animeSvc.Service) http.HandlerFunc {
+func franchise(svc *animeSvc.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		animeID := chi.URLParam(r, "id")
 		if animeID == "" {

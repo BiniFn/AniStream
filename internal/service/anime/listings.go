@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (s *Service) GetRecentlyUpdatedAnimes(
+func (s *AnimeService) GetRecentlyUpdatedAnimes(
 	ctx context.Context,
 	page, size int,
 ) (models.Pagination[models.AnimeDto], error) {
@@ -52,7 +52,7 @@ func (s *Service) GetRecentlyUpdatedAnimes(
 	}, nil
 }
 
-func (s *Service) GetAnimeGenres(ctx context.Context) ([]string, error) {
+func (s *AnimeService) GetAnimeGenres(ctx context.Context) ([]string, error) {
 	var genres []string
 
 	_, err := s.redis.GetOrFill(ctx, "anime_genres", &genres, 30*24*time.Hour, func(ctx context.Context) (any, error) {
@@ -67,7 +67,7 @@ func (s *Service) GetAnimeGenres(ctx context.Context) ([]string, error) {
 	return genres, nil
 }
 
-func (s *Service) SearchAnimes(ctx context.Context, query, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
+func (s *AnimeService) SearchAnimes(ctx context.Context, query, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
 	limit, offset, err := utils.ValidatePaginationParams(page, size)
 	if err != nil {
 		return models.Pagination[models.AnimeDto]{}, err
@@ -107,7 +107,7 @@ func (s *Service) SearchAnimes(ctx context.Context, query, genre string, page, s
 	}, nil
 }
 
-func (s *Service) GetRandomAnime(ctx context.Context) (models.AnimeDto, error) {
+func (s *AnimeService) GetRandomAnime(ctx context.Context) (models.AnimeDto, error) {
 	data, err := s.repo.GetRandomAnime(ctx)
 	if err != nil {
 		log.Printf("failed to fetch random anime: %v", err)
@@ -119,7 +119,7 @@ func (s *Service) GetRandomAnime(ctx context.Context) (models.AnimeDto, error) {
 	return models.AnimeDto{}.FromRepository(data), nil
 }
 
-func (s *Service) GetRandomAnimeByGenre(ctx context.Context, genre string) (models.AnimeDto, error) {
+func (s *AnimeService) GetRandomAnimeByGenre(ctx context.Context, genre string) (models.AnimeDto, error) {
 	if genre == "" {
 		return models.AnimeDto{}, fmt.Errorf("genre is required")
 	}
@@ -135,7 +135,7 @@ func (s *Service) GetRandomAnimeByGenre(ctx context.Context, genre string) (mode
 	return models.AnimeDto{}.FromRepository(data), nil
 }
 
-func (s *Service) GetAnimesByGenre(ctx context.Context, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
+func (s *AnimeService) GetAnimesByGenre(ctx context.Context, genre string, page, size int) (models.Pagination[models.AnimeDto], error) {
 	limit, offset, err := utils.ValidatePaginationParams(page, size)
 	if err != nil {
 		return models.Pagination[models.AnimeDto]{}, err
@@ -174,7 +174,7 @@ func (s *Service) GetAnimesByGenre(ctx context.Context, genre string, page, size
 
 func fetchAnimeDtosFromAnilist[T any](
 	ctx context.Context,
-	srv *Service,
+	srv *AnimeService,
 	media []T,
 	getMalID func(T) int,
 ) ([]repository.Anime, map[int32]repository.Anime, error) {
@@ -209,7 +209,7 @@ func fetchAnimeDtosFromAnilist[T any](
 	return rows, rowMap, nil
 }
 
-func (s *Service) GetSeasonalAnimes(ctx context.Context) ([]models.SeasonalAnimeDto, error) {
+func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]models.SeasonalAnimeDto, error) {
 	var cachedAnimes []models.SeasonalAnimeDto
 
 	_, err := s.redis.GetOrFill(ctx, "seasonal_animes", &cachedAnimes, 30*24*time.Hour, func(ctx context.Context) (any, error) {
@@ -278,7 +278,7 @@ func (s *Service) GetSeasonalAnimes(ctx context.Context) ([]models.SeasonalAnime
 	return cachedAnimes, nil
 }
 
-func (s *Service) GetTrendingAnimes(ctx context.Context) ([]models.AnimeDto, error) {
+func (s *AnimeService) GetTrendingAnimes(ctx context.Context) ([]models.AnimeDto, error) {
 	var cachedAnimes []models.AnimeDto
 
 	_, err := s.redis.GetOrFill(ctx, "trending_animes", &cachedAnimes, 24*time.Hour, func(ctx context.Context) (any, error) {
@@ -317,7 +317,7 @@ func (s *Service) GetTrendingAnimes(ctx context.Context) ([]models.AnimeDto, err
 	return cachedAnimes, nil
 }
 
-func (s *Service) GetPopularAnimes(ctx context.Context) ([]models.AnimeDto, error) {
+func (s *AnimeService) GetPopularAnimes(ctx context.Context) ([]models.AnimeDto, error) {
 	var cachedAnimes []models.AnimeDto
 	_, err := s.redis.GetOrFill(ctx, "popular_animes", &cachedAnimes, 24*time.Hour, func(ctx context.Context) (any, error) {
 		animes, err := s.anilistClient.GetPopularAnime(ctx)

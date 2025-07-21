@@ -15,7 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (s *Service) GetAnimeByID(
+func (s *AnimeService) GetAnimeByID(
 	ctx context.Context,
 	id string,
 ) (*models.AnimeWithMetadataDto, error) {
@@ -51,7 +51,7 @@ func (s *Service) GetAnimeByID(
 	return &dto, nil
 }
 
-func (s *Service) GetAnimeTrailer(ctx context.Context, id string) (*models.TrailerDto, error) {
+func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*models.TrailerDto, error) {
 	a, err := s.GetAnimeByID(ctx, id)
 	if err != nil || a == nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (s *Service) GetAnimeTrailer(ctx context.Context, id string) (*models.Trail
 	return &models.TrailerDto{Trailer: a.Metadata.TrailerEmbedURL}, nil
 }
 
-func (s *Service) GetAnimeBanner(ctx context.Context, id string) (string, error) {
+func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (string, error) {
 	var cachedBanner string
 	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_banner:%s", id), &cachedBanner, 30*24*time.Hour, func(ctx context.Context) (any, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
@@ -112,7 +112,7 @@ func (s *Service) GetAnimeBanner(ctx context.Context, id string) (string, error)
 	return cachedBanner, nil
 }
 
-func (s *Service) GetAnimeRelations(ctx context.Context, animeID string) (models.RelationsDto, error) {
+func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (models.RelationsDto, error) {
 	cachedKey := fmt.Sprintf("anime_relations:%s", animeID)
 	var cachedRelations models.RelationsDto
 

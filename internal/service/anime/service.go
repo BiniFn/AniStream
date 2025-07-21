@@ -9,7 +9,7 @@ import (
 	"github.com/coeeter/aniways/internal/repository"
 )
 
-type Service struct {
+type AnimeService struct {
 	repo            *repository.Queries
 	refresher       *MetadataRefresher
 	scraper         *hianime.HianimeScraper
@@ -26,8 +26,8 @@ func New(
 	anilistClient *anilist.Client,
 	shikimoriClient *shikimori.Client,
 	redis *cache.RedisClient,
-) *Service {
-	return &Service{
+) *AnimeService {
+	return &AnimeService{
 		repo:            repo,
 		refresher:       refresher,
 		malClient:       malClient,

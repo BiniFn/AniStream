@@ -3,6 +3,7 @@ package hianime
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -278,4 +279,34 @@ func (c *HianimeCatalog) EpisodeServers(ctx context.Context, hiAnimeID, episodeI
 	}
 
 	return out, nil
+}
+
+func (c *HianimeCatalog) EpisodeLangs(ctx context.Context, hiAnimeID, episodeID string) ([]string, error) {
+	servers, err := c.EpisodeServers(ctx, hiAnimeID, episodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	var langs []string
+	for _, server := range servers {
+		switch server.Type {
+		case "sub", "raw":
+			if exists := slices.Contains(langs, "sub"); exists {
+				continue
+			}
+			langs = append(langs, "sub")
+		case "dub":
+			if exists := slices.Contains(langs, "dub"); exists {
+				continue
+			}
+			langs = append(langs, "dub")
+		default:
+			if exists := slices.Contains(langs, "unknown"); exists {
+				continue
+			}
+			langs = append(langs, "unknown")
+		}
+	}
+
+	return langs, nil
 }

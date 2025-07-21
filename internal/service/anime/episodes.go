@@ -2,6 +2,7 @@ package anime
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"time"
@@ -9,7 +10,7 @@ import (
 	"github.com/coeeter/aniways/internal/models"
 )
 
-func (s *Service) GetAnimeEpisodes(ctx context.Context, id string) ([]models.EpisodeDto, error) {
+func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]models.EpisodeDto, error) {
 	var cachedEpisodes []models.EpisodeDto
 
 	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_episodes:%s", id), &cachedEpisodes, 7*24*time.Hour, func(ctx context.Context) (any, error) {
@@ -44,7 +45,7 @@ func (s *Service) GetAnimeEpisodes(ctx context.Context, id string) ([]models.Epi
 	return cachedEpisodes, nil
 }
 
-func (s *Service) GetServersForEpisode(ctx context.Context, id, episodeID string) (models.ServerDto, error) {
+func (s *AnimeService) GetServersForEpisode(ctx context.Context, id, episodeID string) (models.ServerDto, error) {
 	var cachedServers models.ServerDto
 
 	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_servers:%s:episode:%s", id, episodeID), &cachedServers, 24*time.Hour, func(ctx context.Context) (any, error) {
@@ -77,7 +78,67 @@ func (s *Service) GetServersForEpisode(ctx context.Context, id, episodeID string
 	return cachedServers, nil
 }
 
-func (s *Service) GetStreamingData(ctx context.Context, serverID, streamType, serverName string) (models.StreamingDataDto, error) {
+func (s *AnimeService) GetEpisodeLangs(ctx context.Context, id, episodeID string) ([]string, error) {
+	var langs []string
+
+	if id == "" || episodeID == "" {
+		return langs, fmt.Errorf("id and episodeID are required")
+	}
+
+	var cachedLangs []string
+	key := fmt.Sprintf("episode_langs:%s:%s", id, episodeID)
+	_, err := s.redis.GetOrFill(ctx, key, &cachedLangs, 24*time.Hour, func(ctx context.Context) (any, error) {
+		a, err := s.repo.GetAnimeById(ctx, id)
+		if err != nil {
+			log.Printf("failed to fetch anime by ID %s: %v", id, err)
+			return nil, err
+		}
+
+		langs, err := s.scraper.GetEpisodeLangs(ctx, a.HiAnimeID, episodeID)
+		if err != nil {
+			log.Printf("failed to fetch episode langs for anime ID %s episode %s: %v", id, episodeID, err)
+			return nil, err
+		}
+
+		return langs, nil
+	})
+
+	if err != nil {
+		log.Printf("failed to get episode langs for anime ID %s episode %s from cache: %v", id, episodeID, err)
+		return langs, err
+	}
+
+	return cachedLangs, nil
+}
+
+func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, streamType string) (models.EpisodeSourceDto, error) {
+	var cached models.EpisodeSourceDto
+
+	key := fmt.Sprintf("source:%s:%s:%s", id, episodeID, streamType)
+	if _, err := s.redis.GetOrFill(ctx, key, &cached, 24*time.Hour, func(ctx context.Context) (any, error) {
+		data, err := s.scraper.GetStreamingData(ctx, episodeID, streamType, "megaplay")
+		if err != nil {
+			log.Printf("failed to fetch episode stream for anime ID %s episode %s type %s: %v", id, episodeID, streamType, err)
+			return models.EpisodeSourceDto{}, err
+		}
+
+		encoder := base64.StdEncoding
+		p := encoder.EncodeToString([]byte(data.Source))
+		s := "megaplay"
+
+		return models.EpisodeSourceDto{
+			URL:    fmt.Sprintf("/proxy?p=%s&s=%s", p, s),
+			RawURL: data.Source,
+		}, nil
+	}); err != nil {
+		log.Printf("failed to get episode stream for anime ID %s episode %s type %s from cache: %v", id, episodeID, streamType, err)
+		return cached, err
+	}
+
+	return cached, nil
+}
+
+func (s *AnimeService) GetStreamingData(ctx context.Context, serverID, streamType, serverName string) (models.StreamingDataDto, error) {
 	if serverID == "" || streamType == "" || serverName == "" {
 		return models.StreamingDataDto{}, fmt.Errorf("serverID, streamType, and serverName are required")
 	}

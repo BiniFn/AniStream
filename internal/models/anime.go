@@ -185,6 +185,11 @@ func (s ServerDto) FromScraper(servers []hianime.ScrapedEpisodeServerDto) Server
 	}
 }
 
+type EpisodeSourceDto struct {
+	URL    string `json:"url"`
+	RawURL string `json:"rawUrl"`
+}
+
 type StreamingDataDto struct {
 	Source     string     `json:"source"`
 	ServerName string     `json:"serverName"`

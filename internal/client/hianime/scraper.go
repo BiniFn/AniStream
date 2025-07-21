@@ -64,6 +64,13 @@ func (s *HianimeScraper) GetEpisodeServers(
 	return s.catalog.EpisodeServers(ctx, hiAnimeID, episodeID)
 }
 
+func (s *HianimeScraper) GetEpisodeLangs(
+	ctx context.Context,
+	hiAnimeID, episodeID string,
+) ([]string, error) {
+	return s.catalog.EpisodeLangs(ctx, hiAnimeID, episodeID)
+}
+
 func (s *HianimeScraper) GetStreamingData(
 	ctx context.Context,
 	serverID, streamType, serverName string,
