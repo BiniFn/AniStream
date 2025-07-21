@@ -19,10 +19,11 @@ type Redis interface {
 }
 
 type RedisClient struct {
-	r Redis
+	r      Redis
+	appEnv string
 }
 
-func NewRedisClient(ctx context.Context, addr, pass string) (*RedisClient, error) {
+func NewRedisClient(ctx context.Context, appEnv, addr, pass string) (*RedisClient, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: pass,
@@ -34,7 +35,7 @@ func NewRedisClient(ctx context.Context, addr, pass string) (*RedisClient, error
 
 	log.Printf("✅ Connected to Redis at %s", addr)
 
-	return &RedisClient{r: rdb}, nil
+	return &RedisClient{r: rdb, appEnv: appEnv}, nil
 }
 
 func (c *RedisClient) Close() error {
@@ -94,7 +95,7 @@ func (c *RedisClient) GetOrFill(
 	}
 
 	ok, getErr := c.Get(ctx, key, dest)
-	if getErr == nil && ok {
+	if getErr == nil && ok && c.appEnv != "development" {
 		log.Printf("cache hit for key %s", key)
 		return true, nil
 	}
@@ -125,6 +126,10 @@ func (c *RedisClient) GetOrFill(
 				log.Printf("cache copy %s marshal error: %v", key, marshalErr)
 			}
 		}
+	}
+
+	if c.appEnv == "development" {
+		log.Printf("CACHE DISABLED IN DEVELOPMENT MODE: key %s", key)
 	}
 
 	return false, nil

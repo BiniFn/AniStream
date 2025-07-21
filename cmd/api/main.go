@@ -28,7 +28,7 @@ func main() {
 	}
 	defer db.Close()
 
-	redis, err := cache.NewRedisClient(context.Background(), env.RedisAddr, env.RedisPassword)
+	redis, err := cache.NewRedisClient(context.Background(), env.AppEnv, env.RedisAddr, env.RedisPassword)
 	if err != nil {
 		log.Fatalf("Error connecting to Redis: %v", err)
 	}
