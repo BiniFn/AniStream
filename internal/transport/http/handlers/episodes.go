@@ -15,7 +15,6 @@ func MountAnimeEpisodesRoutes(r chi.Router, svc *animeSvc.AnimeService) {
 		r.Get("/{episodeID}/stream/{type}", getEpisodeStream(svc))
 		r.Get("/{episodeID}/stream/{type}/metadata", getEpisodeStreamMetadata(svc))
 	})
-
 }
 
 func getAnimeEpisodes(svc *animeSvc.AnimeService) http.HandlerFunc {

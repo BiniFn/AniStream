@@ -1,6 +1,7 @@
 -- Function to generate a NanoID
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE OR REPLACE FUNCTION generate_nanoid(length INT DEFAULT 21) RETURNS TEXT AS $$
+
+CREATE OR REPLACE FUNCTION generate_nanoid (length INT DEFAULT 21) RETURNS TEXT AS $$
 DECLARE alphabet TEXT := '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-';
 random_bytes BYTEA;
 random_value TEXT := '';
@@ -18,9 +19,10 @@ END LOOP;
 RETURN random_value;
 END;
 $$ LANGUAGE plpgsql;
+
 -- Create the animes table with a primary key using the NanoID function
 CREATE TABLE animes (
-  id VARCHAR(21) PRIMARY KEY DEFAULT generate_nanoid(),
+  id VARCHAR(21) PRIMARY KEY DEFAULT generate_nanoid (),
   ename TEXT NOT NULL,
   jname TEXT NOT NULL,
   image_url TEXT NOT NULL,
@@ -34,31 +36,21 @@ CREATE TABLE animes (
   CONSTRAINT unique_hi_anime_id UNIQUE (hi_anime_id),
   CONSTRAINT unique_mal_id UNIQUE (mal_id)
 );
+
 -- Create Rating ENUM type
-CREATE TYPE rating AS ENUM (
-  'pg_13',
-  'r',
-  'r+',
-  'g',
-  'pg',
-  'rx',
-  'unknown'
-);
+CREATE TYPE rating AS ENUM('pg_13', 'r', 'r+', 'g', 'pg', 'rx', 'unknown');
+
 -- Create an ENUM type for airing status
-CREATE TYPE airing_status AS ENUM (
+CREATE TYPE airing_status AS ENUM(
   'finished_airing',
   'currently_airing',
   'not_yet_aired',
   'unknown'
 );
+
 -- Create an ENUM type for season
-CREATE TYPE season AS ENUM (
-  'winter',
-  'spring',
-  'summer',
-  'fall',
-  'unknown'
-);
+CREATE TYPE season AS ENUM('winter', 'spring', 'summer', 'fall', 'unknown');
+
 -- Create Anime Metadata table
 CREATE TABLE anime_metadata (
   mal_id INT PRIMARY KEY,
@@ -84,19 +76,28 @@ CREATE TABLE anime_metadata (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
   CONSTRAINT fk_anime_metadata_mal_id FOREIGN KEY (mal_id) REFERENCES animes (mal_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 -- Search
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE INDEX animes_ename_trgm_idx ON animes USING gin(ename gin_trgm_ops);
-CREATE INDEX animes_jname_trgm_idx ON animes USING gin(jname gin_trgm_ops);
+
+CREATE INDEX animes_ename_trgm_idx ON animes USING gin (ename gin_trgm_ops);
+
+CREATE INDEX animes_jname_trgm_idx ON animes USING gin (jname gin_trgm_ops);
+
 ALTER TABLE animes
 ADD COLUMN search_vector TSVECTOR;
+
 UPDATE animes
-SET search_vector = to_tsvector('english', ename || ' ' || jname);
-CREATE INDEX anime_search_idx ON animes USING gin(search_vector);
-CREATE OR REPLACE FUNCTION animes_search_trigger() RETURNS TRIGGER AS $$ BEGIN new.search_vector := to_tsvector('english', new.ename || ' ' || new.jname);
+SET
+  search_vector = to_tsvector('english', ename || ' ' || jname);
+
+CREATE INDEX anime_search_idx ON animes USING gin (search_vector);
+
+CREATE OR REPLACE FUNCTION animes_search_trigger () RETURNS TRIGGER AS $$ BEGIN new.search_vector := to_tsvector('english', new.ename || ' ' || new.jname);
 RETURN new;
 END $$ LANGUAGE plpgsql;
-CREATE TRIGGER tsvectorupdate BEFORE
-INSERT
-  OR
-UPDATE ON animes FOR EACH ROW EXECUTE FUNCTION animes_search_trigger();
+
+CREATE TRIGGER tsvectorupdate BEFORE INSERT
+OR
+UPDATE ON animes FOR EACH ROW
+EXECUTE FUNCTION animes_search_trigger ();

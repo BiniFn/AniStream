@@ -1,0 +1,139 @@
+package users
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/coeeter/aniways/internal/repository"
+	"github.com/jackc/pgx/v5/pgtype"
+	"golang.org/x/crypto/bcrypt"
+)
+
+type UserService struct {
+	repo *repository.Queries
+}
+
+func NewUserService(repo *repository.Queries) *UserService {
+	return &UserService{
+		repo: repo,
+	}
+}
+
+func (s *UserService) GetUserByID(ctx context.Context, id string) (User, error) {
+	user, err := s.repo.GetUserByID(ctx, id)
+	if err != nil {
+		return User{}, err
+	}
+	return User{}.FromRepository(user), nil
+}
+
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	user, err := s.repo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return User{}, err
+	}
+	return User{}.FromRepository(user), nil
+}
+
+func (s *UserService) CreateUser(ctx context.Context, username, email, password string) (User, error) {
+	passwordsBytes := []byte(password)
+
+	if len(passwordsBytes) > 72 {
+		return User{}, fmt.Errorf("password too long")
+	}
+
+	hash, err := bcrypt.GenerateFromPassword(passwordsBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return User{}, err
+	}
+
+	user, err := s.repo.CreateUser(ctx, repository.CreateUserParams{
+		Username:       username,
+		Email:          email,
+		PasswordHash:   string(hash),
+		ProfilePicture: pgtype.Text{String: "", Valid: false},
+	})
+	if err != nil {
+		return User{}, err
+	}
+	return User{}.FromRepository(user), nil
+}
+
+func (s *UserService) UpdateUser(ctx context.Context, id string, username, email, profilePicture string) (User, error) {
+	user, err := s.repo.UpdateUser(ctx, repository.UpdateUserParams{
+		ID:             id,
+		Username:       username,
+		Email:          email,
+		ProfilePicture: pgtype.Text{String: profilePicture, Valid: len(profilePicture) > 0},
+	})
+	if err != nil {
+		return User{}, err
+	}
+	return User{}.FromRepository(user), nil
+}
+
+func (s *UserService) DeleteUser(ctx context.Context, email, password string) error {
+	user, err := s.AuthenticateUser(ctx, email, password)
+	if err != nil {
+		return err
+	}
+	err = s.repo.DeleteUser(ctx, user.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) AuthenticateUser(ctx context.Context, email, password string) (User, error) {
+	user, err := s.repo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return User{}, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return User{}, fmt.Errorf("invalid credentials")
+	}
+
+	return User{}.FromRepository(user), nil
+}
+
+func (s *UserService) UpdatePassword(ctx context.Context, id, oldPassword, newPassword string) error {
+	user, err := s.repo.GetUserByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword)); err != nil {
+		return fmt.Errorf("invalid old password")
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.UpdatePassword(ctx, repository.UpdatePasswordParams{
+		ID:           id,
+		PasswordHash: string(hash),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) ResetPassword(ctx context.Context, id, newPassword string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.UpdatePassword(ctx, repository.UpdatePasswordParams{
+		ID:           id,
+		PasswordHash: string(hash),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}

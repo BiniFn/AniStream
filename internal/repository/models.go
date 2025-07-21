@@ -55,6 +55,48 @@ func (ns NullAiringStatus) Value() (driver.Value, error) {
 	return string(ns.AiringStatus), nil
 }
 
+type Provider string
+
+const (
+	ProviderMyanimelist Provider = "myanimelist"
+	ProviderAnilist     Provider = "anilist"
+)
+
+func (e *Provider) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Provider(s)
+	case string:
+		*e = Provider(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Provider: %T", src)
+	}
+	return nil
+}
+
+type NullProvider struct {
+	Provider Provider
+	Valid    bool // Valid is true if Provider is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullProvider) Scan(value interface{}) error {
+	if value == nil {
+		ns.Provider, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Provider.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullProvider) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Provider), nil
+}
+
 type Rating string
 
 const (
@@ -184,4 +226,31 @@ type AnimeMetadatum struct {
 	Season             Season
 	CreatedAt          pgtype.Timestamp
 	UpdatedAt          pgtype.Timestamp
+}
+
+type Session struct {
+	ID        string
+	UserID    string
+	CreatedAt pgtype.Timestamp
+	ExpiresAt pgtype.Timestamp
+}
+
+type User struct {
+	ID             string
+	Username       string
+	Email          string
+	PasswordHash   string
+	ProfilePicture pgtype.Text
+	CreatedAt      pgtype.Timestamp
+	UpdatedAt      pgtype.Timestamp
+}
+
+type UserToken struct {
+	ID           string
+	UserID       string
+	Token        string
+	RefreshToken string
+	Provider     Provider
+	ExpiresAt    pgtype.Timestamp
+	CreatedAt    pgtype.Timestamp
 }
