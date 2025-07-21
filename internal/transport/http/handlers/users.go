@@ -10,9 +10,7 @@ import (
 )
 
 func MountUsersRoutes(r chi.Router, userService *users.UserService) {
-	r.Route("/users", func(r chi.Router) {
-		r.Put("/", createUser(userService))
-	})
+	r.Post("/", createUser(userService))
 }
 
 func createUser(userService *users.UserService) http.HandlerFunc {
@@ -35,6 +33,7 @@ func createUser(userService *users.UserService) http.HandlerFunc {
 			default:
 				jsonError(w, http.StatusInternalServerError, err.Error())
 			}
+			return
 		}
 
 		jsonOK(w, u)

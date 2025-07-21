@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/client/anilist"
 	"github.com/coeeter/aniways/internal/client/myanimelist"
@@ -10,6 +11,7 @@ import (
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/repository"
 	animeSvc "github.com/coeeter/aniways/internal/service/anime"
+	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/transport/http/handlers"
 	"github.com/go-chi/chi/v5"
 )
@@ -28,6 +30,12 @@ func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, re
 		handlers.MountAnimeRoutes(r, svc)
 		handlers.MountAnimeListingsRoutes(r, svc)
 		handlers.MountAnimeEpisodesRoutes(r, svc)
+	})
+
+	r.Route("/users", func(r chi.Router) {
+		cld, _ := cloudinary.NewFromParams(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinaryAPISecret)
+		userService := users.NewUserService(repo, cld)
+		handlers.MountUsersRoutes(r, userService)
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
