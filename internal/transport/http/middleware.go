@@ -10,7 +10,9 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func RegisterMiddlewares(config *config.Env, r *chi.Mux) {
+func UseMiddlewares(config *config.Env, r *chi.Mux) {
+	r.Use(corsHandler(config))
+
 	r.Use(
 		middleware.RequestID,
 		middleware.RealIP,
@@ -18,8 +20,6 @@ func RegisterMiddlewares(config *config.Env, r *chi.Mux) {
 		middleware.Recoverer,
 		middleware.Timeout(60*time.Second),
 	)
-
-	r.Use(corsHandler(config))
 }
 
 func corsHandler(env *config.Env) func(http.Handler) http.Handler {
@@ -31,8 +31,7 @@ func corsHandler(env *config.Env) func(http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   []string{env.AllowedOrigins},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-		ExposedHeaders:   []string{"Content-Length"},
+		AllowedHeaders:   []string{"Content-Type"},
 		MaxAge:           300, // 5 minutes
 		AllowCredentials: true,
 	})

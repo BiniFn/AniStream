@@ -49,7 +49,7 @@ func main() {
 	m.StartBackground(ctx)
 
 	app := http.New(env, repo, redis)
-	if err := app.Run(); err != nil {
+	if err := app.Run(ctx); err != nil {
 		log.Fatal(err)
 	}
 }

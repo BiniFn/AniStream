@@ -2,11 +2,10 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
 	"time"
 
 	"github.com/coeeter/aniways/internal/cache"
@@ -26,12 +25,14 @@ type App struct {
 func New(config *config.Env, repo *repository.Queries, redis *cache.RedisClient) *App {
 	r := chi.NewRouter()
 
-	RegisterMiddlewares(config, r)
+	UseMiddlewares(config, r)
+	RegisterRoutes(r, config, repo, redis)
 
 	srv := &http.Server{
 		Addr:              ":" + config.AppPort,
 		Handler:           r,
 		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      10 * time.Second,
 		IdleTimeout:       120 * time.Second,
 	}
 
@@ -44,28 +45,23 @@ func New(config *config.Env, repo *repository.Queries, redis *cache.RedisClient)
 	}
 }
 
-func (a *App) Run() error {
-	// wire routes…
-	MountGlobalRoutes(a.Router, a.Config, a.Repo, a.Cache)
-
-	// start listening
+func (a *App) Run(ctx context.Context) error {
 	errChan := make(chan error, 1)
 	go func() {
-		errChan <- a.Server.ListenAndServe()
+		if err := a.Server.ListenAndServe(); err != nil &&
+			!errors.Is(err, http.ErrServerClosed) {
+			errChan <- err
+		}
 	}()
 	log.Printf("🌐 AniWays API listening on http://localhost:%s", a.Config.AppPort)
 
-	// wait for either a server error or an OS signal
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
 	select {
+	case <-ctx.Done():
+		shutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		return a.Shutdown(shutCtx)
 	case err := <-errChan:
 		return fmt.Errorf("server error: %w", err)
-	case sig := <-stop:
-		log.Printf("🛑 received %v, shutting down…", sig)
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		return a.Shutdown(ctx)
 	}
 }
 

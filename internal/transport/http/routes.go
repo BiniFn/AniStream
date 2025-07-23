@@ -16,7 +16,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, redis *cache.RedisClient) {
+func RegisterRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, redis *cache.RedisClient) {
 	r.Route("/anime", func(r chi.Router) {
 		malClient := myanimelist.NewClient(myanimelist.ClientConfig{
 			ClientID:     env.MyAnimeListClientID,
