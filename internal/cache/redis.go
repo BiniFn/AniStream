@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"reflect"
 	"time"
 
@@ -21,21 +21,29 @@ type Redis interface {
 type RedisClient struct {
 	r      Redis
 	appEnv string
+	log    *slog.Logger
 }
 
-func NewRedisClient(ctx context.Context, appEnv, addr, pass string) (*RedisClient, error) {
+func NewRedisClient(
+	ctx context.Context,
+	appEnv, addr, pass string,
+	log *slog.Logger,
+) (*RedisClient, error) {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: pass,
+		Addr:         addr,
+		Password:     pass,
+		DialTimeout:  3 * time.Second,
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 2 * time.Second,
 	})
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("redis ping: %w", err)
 	}
 
-	log.Printf("✅ Connected to Redis at %s", addr)
+	log.Info("connected to redis", "addr", addr)
 
-	return &RedisClient{r: rdb, appEnv: appEnv}, nil
+	return &RedisClient{r: rdb, appEnv: appEnv, log: log}, nil
 }
 
 func (c *RedisClient) Close() error {
@@ -54,18 +62,16 @@ func (c *RedisClient) Set(ctx context.Context, key string, value any, expiresIn 
 }
 
 func (c *RedisClient) Get(ctx context.Context, key string, dest any) (bool, error) {
-	raw, err := c.r.Get(ctx, key).Result()
-	if err != nil {
-		if err == redis.Nil {
-			// cache miss
-			return false, nil
-		}
+	raw, err := c.r.Get(ctx, key).Bytes()
+	switch err {
+	case nil:
+	case redis.Nil:
+		return false, nil // cache miss
+	default:
 		return false, err
 	}
-	if err := json.Unmarshal([]byte(raw), dest); err != nil {
-		return false, err
-	}
-	return true, nil
+
+	return true, json.Unmarshal(raw, dest)
 }
 
 func (c *RedisClient) Del(ctx context.Context, key string) error {
@@ -73,7 +79,7 @@ func (c *RedisClient) Del(ctx context.Context, key string) error {
 }
 
 func (c *RedisClient) Pipeline() *RedisClient {
-	return &RedisClient{r: c.r.Pipeline()}
+	return &RedisClient{r: c.r.Pipeline(), appEnv: c.appEnv, log: c.log}
 }
 
 func (c *RedisClient) Exec(ctx context.Context) ([]redis.Cmder, error) {
@@ -94,13 +100,12 @@ func (c *RedisClient) GetOrFill(
 		return false, fmt.Errorf("dest for key %s must be a pointer", key)
 	}
 
-	ok, getErr := c.Get(ctx, key, dest)
-	if getErr == nil && ok && c.appEnv != "development" {
-		log.Printf("cache hit for key %s", key)
+	ok, err := c.Get(ctx, key, dest)
+	if err == nil && ok && c.appEnv != "development" {
+		c.log.Debug("cache hit", "key", key)
 		return true, nil
-	}
-	if getErr != nil {
-		log.Printf("cache get %s error: %v (fetching anyway)", key, getErr)
+	} else if err != nil {
+		c.log.Warn("cache get failed, fetching", "key", key, "err", err)
 	}
 
 	val, err := fetch(ctx)
@@ -109,7 +114,7 @@ func (c *RedisClient) GetOrFill(
 	}
 
 	if setErr := c.Set(ctx, key, val, ttl); setErr != nil {
-		log.Printf("cache set %s error: %v", key, setErr)
+		c.log.Warn("cache set failed", "key", key, "err", err)
 	}
 
 	if dest != nil {
@@ -117,19 +122,13 @@ func (c *RedisClient) GetOrFill(
 		vv := reflect.ValueOf(val)
 		if vv.Type().AssignableTo(dv.Type()) {
 			dv.Set(vv)
-		} else {
-			if b, marshalErr := json.Marshal(val); marshalErr == nil {
-				if unmarshalErr := json.Unmarshal(b, dest); unmarshalErr != nil {
-					log.Printf("cache copy %s unmarshal error: %v", key, unmarshalErr)
-				}
-			} else {
-				log.Printf("cache copy %s marshal error: %v", key, marshalErr)
-			}
+		} else if b, err := json.Marshal(val); err == nil {
+			_ = json.Unmarshal(b, dest)
 		}
 	}
 
 	if c.appEnv == "development" {
-		log.Printf("CACHE DISABLED IN DEVELOPMENT MODE: key %s", key)
+		c.log.Debug("cache disabled in dev mode", "key", key)
 	}
 
 	return false, nil

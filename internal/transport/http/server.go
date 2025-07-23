@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -16,12 +16,13 @@ type App struct {
 	Config *config.Env
 	Router *chi.Mux
 	Server *http.Server
+	Log    *slog.Logger
 }
 
-func New(d *Dependencies) *App {
+func New(d *Dependencies, log *slog.Logger) *App {
 	r := chi.NewRouter()
 
-	UseMiddlewares(d.Env, r)
+	UseMiddlewares(d.Env, r, log)
 	RegisterRoutes(r, d)
 
 	srv := &http.Server{
@@ -36,6 +37,7 @@ func New(d *Dependencies) *App {
 		Config: d.Env,
 		Router: r,
 		Server: srv,
+		Log:    log,
 	}
 }
 
@@ -47,7 +49,7 @@ func (a *App) Run(ctx context.Context) error {
 			errChan <- err
 		}
 	}()
-	log.Printf("🌐 AniWays API listening on http://localhost:%s", a.Config.AppPort)
+	a.Log.Info("AniWays API listening", "on", a.Config.AppPort)
 
 	select {
 	case <-ctx.Done():
@@ -63,6 +65,6 @@ func (a *App) Shutdown(ctx context.Context) error {
 	if err := a.Server.Shutdown(ctx); err != nil {
 		return fmt.Errorf("server shutdown: %w", err)
 	}
-	log.Println("🔻 server shut down gracefully")
+	a.Log.Info("server shut down gracefully")
 	return nil
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,21 +16,37 @@ import (
 	"github.com/coeeter/aniways/internal/worker"
 )
 
+func newRootLogger() *slog.Logger {
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})
+	root := slog.New(handler)
+	slog.SetDefault(root)
+	return root
+}
+
 func main() {
+	rootLog := newRootLogger()
+
 	env, err := config.LoadEnv()
 	if err != nil {
-		log.Fatalf("Error loading environment variables: %v", err)
+		rootLog.Error("Error loading environment variables:", "err", err)
+		os.Exit(1)
 	}
 
-	db, err := database.New(env)
+	dbLog := rootLog.With("component", "database")
+	db, err := database.New(env, dbLog)
 	if err != nil {
-		log.Fatalf("Error connecting to the database: %v", err)
+		rootLog.Error("Error connecting to the database:", "err", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
-	redis, err := cache.NewRedisClient(context.Background(), env.AppEnv, env.RedisAddr, env.RedisPassword)
+	redisLog := rootLog.With("component", "redis")
+	redis, err := cache.NewRedisClient(context.Background(), env.AppEnv, env.RedisAddr, env.RedisPassword, redisLog)
 	if err != nil {
-		log.Fatalf("Error connecting to Redis: %v", err)
+		rootLog.Error("Error connecting to Redis:", "err", err)
+		os.Exit(1)
 	}
 	defer redis.Close()
 
@@ -40,21 +56,26 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	m := worker.NewManager(repo, scraper, redis)
+	workerLog := rootLog.With("component", "worker")
+	mgr := worker.NewManager(repo, scraper, redis, workerLog)
 
-	if err := m.Bootstrap(ctx); err != nil {
-		log.Fatalf("Error in bootstrapping: %v", err)
+	if err := mgr.Bootstrap(ctx); err != nil {
+		rootLog.Error("Error in bootstrapping:", "err", err)
+		os.Exit(1)
 	}
 
-	m.StartBackground(ctx)
+	mgr.StartBackground(ctx)
 
 	deps, err := http.BuildDeps(env, repo, redis)
 	if err != nil {
-		log.Fatalf("failed to build dependencies: %v", err)
+		rootLog.Error("failed to build dependencies:", "err", err)
+		os.Exit(1)
 	}
 
-	app := http.New(deps)
+	httpLog := rootLog.With("component", "http")
+	app := http.New(deps, httpLog)
 	if err := app.Run(ctx); err != nil {
-		log.Fatal(err)
+		rootLog.Error("failed to run application", "err", err)
+		os.Exit(1)
 	}
 }

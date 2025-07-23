@@ -3,7 +3,8 @@ package database
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
+	"time"
 
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/golang-migrate/migrate/v4"
@@ -12,38 +13,47 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func New(env *config.Env) (*pgxpool.Pool, error) {
-	log.Printf("🚀 Initializing database connection…")
+func New(env *config.Env, log *slog.Logger) (*pgxpool.Pool, error) {
+	log.Info("initialising database connection")
 
-	// open the pool
-	poolCfg, err := pgxpool.ParseConfig(env.DatabaseURL)
+	cfg, err := pgxpool.ParseConfig(env.DatabaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse DATABASE_URL: %w", err)
+		return nil, fmt.Errorf("parse DATABASE_URL: %w", err)
 	}
-	pool, err := pgxpool.NewWithConfig(context.Background(), poolCfg)
+	cfg.MaxConns = 10
+	cfg.MinConns = 2
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open connection pool: %w", err)
+		return nil, fmt.Errorf("open pool: %w", err)
 	}
 
-	// verify connectivity
-	if err := pool.Ping(context.Background()); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
-		return nil, fmt.Errorf("database ping failed: %w", err)
+		return nil, fmt.Errorf("db ping: %w", err)
 	}
-	log.Printf("✅ Connected to database")
+	log.Info("database ping OK")
 
-	// apply migrations
 	m, err := migrate.New("file://migrations", env.DatabaseURL)
 	if err != nil {
 		pool.Close()
-		return nil, fmt.Errorf("migration init error: %w", err)
+		return nil, fmt.Errorf("migrate init: %w", err)
 	}
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	switch err := m.Up(); err {
+	case nil:
+		log.Info("migrations applied")
+	case migrate.ErrNoChange:
+		log.Info("migrations already up‑to‑date")
+	default:
 		pool.Close()
-		return nil, fmt.Errorf("migration apply error: %w", err)
+		return nil, fmt.Errorf("migrate up: %w", err)
 	}
-	log.Printf("✨ Migrations applied")
 
-	log.Printf("🎉 Database ready (maxConns=%d)", poolCfg.MaxConns)
+	log.Info("database ready",
+		"max_conns", cfg.MaxConns,
+		"min_conns", cfg.MinConns,
+	)
 	return pool, nil
 }

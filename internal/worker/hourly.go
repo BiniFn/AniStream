@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -24,22 +24,23 @@ func HourlyTask(
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
 	redis *cache.RedisClient,
+	log *slog.Logger,
 ) {
 	ticker := time.NewTicker(hourlyInterval)
 	defer ticker.Stop()
 
-	log.Println("⏰ Bootstrapping hourly cron job...")
+	log.Info("Bootstrapping hourly cron job")
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("🛑 HourlyTask shutting down...")
+			log.Info("HourlyTask shutting down")
 			return
 		case <-ticker.C:
-			log.Println("🔄 Running hourly task...")
-			if err := scrapeRecentlyUpdated(ctx, scraper, repo, redis); err != nil {
-				log.Printf("🚨 Error in hourly task: %v", err)
+			log.Info("Running hourly task")
+			if err := scrapeRecentlyUpdated(ctx, scraper, repo, redis, log); err != nil {
+				log.Error("Error in hourly task", "err", err)
 			} else {
-				log.Println("✅ Hourly task completed successfully")
+				log.Info("Hourly task completed successfully")
 			}
 		}
 	}
@@ -50,6 +51,7 @@ func scrapeRecentlyUpdated(
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
 	redis *cache.RedisClient,
+	log *slog.Logger,
 ) error {
 	listing, err := scraper.GetRecentlyUpdatedAnime(ctx, 1)
 	if err != nil {
@@ -76,9 +78,11 @@ func scrapeRecentlyUpdated(
 			}
 			defer func() { <-sem }()
 
+			child := log.With("hi_id", scraped.HiAnimeID)
+
 			dbAnime, err := repo.GetAnimeByHiAnimeId(ctx, scraped.HiAnimeID)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
-				log.Printf("❌ RU DB lookup error for %s: %v", scraped.HiAnimeID, err)
+				child.Error("db lookup failed", "err", err)
 				return
 			}
 
@@ -90,7 +94,7 @@ func scrapeRecentlyUpdated(
 
 			info, err := retryFetchDetail(ctx, scraper, scraped.HiAnimeID)
 			if err != nil {
-				log.Printf("⚠️ Error fetching detail for HiAnimeID %s: %v", scraped.HiAnimeID, err)
+				child.Warn("detail fetch failed", "err", err)
 				return
 			}
 
@@ -110,10 +114,10 @@ func scrapeRecentlyUpdated(
 					UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
 				}
 				if err := repo.UpdateAnime(ctx, params); err != nil {
-					log.Printf("❌ RU update failed for %s: %v", scraped.HiAnimeID, err)
+					child.Error("update failed", "err", err)
 				}
 				if err := redis.Del(ctx, "anime_episodes:"+dbAnime.ID); err != nil {
-					log.Printf("⚠️ Failed to delete cache for anime episodes of %s: %v", dbAnime.ID, err)
+					child.Warn("cache delete failed", "err", err)
 				}
 			} else {
 				params := repository.InsertAnimeParams{
@@ -129,13 +133,13 @@ func scrapeRecentlyUpdated(
 					UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
 				}
 				if err := repo.InsertAnime(ctx, params); err != nil {
-					log.Printf("❌ RU insert failed for %s: %v", scraped.HiAnimeID, err)
+					child.Error("insert failed", "err", err)
 				}
 			}
 		}(scraped, offset)
 	}
 
 	wg.Wait()
-	log.Printf("✅ Finished scraping %d recently updated anime", len(items))
+	log.Info("recently‑updated page processed", "items", len(items))
 	return nil
 }

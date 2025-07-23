@@ -3,7 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -24,18 +24,19 @@ func FullSeed(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
+	log *slog.Logger,
 ) error {
-	log.Println("⚙️  Starting AZ‐list seed")
-	if err := scrapeAllAZ(ctx, scraper, repo); err != nil {
+	log.Info("Starting AZ‐list seed")
+	if err := scrapeAllAZ(ctx, scraper, repo, log); err != nil {
 		return err
 	}
 
-	log.Println("⚙️  Starting reverse Recently‐Updated seed")
-	if err := scrapeAllRecentlyUpdated(ctx, scraper, repo); err != nil {
+	log.Info("Starting reverse Recently‐Updated seed")
+	if err := scrapeAllRecentlyUpdated(ctx, scraper, repo, log); err != nil {
 		return err
 	}
 
-	log.Println("✅ Full seed complete")
+	log.Info("Full seed complete")
 	return nil
 }
 
@@ -43,10 +44,11 @@ func scrapeAllAZ(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
+	log *slog.Logger,
 ) error {
 	sem := make(chan struct{}, maxConcurrency)
 	for page := 1; ; page++ {
-		log.Printf("🔎 AZ page %d", page)
+		log.Info("AZ page", "page", page)
 		listing, err := scraper.GetAZList(ctx, page)
 		if err != nil {
 			return fmt.Errorf("AZ page %d: %w", page, err)
@@ -69,9 +71,11 @@ func scrapeAllAZ(
 				}
 				defer func() { <-sem }()
 
+				child := log.With("hi_id", a.HiAnimeID)
+
 				info, err := retryFetchDetail(ctx, scraper, item.HiAnimeID)
 				if err != nil {
-					log.Printf("⚠️ AZ detail %s: %v", item.HiAnimeID, err)
+					child.Warn("detail fetch failed", "err", err)
 					return
 				}
 
@@ -85,6 +89,7 @@ func scrapeAllAZ(
 					AnilistID:   pgtype.Int4{Int32: int32(info.AnilistID), Valid: info.AnilistID > 0},
 					LastEpisode: int32(item.LastEpisode),
 				}
+
 				mu.Lock()
 				toInsert = append(toInsert, p)
 				mu.Unlock()
@@ -96,11 +101,11 @@ func scrapeAllAZ(
 			if _, err := repo.InsertMultipleAnimes(ctx, toInsert); err != nil {
 				return fmt.Errorf("insert AZ page %d: %w", page, err)
 			}
-			log.Printf("✅ inserted %d from AZ page %d", len(toInsert), page)
+			log.Info("inserted A–Z page", "page", page, "count", len(toInsert))
 		}
 
 		if !listing.PageInfo.HasNextPage {
-			log.Printf("ℹ️  AZ page %d has no next page, stopping", page)
+			log.Info("A–Z scraper finished", "last_page", page)
 			return nil
 		}
 		time.Sleep(pageDelay)
@@ -128,13 +133,14 @@ func scrapeAllRecentlyUpdated(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
+	log *slog.Logger,
 ) error {
 	first, err := scraper.GetRecentlyUpdatedAnime(ctx, 1)
 	if err != nil {
 		return fmt.Errorf("RU first page: %w", err)
 	}
 	total := first.PageInfo.TotalPages
-	log.Printf("🔎 will scrape %d RU pages in reverse order", total)
+	log.Info("will scrape RU pages in reverse order", "pages", total)
 
 	sem := make(chan struct{}, maxConcurrency)
 	start := time.Now()
@@ -144,7 +150,7 @@ func scrapeAllRecentlyUpdated(
 		if err != nil {
 			return fmt.Errorf("RU page %d: %w", page, err)
 		}
-		log.Printf("📄 RU page %d/%d (items: %d)", page, total, len(listing.Items))
+		log.Info("scraping RU page", "page", page, "of", total, "items", len(listing.Items))
 
 		hiIDs := make([]string, len(listing.Items))
 		for i, a := range listing.Items {
@@ -173,16 +179,18 @@ func scrapeAllRecentlyUpdated(
 				}
 				defer func() { <-sem }()
 
+				child := log.With("hi_id", scraped.HiAnimeID)
+
 				info, err := retryFetchDetail(ctx, scraper, scraped.HiAnimeID)
 				if err != nil {
-					log.Printf("⚠️ RU detail %s: %v", scraped.HiAnimeID, err)
+					child.Warn("detail fetch failed", "err", err)
 					return
 				}
 
 				updatedAt := start.Add(time.Duration(globalIdx) * updateSpacing)
 
 				if existing, ok := existingMap[scraped.HiAnimeID]; ok {
-					params := repository.UpdateAnimeParams{
+					if err := repo.UpdateAnime(ctx, repository.UpdateAnimeParams{
 						ID:          existing.ID,
 						Ename:       info.EName,
 						Jname:       info.JName,
@@ -193,12 +201,11 @@ func scrapeAllRecentlyUpdated(
 						AnilistID:   pgtype.Int4{Int32: int32(info.AnilistID), Valid: info.AnilistID > 0},
 						LastEpisode: int32(scraped.LastEpisode),
 						UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
-					}
-					if err := repo.UpdateAnime(ctx, params); err != nil {
-						log.Printf("❌ RU update %s: %v", scraped.HiAnimeID, err)
+					}); err != nil {
+						child.Error("update failed", "err", err)
 					}
 				} else {
-					params := repository.InsertAnimeParams{
+					if err := repo.InsertAnime(ctx, repository.InsertAnimeParams{
 						Ename:       info.EName,
 						Jname:       info.JName,
 						ImageUrl:    info.PosterURL,
@@ -209,9 +216,8 @@ func scrapeAllRecentlyUpdated(
 						LastEpisode: int32(scraped.LastEpisode),
 						CreatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
 						UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
-					}
-					if err := repo.InsertAnime(ctx, params); err != nil {
-						log.Printf("❌ RU insert %s: %v", scraped.HiAnimeID, err)
+					}); err != nil {
+						child.Error("insert failed", "err", err)
 					}
 				}
 
@@ -222,6 +228,9 @@ func scrapeAllRecentlyUpdated(
 		time.Sleep(pageDelay)
 	}
 
-	log.Printf("✅ Finished scraping all %d RU pages in %s", total, time.Since(start))
+	log.Info("finished RU scrape",
+		"pages", total,
+		"elapsed", time.Since(start).String(),
+	)
 	return nil
 }

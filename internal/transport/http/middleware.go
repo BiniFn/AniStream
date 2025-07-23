@@ -1,6 +1,7 @@
 package http
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func UseMiddlewares(config *config.Env, r *chi.Mux) {
+func UseMiddlewares(config *config.Env, r *chi.Mux, logger *slog.Logger) {
 	r.Use(corsHandler(config))
 
 	r.Use(
