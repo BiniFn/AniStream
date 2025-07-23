@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	animeSvc "github.com/coeeter/aniways/internal/service/anime"
+	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAnimeEpisodesRoutes(r chi.Router, svc *animeSvc.AnimeService) {
+func MountAnimeEpisodesRoutes(r chi.Router, svc *anime.AnimeService) {
 	r.Route("/{id}/episodes", func(r chi.Router) {
 		r.Get("/", getAnimeEpisodes(svc))
 		r.Get("/{episodeID}/langs", getEpisodeLangs(svc))
@@ -17,11 +17,11 @@ func MountAnimeEpisodesRoutes(r chi.Router, svc *animeSvc.AnimeService) {
 	})
 }
 
-func getAnimeEpisodes(svc *animeSvc.AnimeService) http.HandlerFunc {
+func getAnimeEpisodes(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		if id == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -35,11 +35,11 @@ func getAnimeEpisodes(svc *animeSvc.AnimeService) http.HandlerFunc {
 	}
 }
 
-func getEpisodeLangs(svc *animeSvc.AnimeService) http.HandlerFunc {
+func getEpisodeLangs(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		if id == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -59,23 +59,23 @@ func getEpisodeLangs(svc *animeSvc.AnimeService) http.HandlerFunc {
 	}
 }
 
-func getEpisodeStream(svc *animeSvc.AnimeService) http.HandlerFunc {
+func getEpisodeStream(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		if id == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		episodeID := chi.URLParam(r, "episodeID")
-		if episodeID == "" {
-			jsonError(w, http.StatusBadRequest, "episode ID is required")
+		episodeID, err := pathParam(r, "episodeID")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		streamType := chi.URLParam(r, "type")
-		if streamType == "" {
-			jsonError(w, http.StatusBadRequest, "stream type is required")
+		streamType, err := pathParam(r, "streamType")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -89,23 +89,23 @@ func getEpisodeStream(svc *animeSvc.AnimeService) http.HandlerFunc {
 	}
 }
 
-func getEpisodeStreamMetadata(svc *animeSvc.AnimeService) http.HandlerFunc {
+func getEpisodeStreamMetadata(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		if id == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		episodeID := chi.URLParam(r, "episodeID")
-		if episodeID == "" {
-			jsonError(w, http.StatusBadRequest, "episode ID is required")
+		episodeID, err := pathParam(r, "episodeID")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		streamType := chi.URLParam(r, "type")
-		if streamType == "" {
-			jsonError(w, http.StatusBadRequest, "stream type is required")
+		streamType, err := pathParam(r, "streamType")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 

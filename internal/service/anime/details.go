@@ -79,7 +79,7 @@ func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*Trailer
 	return &TrailerDto{Trailer: a.Metadata.TrailerEmbedURL}, nil
 }
 
-func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (string, error) {
+func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (BannerDto, error) {
 	var cachedBanner string
 	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_banner:%s", id), &cachedBanner, 30*24*time.Hour, func(ctx context.Context) (any, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
@@ -105,10 +105,10 @@ func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (string, e
 
 	if err != nil {
 		log.Printf("failed to get anime banner from cache: %v", err)
-		return "", err
+		return BannerDto{}, err
 	}
 
-	return cachedBanner, nil
+	return BannerDto{URL: cachedBanner}, nil
 }
 
 func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (RelationsDto, error) {

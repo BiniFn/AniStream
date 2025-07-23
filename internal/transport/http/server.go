@@ -8,9 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/config"
-	"github.com/coeeter/aniways/internal/repository"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -18,18 +16,16 @@ type App struct {
 	Config *config.Env
 	Router *chi.Mux
 	Server *http.Server
-	Repo   *repository.Queries
-	Cache  *cache.RedisClient
 }
 
-func New(config *config.Env, repo *repository.Queries, redis *cache.RedisClient) *App {
+func New(d *Dependencies) *App {
 	r := chi.NewRouter()
 
-	UseMiddlewares(config, r)
-	RegisterRoutes(r, config, repo, redis)
+	UseMiddlewares(d.Env, r)
+	RegisterRoutes(r, d)
 
 	srv := &http.Server{
-		Addr:              ":" + config.AppPort,
+		Addr:              ":" + d.Env.AppPort,
 		Handler:           r,
 		ReadHeaderTimeout: 10 * time.Second,
 		WriteTimeout:      10 * time.Second,
@@ -37,11 +33,9 @@ func New(config *config.Env, repo *repository.Queries, redis *cache.RedisClient)
 	}
 
 	return &App{
+		Config: d.Env,
 		Router: r,
-		Config: config,
 		Server: srv,
-		Repo:   repo,
-		Cache:  redis,
 	}
 }
 

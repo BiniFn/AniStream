@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	animeSvc "github.com/coeeter/aniways/internal/service/anime"
+	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAnimeRoutes(r chi.Router, svc *animeSvc.AnimeService) {
+func MountAnimeRoutes(r chi.Router, svc *anime.AnimeService) {
 	r.Route("/{id}", func(r chi.Router) {
 		r.Get("/", getAnimeByID(svc))
 		r.Get("/trailer", getAnimeTrailer(svc))
@@ -17,11 +17,11 @@ func MountAnimeRoutes(r chi.Router, svc *animeSvc.AnimeService) {
 	})
 }
 
-func getAnimeByID(svc *animeSvc.AnimeService) http.HandlerFunc {
+func getAnimeByID(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		if id == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -35,11 +35,11 @@ func getAnimeByID(svc *animeSvc.AnimeService) http.HandlerFunc {
 	}
 }
 
-func getAnimeTrailer(svc *animeSvc.AnimeService) http.HandlerFunc {
+func getAnimeTrailer(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		if id == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -53,11 +53,11 @@ func getAnimeTrailer(svc *animeSvc.AnimeService) http.HandlerFunc {
 	}
 }
 
-func getAnimeBanner(svc *animeSvc.AnimeService) http.HandlerFunc {
+func getAnimeBanner(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		if id == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -67,23 +67,21 @@ func getAnimeBanner(svc *animeSvc.AnimeService) http.HandlerFunc {
 			jsonError(w, http.StatusInternalServerError, "failed to fetch anime banner")
 			return
 		}
-		jsonOK(w, struct {
-			Url string `json:"url"`
-		}{Url: resp})
+		jsonOK(w, resp)
 	}
 }
 
-func franchise(svc *animeSvc.AnimeService) http.HandlerFunc {
+func franchise(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		animeID := chi.URLParam(r, "id")
-		if animeID == "" {
-			jsonError(w, http.StatusBadRequest, "anime ID is required")
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		resp, err := svc.GetAnimeRelations(r.Context(), animeID)
+		resp, err := svc.GetAnimeRelations(r.Context(), id)
 		if err != nil {
-			log.Printf("failed to fetch franchise for anime ID %s: %v", animeID, err)
+			log.Printf("failed to fetch franchise for anime ID %s: %v", id, err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch franchise")
 			return
 		}

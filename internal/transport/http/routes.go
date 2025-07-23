@@ -3,48 +3,37 @@ package http
 import (
 	"net/http"
 
-	"github.com/cloudinary/cloudinary-go/v2"
-	"github.com/coeeter/aniways/internal/cache"
-	"github.com/coeeter/aniways/internal/client/anilist"
-	"github.com/coeeter/aniways/internal/client/myanimelist"
-	"github.com/coeeter/aniways/internal/client/shikimori"
-	"github.com/coeeter/aniways/internal/config"
-	"github.com/coeeter/aniways/internal/repository"
-	animeSvc "github.com/coeeter/aniways/internal/service/anime"
+	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/transport/http/handlers"
 	"github.com/go-chi/chi/v5"
 )
 
-func RegisterRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, redis *cache.RedisClient) {
+func RegisterRoutes(r *chi.Mux, deps *Dependencies) {
+	refresher := anime.NewRefresher(deps.Repo, deps.MAL)
+	animeService := anime.NewAnimeService(deps.Repo, refresher, deps.MAL, deps.Anilist, deps.Shiki, deps.Cache)
+	userService := users.NewUserService(deps.Repo, deps.Cld)
+
 	r.Route("/anime", func(r chi.Router) {
-		malClient := myanimelist.NewClient(myanimelist.ClientConfig{
-			ClientID:     env.MyAnimeListClientID,
-			ClientSecret: env.MyAnimeListClientSecret,
-		})
-		refresher := animeSvc.NewRefresher(repo, malClient)
-		anilistClient := anilist.New()
-		shikimoriClient := shikimori.NewClient(redis)
-		svc := animeSvc.New(repo, refresher, malClient, anilistClient, shikimoriClient, redis)
-
-		handlers.MountAnimeRoutes(r, svc)
-		handlers.MountAnimeListingsRoutes(r, svc)
-		handlers.MountAnimeEpisodesRoutes(r, svc)
+		handlers.MountAnimeRoutes(r, animeService)
+		handlers.MountAnimeListingsRoutes(r, animeService)
+		handlers.MountAnimeEpisodesRoutes(r, animeService)
 	})
-
-	cld, _ := cloudinary.NewFromParams(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinaryAPISecret)
-	userService := users.NewUserService(repo, cld)
 
 	r.Route("/users", func(r chi.Router) {
 		handlers.MountUsersRoutes(r, userService)
 	})
 
 	r.Route("/auth", func(r chi.Router) {
-		handlers.MountAuthRoutes(r, env, userService)
+		handlers.MountAuthRoutes(r, deps.Env, userService)
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("AniWays API"))
+	})
+
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
 	})
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {

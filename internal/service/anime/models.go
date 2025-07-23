@@ -205,3 +205,7 @@ type RelationsDto struct {
 	WatchOrder []AnimeDto `json:"watchOrder"`
 	Related    []AnimeDto `json:"related"`
 }
+
+type BannerDto struct {
+	URL string `json:"url"`
+}

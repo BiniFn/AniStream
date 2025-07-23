@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func parsePagination(r *http.Request, defaultPage, defaultSize int) (page, size int, err error) {
@@ -29,6 +31,14 @@ func parsePagination(r *http.Request, defaultPage, defaultSize int) (page, size 
 	}
 
 	return page, size, nil
+}
+
+func pathParam(r *http.Request, key string) (string, error) {
+	v := chi.URLParam(r, key)
+	if v == "" {
+		return "", fmt.Errorf("%s is required", key)
+	}
+	return v, nil
 }
 
 func jsonError(w http.ResponseWriter, status int, msg string) {

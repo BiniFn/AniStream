@@ -48,7 +48,12 @@ func main() {
 
 	m.StartBackground(ctx)
 
-	app := http.New(env, repo, redis)
+	deps, err := http.BuildDeps(env, repo, redis)
+	if err != nil {
+		log.Fatalf("failed to build dependencies: %v", err)
+	}
+
+	app := http.New(deps)
 	if err := app.Run(ctx); err != nil {
 		log.Fatal(err)
 	}

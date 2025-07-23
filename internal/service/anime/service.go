@@ -19,7 +19,7 @@ type AnimeService struct {
 	redis           *cache.RedisClient
 }
 
-func New(
+func NewAnimeService(
 	repo *repository.Queries,
 	refresher *MetadataRefresher,
 	malClient *myanimelist.Client,
