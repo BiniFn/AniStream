@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/config"
@@ -38,6 +39,11 @@ func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
 			return
 		}
 
+		domain := "localhost"
+		if env.CookieDomain != "" && env.CookieDomain != "localhost" {
+			domain = fmt.Sprintf(".%s", env.CookieDomain) // enable subdomain cookies
+		}
+
 		http.SetCookie(w, &http.Cookie{
 			Name:     "aniways_session",
 			Value:    session.ID,
@@ -46,7 +52,7 @@ func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
 			Secure:   true,
 			Path:     "/",
 			SameSite: http.SameSiteLaxMode,
-			Domain:   env.CookieDomain,
+			Domain:   domain,
 		})
 
 		jsonOK(w, user)

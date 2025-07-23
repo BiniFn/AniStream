@@ -115,7 +115,6 @@ func scrapeRecentlyUpdated(
 				if err := redis.Del(ctx, "anime_episodes:"+dbAnime.ID); err != nil {
 					log.Printf("⚠️ Failed to delete cache for anime episodes of %s: %v", dbAnime.ID, err)
 				}
-				log.Printf("✅ Updated existing anime %s with new data", scraped.HiAnimeID)
 			} else {
 				params := repository.InsertAnimeParams{
 					Ename:       info.EName,
