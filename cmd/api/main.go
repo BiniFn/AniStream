@@ -40,22 +40,13 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	count, err := repo.GetCountOfAnimes(ctx)
-	if err != nil {
-		log.Fatalf("Error counting anime rows: %v", err)
+	m := worker.NewManager(repo, scraper, redis)
+
+	if err := m.Bootstrap(ctx); err != nil {
+		log.Fatalf("Error in bootstrapping: %v", err)
 	}
 
-	if count == 0 {
-		log.Println("⚙️  no anime in DB—running initial scraper (this will block)…")
-		if err := worker.FullSeed(ctx, scraper, repo); err != nil {
-			log.Fatalf("🚨 FullSeed failed: %v", err)
-		}
-		log.Println("✅ initial scrape complete, starting HTTP server")
-	} else {
-		log.Printf("ℹ️  DB already has %d anime, skipping initial scrape", count)
-	}
-
-	go worker.HourlyTask(ctx, scraper, repo, redis)
+	m.StartBackground(ctx)
 
 	app := http.New(env, repo, redis)
 	if err := app.Run(); err != nil {
