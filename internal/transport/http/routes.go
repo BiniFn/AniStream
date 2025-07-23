@@ -40,7 +40,7 @@ func MountGlobalRoutes(r *chi.Mux, env *config.Env, repo *repository.Queries, re
 	})
 
 	r.Route("/auth", func(r chi.Router) {
-		handlers.MountAuthRoutes(r, userService)
+		handlers.MountAuthRoutes(r, env, userService)
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {

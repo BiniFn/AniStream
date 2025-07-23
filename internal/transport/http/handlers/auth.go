@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAuthRoutes(r chi.Router, userService *users.UserService) {
-	r.Post("/login", login(userService))
+func MountAuthRoutes(r chi.Router, env *config.Env, userService *users.UserService) {
+	r.Post("/login", login(env, userService))
 	r.Get("/me", me(userService))
 }
 
-func login(userService *users.UserService) http.HandlerFunc {
+func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
 			Email    string `json:"email"`
@@ -45,6 +46,7 @@ func login(userService *users.UserService) http.HandlerFunc {
 			Secure:   true,
 			Path:     "/",
 			SameSite: http.SameSiteLaxMode,
+			Domain:   env.CookieDomain,
 		})
 
 		jsonOK(w, user)

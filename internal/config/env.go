@@ -17,6 +17,7 @@ type Env struct {
 	CloudinaryName          string `envconfig:"CLOUDINARY_NAME" required:"true"`
 	CloudinaryAPIKey        string `envconfig:"CLOUDINARY_API_KEY" required:"true"`
 	CloudinaryAPISecret     string `envconfig:"CLOUDINARY_API_SECRET" required:"true"`
+	CookieDomain            string `envconfig:"COOKIE_DOMAIN" required:"false"`
 }
 
 func LoadEnv() (*Env, error) {
