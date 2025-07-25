@@ -1,12 +1,14 @@
-package http
+package middleware
 
 import (
 	"log/slog"
 	"net/http"
 	"time"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/ctxutil"
+	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -14,15 +16,23 @@ import (
 	"github.com/go-chi/httplog/v3"
 )
 
-func UseMiddlewares(r *chi.Mux, logger *slog.Logger, d *Dependencies) {
-	userService := users.NewUserService(d.Repo, d.Cld)
-	r.Use(corsHandler(d.Env))
+type MiddlewareConfig struct {
+	Router *chi.Mux
+	Logger *slog.Logger
+	Env    *config.Env
+	Repo   *repository.Queries
+	Cld    *cloudinary.Cloudinary
+}
 
-	r.Use(
+func UseMiddlewares(c MiddlewareConfig) {
+	userService := users.NewUserService(c.Repo, c.Cld)
+	c.Router.Use(corsHandler(c.Env))
+
+	c.Router.Use(
 		middleware.RealIP,
 		middleware.RequestID,
 		injectUser(userService),
-		injectLogger(logger),
+		injectLogger(c.Logger),
 		requestLogger,
 		middleware.Recoverer,
 		middleware.Timeout(60*time.Second),

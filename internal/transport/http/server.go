@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/coeeter/aniways/internal/config"
+	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -22,7 +23,14 @@ type App struct {
 func New(d *Dependencies, log *slog.Logger) *App {
 	r := chi.NewRouter()
 
-	UseMiddlewares(r, log, d)
+	middleware.UseMiddlewares(middleware.MiddlewareConfig{
+		Router: r,
+		Logger: log,
+		Env:    d.Env,
+		Repo:   d.Repo,
+		Cld:    d.Cld,
+	})
+
 	RegisterRoutes(r, d)
 
 	srv := &http.Server{

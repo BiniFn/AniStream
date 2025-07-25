@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/cloudinary/cloudinary-go/v2"
@@ -159,6 +160,12 @@ func (s *UserService) UpdatePassword(ctx context.Context, id, oldPassword, newPa
 		return ErrInvalidAuth
 	}
 
+	newPasswordBytes := []byte(newPassword)
+
+	if len(newPasswordBytes) > 72 {
+		return ErrPasswordTooLong
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -190,21 +197,21 @@ func (s *UserService) ResetPassword(ctx context.Context, id, newPassword string)
 	return nil
 }
 
-func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, image []byte) error {
+func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, image io.Reader) error {
 	if _, err := s.repo.GetUserByID(ctx, id); err != nil {
 		return ErrUserDoesNotExist
 	}
 
 	result, err := s.cld.Upload.Upload(ctx, image, uploader.UploadParams{})
 	if err != nil {
-		return err
+		return fmt.Errorf("cloudinary upload: %w", err)
 	}
 
 	if err := s.repo.UpdateProfilePicture(ctx, repository.UpdateProfilePictureParams{
 		ID:             id,
 		ProfilePicture: pgtype.Text{String: result.SecureURL, Valid: len(result.SecureURL) > 0},
 	}); err != nil {
-		return err
+		return fmt.Errorf("db update profile picture: %w", err)
 	}
 	return nil
 }
