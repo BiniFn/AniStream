@@ -31,19 +31,12 @@ sqlc:               ## Generate SQLC code
 # ----- Build & test ----- #
 build:              ## Build all three binaries into ./bin
 	go build -o bin/api      ./cmd/api
-	go build -o bin/cron     ./cmd/cron
-	go build -o bin/streamer ./cmd/streamer
-
-test:               ## Run race-enabled test suite
-	go test ./... -race -cover
+	go build -o bin/proxy    ./cmd/proxy
 
 tidy:               ## Go mod tidy
 	go mod tidy
 
 # ----- Docker ----- #
-docker:             ## Build multi-stage Docker image
-	docker build -t aniways:latest .
-
 dev-compose:
 	docker-compose --file docker-compose.dev.yaml --env-file .env.local up -d
 
