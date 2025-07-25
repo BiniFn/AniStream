@@ -22,7 +22,7 @@ type App struct {
 func New(d *Dependencies, log *slog.Logger) *App {
 	r := chi.NewRouter()
 
-	UseMiddlewares(d.Env, r, log)
+	UseMiddlewares(r, log, d)
 	RegisterRoutes(r, d)
 
 	srv := &http.Server{

@@ -7,14 +7,15 @@ import (
 	"time"
 
 	"github.com/coeeter/aniways/internal/config"
+	"github.com/coeeter/aniways/internal/ctxutil"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/go-chi/chi/v5"
 )
 
 func MountAuthRoutes(r chi.Router, env *config.Env, userService *users.UserService) {
 	r.Post("/login", login(env, userService))
-	r.Get("/me", me(userService))
 	r.Post("/logout", logout(env, userService))
+	r.Get("/me", me)
 }
 
 func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
@@ -61,22 +62,14 @@ func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
 	}
 }
 
-func me(userService *users.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("aniways_session")
-		if err != nil {
-			jsonError(w, http.StatusUnauthorized, "Invalid session")
-			return
-		}
-
-		user, err := userService.GetUserBySessionID(r.Context(), cookie.Value)
-		if err != nil {
-			jsonError(w, http.StatusUnauthorized, "Invalid session")
-			return
-		}
-
-		jsonOK(w, user)
+func me(w http.ResponseWriter, r *http.Request) {
+	user, ok := ctxutil.Get[users.User](r.Context())
+	if !ok {
+		jsonError(w, http.StatusUnauthorized, "Invalid session")
+		return
 	}
+
+	jsonOK(w, user)
 }
 
 func logout(env *config.Env, userService *users.UserService) http.HandlerFunc {
