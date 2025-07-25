@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -34,21 +33,15 @@ func NewClient(redisClient *cache.RedisClient) *Client {
 
 func (c *Client) GetAnimeFranchise(ctx context.Context, malID int) (*FranchiseResponse, error) {
 	var id int
-	if ok, err := c.redisClient.Get(ctx, fmt.Sprintf("shikimori:derived_from:%d", malID), &id); err != nil {
-		log.Printf("failed to get derived ID from cache: %v", err)
-	} else if ok {
-		log.Printf("found derived ID in cache for MAL ID %d: %d", malID, id)
+	ok, _ := c.redisClient.Get(ctx, fmt.Sprintf("shikimori:derived_from:%d", malID), &id)
+	if ok {
 		malID = id
-	} else {
-		log.Printf("cache miss for derived ID with MAL ID %d, using original ID", malID)
 	}
 
 	key := fmt.Sprintf("shikimori:franchise:%d", malID)
 	var fr FranchiseResponse
-	if ok, err := c.redisClient.Get(ctx, key, &fr); err != nil {
-		log.Printf("failed to get franchise from cache: %v", err)
-	} else if ok {
-		log.Printf("found franchise in cache for MAL ID %d", malID)
+	ok, _ = c.redisClient.Get(ctx, key, &fr)
+	if ok {
 		return &fr, nil
 	}
 
@@ -79,11 +72,7 @@ func (c *Client) GetAnimeFranchise(ctx context.Context, malID int) (*FranchiseRe
 	for _, node := range franchiseResponse.Nodes {
 		pipeline.Set(ctx, fmt.Sprintf("shikimori:derived_from:%d", node.ID), malID, 7*24*time.Hour)
 	}
-	if _, err := pipeline.Exec(ctx); err != nil {
-		log.Printf("failed to execute pipeline for caching franchise: %v", err)
-	} else {
-		log.Printf("successfully cached franchise for MAL ID %d", malID)
-	}
+	pipeline.Exec(ctx)
 
 	return &franchiseResponse, nil
 }

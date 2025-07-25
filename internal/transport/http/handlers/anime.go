@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/service/anime"
@@ -19,6 +18,8 @@ func MountAnimeRoutes(r chi.Router, svc *anime.AnimeService) {
 
 func getAnimeByID(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		id, err := pathParam(r, "id")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -26,17 +27,26 @@ func getAnimeByID(svc *anime.AnimeService) http.HandlerFunc {
 		}
 
 		resp, err := svc.GetAnimeByID(r.Context(), id)
-		if err != nil {
-			log.Printf("failed to fetch anime details for ID %s: %v", id, err)
+		switch err {
+		case anime.ErrAnimeNotFound:
+			log.Warn("anime not found", "id", id, "err", err)
+			jsonError(w, http.StatusNotFound, "anime not found")
+			return
+		case nil:
+			jsonOK(w, resp)
+			return
+		default:
+			log.Error("failed to fetch anime details", "id", id, "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
 			return
 		}
-		jsonOK(w, resp)
 	}
 }
 
 func getAnimeTrailer(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		id, err := pathParam(r, "id")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -44,17 +54,26 @@ func getAnimeTrailer(svc *anime.AnimeService) http.HandlerFunc {
 		}
 
 		resp, err := svc.GetAnimeTrailer(r.Context(), id)
-		if err != nil {
-			log.Printf("failed to fetch trailer for anime %s: %v", id, err)
-			jsonError(w, http.StatusInternalServerError, "failed to fetch anime trailer")
+		switch err {
+		case anime.ErrAnimeNotFound:
+			log.Warn("anime not found", "id", id, "err", err)
+			jsonError(w, http.StatusNotFound, "anime not found")
+			return
+		case nil:
+			jsonOK(w, resp)
+			return
+		default:
+			log.Error("failed to fetch anime details", "id", id, "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
 			return
 		}
-		jsonOK(w, resp)
 	}
 }
 
 func getAnimeBanner(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		id, err := pathParam(r, "id")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -62,17 +81,26 @@ func getAnimeBanner(svc *anime.AnimeService) http.HandlerFunc {
 		}
 
 		resp, err := svc.GetAnimeBanner(r.Context(), id)
-		if err != nil {
-			log.Printf("failed to fetch banner for anime %s: %v", id, err)
-			jsonError(w, http.StatusInternalServerError, "failed to fetch anime banner")
+		switch err {
+		case anime.ErrAnimeNotFound:
+			log.Warn("anime not found", "id", id, "err", err)
+			jsonError(w, http.StatusNotFound, "anime not found")
+			return
+		case nil:
+			jsonOK(w, resp)
+			return
+		default:
+			log.Error("failed to fetch anime details", "id", id, "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
 			return
 		}
-		jsonOK(w, resp)
 	}
 }
 
 func franchise(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		id, err := pathParam(r, "id")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -80,11 +108,18 @@ func franchise(svc *anime.AnimeService) http.HandlerFunc {
 		}
 
 		resp, err := svc.GetAnimeRelations(r.Context(), id)
-		if err != nil {
-			log.Printf("failed to fetch franchise for anime ID %s: %v", id, err)
-			jsonError(w, http.StatusInternalServerError, "failed to fetch franchise")
+		switch err {
+		case anime.ErrAnimeNotFound:
+			log.Warn("anime not found", "id", id, "err", err)
+			jsonError(w, http.StatusNotFound, "anime not found")
+			return
+		case nil:
+			jsonOK(w, resp)
+			return
+		default:
+			log.Error("failed to fetch anime details", "id", id, "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
 			return
 		}
-		jsonOK(w, resp)
 	}
 }

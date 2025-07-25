@@ -3,9 +3,9 @@ package anime
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/client/anilist/graphql"
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
@@ -53,18 +53,9 @@ func (s *AnimeService) GetRecentlyUpdatedAnimes(
 }
 
 func (s *AnimeService) GetAnimeGenres(ctx context.Context) ([]string, error) {
-	var genres []string
-
-	_, err := s.redis.GetOrFill(ctx, "anime_genres", &genres, 30*24*time.Hour, func(ctx context.Context) (any, error) {
+	return cache.GetOrFill(ctx, s.redis, "anime_genres", 30*24*time.Hour, func(ctx context.Context) ([]string, error) {
 		return s.repo.GetAllGenres(ctx)
 	})
-
-	if err != nil {
-		log.Printf("failed to get anime genres from cache: %v", err)
-		return nil, err
-	}
-
-	return genres, nil
 }
 
 func (s *AnimeService) SearchAnimes(ctx context.Context, query, genre string, page, size int) (models.Pagination[AnimeDto], error) {
@@ -110,8 +101,7 @@ func (s *AnimeService) SearchAnimes(ctx context.Context, query, genre string, pa
 func (s *AnimeService) GetRandomAnime(ctx context.Context) (AnimeDto, error) {
 	data, err := s.repo.GetRandomAnime(ctx)
 	if err != nil {
-		log.Printf("failed to fetch random anime: %v", err)
-		return AnimeDto{}, err
+		return AnimeDto{}, fmt.Errorf("failed to fetch random anime: %w", err)
 	}
 
 	s.refresher.Enqueue(data.MalID.Int32)
@@ -126,8 +116,7 @@ func (s *AnimeService) GetRandomAnimeByGenre(ctx context.Context, genre string) 
 
 	data, err := s.repo.GetRandomAnimeByGenre(ctx, pgtype.Text{String: genre, Valid: true})
 	if err != nil {
-		log.Printf("failed to fetch random anime by genre %s: %v", genre, err)
-		return AnimeDto{}, err
+		return AnimeDto{}, fmt.Errorf("failed to fetch random anime by genre %s: %w", genre, err)
 	}
 
 	s.refresher.Enqueue(data.MalID.Int32)
@@ -210,9 +199,7 @@ func fetchAnimeDtosFromAnilist[T any](
 }
 
 func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]SeasonalAnimeDto, error) {
-	var cachedAnimes []SeasonalAnimeDto
-
-	_, err := s.redis.GetOrFill(ctx, "seasonal_animes", &cachedAnimes, 30*24*time.Hour, func(ctx context.Context) (any, error) {
+	return cache.GetOrFill(ctx, s.redis, "seasonal_animes", 30*24*time.Hour, func(ctx context.Context) ([]SeasonalAnimeDto, error) {
 		now := time.Now()
 		ref := now.AddDate(0, -1, 0)
 		year := ref.Year()
@@ -230,16 +217,14 @@ func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]SeasonalAnimeDt
 		}
 		animes, err := s.anilistClient.GetSeasonalMedia(ctx, year, season)
 		if err != nil {
-			log.Printf("failed to fetch seasonal animes for year %d season %s: %v", year, season, err)
-			return nil, err
+			return nil, fmt.Errorf("failed to fetch seasonal animes for year %d season %s: %w", year, season, err)
 		}
 
 		_, dtoMap, err := fetchAnimeDtosFromAnilist(ctx, s, animes.Page.Media, func(m graphql.GetSeasonalAnimePageMedia) int {
 			return m.IdMal
 		})
 		if err != nil {
-			log.Printf("failed to map seasonal animes: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to map seasonal animes: %w", err)
 		}
 
 		seasonalAnimes := make([]SeasonalAnimeDto, 0, len(animes.Page.Media))
@@ -269,31 +254,20 @@ func (s *AnimeService) GetSeasonalAnimes(ctx context.Context) ([]SeasonalAnimeDt
 
 		return seasonalAnimes, nil
 	})
-
-	if err != nil {
-		log.Printf("failed to fetch seasonal animes: %v", err)
-		return nil, err
-	}
-
-	return cachedAnimes, nil
 }
 
 func (s *AnimeService) GetTrendingAnimes(ctx context.Context) ([]AnimeDto, error) {
-	var cachedAnimes []AnimeDto
-
-	_, err := s.redis.GetOrFill(ctx, "trending_animes", &cachedAnimes, 24*time.Hour, func(ctx context.Context) (any, error) {
+	return cache.GetOrFill(ctx, s.redis, "trending_animes", 24*time.Hour, func(ctx context.Context) ([]AnimeDto, error) {
 		animes, err := s.anilistClient.GetTrendingAnime(ctx)
 		if err != nil {
-			log.Printf("failed to fetch trending animes: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to fetch trending animes: %w", err)
 		}
 
 		_, dtoMap, err := fetchAnimeDtosFromAnilist(ctx, s, animes.Page.Media, func(m graphql.GetTrendingAnimePageMedia) int {
 			return m.IdMal
 		})
 		if err != nil {
-			log.Printf("failed to map trending animes: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to map trending animes: %w", err)
 		}
 
 		trendingAnimes := make([]AnimeDto, 0, len(animes.Page.Media))
@@ -308,30 +282,20 @@ func (s *AnimeService) GetTrendingAnimes(ctx context.Context) ([]AnimeDto, error
 
 		return trendingAnimes, nil
 	})
-
-	if err != nil {
-		log.Printf("failed to get trending animes from cache: %v", err)
-		return nil, err
-	}
-
-	return cachedAnimes, nil
 }
 
 func (s *AnimeService) GetPopularAnimes(ctx context.Context) ([]AnimeDto, error) {
-	var cachedAnimes []AnimeDto
-	_, err := s.redis.GetOrFill(ctx, "popular_animes", &cachedAnimes, 24*time.Hour, func(ctx context.Context) (any, error) {
+	return cache.GetOrFill(ctx, s.redis, "popular_animes", 24*time.Hour, func(ctx context.Context) ([]AnimeDto, error) {
 		animes, err := s.anilistClient.GetPopularAnime(ctx)
 		if err != nil {
-			log.Printf("failed to fetch popular animes: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to fetch popular animes: %w", err)
 		}
 
 		_, dtoMap, err := fetchAnimeDtosFromAnilist(ctx, s, animes.Page.Media, func(m graphql.GetPopularAnimePageMedia) int {
 			return m.IdMal
 		})
 		if err != nil {
-			log.Printf("failed to map popular animes: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to map popular animes: %w", err)
 		}
 
 		popularAnimes := make([]AnimeDto, 0, len(animes.Page.Media))
@@ -346,11 +310,4 @@ func (s *AnimeService) GetPopularAnimes(ctx context.Context) ([]AnimeDto, error)
 
 		return popularAnimes, nil
 	})
-
-	if err != nil {
-		log.Printf("failed to get popular animes from cache: %v", err)
-		return nil, err
-	}
-
-	return cachedAnimes, nil
 }

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/service/anime"
@@ -21,6 +20,8 @@ func MountAnimeListingsRoutes(r chi.Router, svc *anime.AnimeService) {
 
 func listRecentlyUpdated(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		page, size, err := parsePagination(r, 1, 30)
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -29,7 +30,7 @@ func listRecentlyUpdated(svc *anime.AnimeService) http.HandlerFunc {
 
 		resp, err := svc.GetRecentlyUpdatedAnimes(r.Context(), page, size)
 		if err != nil {
-			log.Printf("failed to fetch recently updated animes: %v", err)
+			log.Error("failed to fetch recently updated animes", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch recently updated animes")
 			return
 		}
@@ -39,9 +40,11 @@ func listRecentlyUpdated(svc *anime.AnimeService) http.HandlerFunc {
 
 func seasonalAnimes(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		resp, err := svc.GetSeasonalAnimes(r.Context())
 		if err != nil {
-			log.Printf("failed to fetch seasonal animes: %v", err)
+			log.Error("failed to fetch seasonal animes", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch seasonal animes")
 			return
 		}
@@ -51,6 +54,8 @@ func seasonalAnimes(svc *anime.AnimeService) http.HandlerFunc {
 
 func randomAnime(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		genre := r.URL.Query().Get("genre")
 
 		var (
@@ -61,14 +66,14 @@ func randomAnime(svc *anime.AnimeService) http.HandlerFunc {
 		if genre != "" {
 			resp, err = svc.GetRandomAnimeByGenre(r.Context(), genre)
 			if err != nil {
-				log.Printf("failed to fetch random anime by genre %s: %v", genre, err)
+				log.Error("failed to fetch random anime by genre", "genre", genre, "err", err)
 				jsonError(w, http.StatusInternalServerError, "failed to fetch random anime by genre")
 				return
 			}
 		} else {
 			resp, err = svc.GetRandomAnime(r.Context())
 			if err != nil {
-				log.Printf("failed to fetch random animes: %v", err)
+				log.Error("failed to fetch random animes", "err", err)
 				jsonError(w, http.StatusInternalServerError, "failed to fetch random animes")
 				return
 			}
@@ -80,9 +85,10 @@ func randomAnime(svc *anime.AnimeService) http.HandlerFunc {
 
 func listGenres(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
 		resp, err := svc.GetAnimeGenres(r.Context())
 		if err != nil {
-			log.Printf("failed to fetch anime genres: %v", err)
+			log.Error("failed to fetch anime genres", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch anime genres")
 			return
 		}
@@ -92,6 +98,8 @@ func listGenres(svc *anime.AnimeService) http.HandlerFunc {
 
 func searchAnimes(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		query := r.URL.Query().Get("q")
 		if query == "" {
 			jsonError(w, http.StatusBadRequest, "search query is required")
@@ -116,7 +124,7 @@ func searchAnimes(svc *anime.AnimeService) http.HandlerFunc {
 
 		resp, err := svc.SearchAnimes(r.Context(), query, genre, page, size)
 		if err != nil {
-			log.Printf("failed to search animes: %v", err)
+			log.Error("failed to search animes", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to search animes")
 			return
 		}
@@ -126,6 +134,8 @@ func searchAnimes(svc *anime.AnimeService) http.HandlerFunc {
 
 func animeByGenre(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		genre, err := pathParam(r, "genre")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -140,7 +150,7 @@ func animeByGenre(svc *anime.AnimeService) http.HandlerFunc {
 
 		resp, err := svc.GetAnimesByGenre(r.Context(), genre, page, size)
 		if err != nil {
-			log.Printf("failed to fetch animes by genre %s: %v", genre, err)
+			log.Error("failed to fetch animes by genre", "genre", genre, "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch animes by genre")
 			return
 		}
@@ -150,9 +160,11 @@ func animeByGenre(svc *anime.AnimeService) http.HandlerFunc {
 
 func trendingAnimes(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		resp, err := svc.GetTrendingAnimes(r.Context())
 		if err != nil {
-			log.Printf("failed to fetch trending animes: %v", err)
+			log.Error("failed to fetch trending animes", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch trending animes")
 			return
 		}
@@ -162,9 +174,11 @@ func trendingAnimes(svc *anime.AnimeService) http.HandlerFunc {
 
 func popularAnimes(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		resp, err := svc.GetPopularAnimes(r.Context())
 		if err != nil {
-			log.Printf("failed to fetch popular animes: %v", err)
+			log.Error("failed to fetch popular animes", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to fetch popular animes")
 			return
 		}

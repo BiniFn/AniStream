@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/service/users"
@@ -15,6 +14,8 @@ func MountUsersRoutes(r chi.Router, userService *users.UserService) {
 
 func createUser(userService *users.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		user := &users.CreateUser{}
 		if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -22,20 +23,18 @@ func createUser(userService *users.UserService) http.HandlerFunc {
 		}
 
 		u, err := userService.CreateUser(r.Context(), user.Username, user.Email, user.Password)
-
-		if err != nil {
-			log.Printf("Error creating user: %v", err)
-			switch err {
-			case users.ErrEmailTaken, users.ErrUsernameTaken:
-				jsonError(w, http.StatusConflict, err.Error())
-			case users.ErrPasswordTooLong:
-				jsonError(w, http.StatusBadRequest, err.Error())
-			default:
-				jsonError(w, http.StatusInternalServerError, err.Error())
-			}
-			return
+		switch err {
+		case nil:
+			jsonOK(w, u)
+		case users.ErrEmailTaken, users.ErrUsernameTaken:
+			log.Warn("username or email already taken", "username", user.Username, "email", user.Email)
+			jsonError(w, http.StatusConflict, err.Error())
+		case users.ErrPasswordTooLong:
+			log.Warn("password too long", "username", user.Username)
+			jsonError(w, http.StatusBadRequest, err.Error())
+		default:
+			log.Error("user creation failed", "err", err)
+			jsonError(w, http.StatusInternalServerError, err.Error())
 		}
-
-		jsonOK(w, u)
 	}
 }

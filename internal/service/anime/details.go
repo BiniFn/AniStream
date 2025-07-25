@@ -5,41 +5,44 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"slices"
 	"time"
 
+	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+var ErrAnimeNotFound = errors.New("anime not found")
 
 func (s *AnimeService) GetAnimeByID(
 	ctx context.Context,
 	id string,
 ) (*AnimeWithMetadataDto, error) {
 	a, err := s.repo.GetAnimeById(ctx, id)
+	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrAnimeNotFound
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	m, err := s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
-			log.Printf("metadata lookup error for MAL %d: %v", a.MalID.Int32, err)
-			return nil, err
-		}
-	} else {
-		// If metadata is fresh, return it
-		if time.Since(m.UpdatedAt.Time) < s.refresher.ttl {
-			dto := AnimeWithMetadataDto{}.FromRepository(a, m)
-			return &dto, nil
-		}
+	switch {
+	case err == nil && time.Since(m.UpdatedAt.Time) < s.refresher.ttl:
+		dto := AnimeWithMetadataDto{}.FromRepository(a, m)
+		return &dto, nil
+
+	case err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows):
+		return nil, err
 	}
 
-	if err := s.refresher.RefreshBlocking(ctx, a.MalID.Int32); err != nil {
-		log.Printf("blocking refresh failed: %v", err)
+	// if error and no existing metadata return error
+	if err := s.refresher.RefreshBlocking(ctx, a.MalID.Int32); err != nil && m.MalID == 0 {
+		return nil, err
 	}
+
 	m, err = s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
 	if err != nil {
 		return nil, err
@@ -52,89 +55,79 @@ func (s *AnimeService) GetAnimeByID(
 
 func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*TrailerDto, error) {
 	a, err := s.GetAnimeByID(ctx, id)
-	if err != nil || a == nil {
+	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrAnimeNotFound
+	}
+	if err != nil {
 		return nil, err
 	}
-	if a.Metadata.TrailerEmbedURL == "" {
-		t, err := s.malClient.GetTrailer(ctx, int(a.MalID))
-		if err != nil {
-			log.Printf("failed to fetch trailer for MAL ID %d: %v", a.MalID, err)
-			return nil, err
-		}
-		if t == "" {
-			log.Printf("no trailer found for MAL ID %d", a.MalID)
-			return nil, nil
-		}
-		a.Metadata.TrailerEmbedURL = t
-		params := repository.UpdateAnimeMetadataTrailerParams{
-			TrailerEmbedUrl: pgtype.Text{String: t, Valid: len(t) > 0},
-			MalID:           a.MalID,
-		}
-		if err := s.repo.UpdateAnimeMetadataTrailer(ctx, params); err != nil {
-			log.Printf("failed to update metadata for MAL ID %d: %v", a.MalID, err)
-			return nil, err
-		}
-		log.Printf("updated trailer for MAL ID %d: %s", a.MalID, a.Metadata.TrailerEmbedURL)
+
+	if a.Metadata.TrailerEmbedURL != "" {
+		return &TrailerDto{Trailer: a.Metadata.TrailerEmbedURL}, nil
 	}
-	return &TrailerDto{Trailer: a.Metadata.TrailerEmbedURL}, nil
+
+	t, err := s.malClient.GetTrailer(ctx, int(a.MalID))
+	if err != nil || t == "" {
+		return nil, fmt.Errorf("failed to fetch trailer for MAL ID %d: %v", a.MalID, err)
+	}
+
+	a.Metadata.TrailerEmbedURL = t
+	params := repository.UpdateAnimeMetadataTrailerParams{
+		TrailerEmbedUrl: pgtype.Text{String: t, Valid: true},
+		MalID:           a.MalID,
+	}
+	if err := s.repo.UpdateAnimeMetadataTrailer(ctx, params); err != nil {
+		return nil, fmt.Errorf("failed to update metadata for MAL ID %d: %v", a.MalID, err)
+	}
+
+	return &TrailerDto{Trailer: t}, nil
 }
 
 func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (BannerDto, error) {
-	var cachedBanner string
-	_, err := s.redis.GetOrFill(ctx, fmt.Sprintf("anime_banner:%s", id), &cachedBanner, 30*24*time.Hour, func(ctx context.Context) (any, error) {
+	banner, err := cache.GetOrFill(ctx, s.redis, fmt.Sprintf("anime_banner:%s", id), 30*24*time.Hour, func(ctx context.Context) (string, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+			return "", ErrAnimeNotFound
+		}
 		if err != nil {
-			log.Printf("failed to fetch anime by ID %s: %v", id, err)
-			return "", err
+			return "", fmt.Errorf("failed to fetch anime by ID %s: %v", id, err)
 		}
 
 		anime, err := s.anilistClient.GetAnimeDetails(ctx, int(a.MalID.Int32))
 		if err != nil {
-			log.Printf("failed to fetch anime details from Anilist for MAL ID %d: %v", a.MalID.Int32, err)
-			return "", err
+			return "", fmt.Errorf("failed to fetch anime details from Anilist for MAL ID %d: %v", a.MalID.Int32, err)
 		}
 
-		bannerURL := anime.Media.GetBannerImage()
-		if bannerURL == "" {
-			log.Printf("no banner image found for anime ID %s", id)
-			return "", fmt.Errorf("no banner image found for anime ID %s", id)
-		}
-
-		return bannerURL, nil
+		return anime.Media.BannerImage, nil
 	})
 
 	if err != nil {
-		log.Printf("failed to get anime banner from cache: %v", err)
 		return BannerDto{}, err
 	}
 
-	return BannerDto{URL: cachedBanner}, nil
+	return BannerDto{URL: banner}, nil
 }
 
-func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (RelationsDto, error) {
-	cachedKey := fmt.Sprintf("anime_relations:%s", animeID)
-	var cachedRelations RelationsDto
+func (s *AnimeService) GetAnimeRelations(ctx context.Context, id string) (RelationsDto, error) {
+	key := fmt.Sprintf("anime_relations:%s", id)
 
-	_, err := s.redis.GetOrFill(ctx, cachedKey, &cachedRelations, 7*24*time.Hour, func(ctx context.Context) (any, error) {
-		anime, err := s.repo.GetAnimeById(ctx, animeID)
+	return cache.GetOrFill(ctx, s.redis, key, 7*24*time.Hour, func(ctx context.Context) (RelationsDto, error) {
+		a, err := s.repo.GetAnimeById(ctx, id)
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+			return RelationsDto{}, ErrAnimeNotFound
+		}
 		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
-				return RelationsDto{}, nil
-			}
-			log.Printf("failed to fetch anime by ID %s: %v", animeID, err)
-			return RelationsDto{}, err
+			return RelationsDto{}, fmt.Errorf("failed to fetch anime by ID %s: %v", id, err)
 		}
 
-		if !anime.MalID.Valid || anime.MalID.Int32 <= 0 {
-			log.Printf("invalid MAL ID for anime ID %s: %v", animeID, anime.MalID)
-			return RelationsDto{}, fmt.Errorf("invalid MAL ID for anime ID %s", animeID)
+		if !a.MalID.Valid || a.MalID.Int32 <= 0 {
+			return RelationsDto{}, fmt.Errorf("invalid MAL ID for anime ID %s", id)
 		}
 
-		malID := int(anime.MalID.Int32)
+		malID := int(a.MalID.Int32)
 		fr, err := s.shikimoriClient.GetAnimeFranchise(ctx, malID)
 		if err != nil {
-			log.Printf("failed to fetch franchise for MAL ID %d: %v", malID, err)
-			return RelationsDto{}, err
+			return RelationsDto{}, fmt.Errorf("failed to fetch franchise for MAL ID %d: %v", malID, err)
 		}
 
 		watchIDs := deriveWatchOrder(fr, malID)
@@ -149,7 +142,6 @@ func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (R
 			return out
 		}(fullIDs))
 		if err != nil {
-			log.Printf("failed to fetch related animes by MAL IDs %v: %v", fullIDs, err)
 			return RelationsDto{}, fmt.Errorf("failed to fetch related animes: %w", err)
 		}
 
@@ -198,11 +190,4 @@ func (s *AnimeService) GetAnimeRelations(ctx context.Context, animeID string) (R
 
 		return relations, nil
 	})
-
-	if err != nil {
-		log.Printf("failed to get anime relations from cache: %v", err)
-		return RelationsDto{}, err
-	}
-
-	return cachedRelations, nil
 }

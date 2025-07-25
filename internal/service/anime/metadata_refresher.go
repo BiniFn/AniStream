@@ -3,7 +3,7 @@ package anime
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -45,9 +45,15 @@ func NewRefresher(repo *repository.Queries, malClient *myanimelist.Client) *Meta
 	return m
 }
 
+func logger() *slog.Logger {
+	return slog.Default().With("component", "metadata_refresher")
+}
+
 func (m *MetadataRefresher) Enqueue(malID int32) {
+	log := logger()
+
 	if malID <= 0 {
-		log.Printf("invalid MAL ID %d, skipping metadata refresh", malID)
+		log.Error("invalid MAL ID", "mal_id", malID)
 		return
 	}
 
@@ -63,11 +69,13 @@ func (m *MetadataRefresher) Enqueue(malID int32) {
 	case m.queue <- malID:
 	default:
 		m.clearInFlight(malID)
-		log.Printf("queue full, dropping metadata refresh for MAL ID %d", malID)
+		log.Warn("queue full, dropping metadata refresh for MAL ID", "mal_id", malID)
 	}
 }
 
 func (m *MetadataRefresher) worker() {
+	log := logger()
+
 	for malID := range m.queue {
 		row, err := m.repo.GetAnimeMetadataByMalId(context.Background(), malID)
 		if err == nil && time.Since(row.UpdatedAt.Time) < m.ttl {
@@ -76,7 +84,7 @@ func (m *MetadataRefresher) worker() {
 		}
 
 		if err := m.limiter.Wait(context.Background()); err != nil {
-			log.Printf("rate limiter error: %v", err)
+			log.Error("rate limiter error", "error", err)
 			m.clearInFlight(malID)
 			continue
 		}
@@ -84,7 +92,7 @@ func (m *MetadataRefresher) worker() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		dto, err := m.malClient.GetAnimeMetadata(ctx, int(malID))
 		if err != nil {
-			log.Printf("MAL fetch failed for %d: %v", malID, err)
+			log.Error("MAL fetch failed", "mal_id", malID, "error", err)
 			m.clearInFlight(malID)
 			cancel()
 			continue
@@ -92,7 +100,7 @@ func (m *MetadataRefresher) worker() {
 
 		params := dto.ToUpsertParams()
 		if err := m.repo.UpsertAnimeMetadata(ctx, params); err != nil {
-			log.Printf("metadata upsert failed for %d: %v", malID, err)
+			log.Error("metadata upsert failed", "mal_id", malID, "error", err)
 			cancel()
 		}
 

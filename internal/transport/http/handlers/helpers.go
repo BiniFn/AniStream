@@ -3,9 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 
+	"github.com/coeeter/aniways/internal/logctx"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -50,4 +52,8 @@ func jsonError(w http.ResponseWriter, status int, msg string) {
 func jsonOK(w http.ResponseWriter, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(v)
+}
+
+func logger(r *http.Request) slog.Logger {
+	return *logctx.Logger(r.Context()).With("layer", "controller")
 }

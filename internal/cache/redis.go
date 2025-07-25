@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"reflect"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -89,47 +88,31 @@ func (c *RedisClient) Exec(ctx context.Context) ([]redis.Cmder, error) {
 	return nil, fmt.Errorf("unsupported Redis client type for pipeline execution")
 }
 
-func (c *RedisClient) GetOrFill(
+func GetOrFill[T any](
 	ctx context.Context,
+	rc *RedisClient,
 	key string,
-	dest any,
 	ttl time.Duration,
-	fetch func(context.Context) (any, error),
-) (hit bool, err error) {
-	if dest != nil && reflect.ValueOf(dest).Kind() != reflect.Ptr {
-		return false, fmt.Errorf("dest for key %s must be a pointer", key)
-	}
+	fetch func(context.Context) (T, error),
+) (val T, err error) {
+	var zero T
 
-	ok, err := c.Get(ctx, key, dest)
-	if err == nil && ok && c.appEnv != "development" {
-		c.log.Debug("cache hit", "key", key)
-		return true, nil
+	var tmp T
+	if ok, err := rc.Get(ctx, key, &tmp); err == nil && ok && rc.appEnv != "development" {
+		rc.log.Debug("cache hit", "key", key)
+		return tmp, nil
 	} else if err != nil {
-		c.log.Warn("cache get failed, fetching", "key", key, "err", err)
+		rc.log.Warn("cache get failed, fetching", "key", key, "err", err)
 	}
 
-	val, err := fetch(ctx)
+	tmp, err = fetch(ctx)
 	if err != nil {
-		return false, err
+		return zero, err
 	}
 
-	if setErr := c.Set(ctx, key, val, ttl); setErr != nil {
-		c.log.Warn("cache set failed", "key", key, "err", err)
+	if err = rc.Set(ctx, key, tmp, ttl); err != nil {
+		rc.log.Warn("cache set failed", "key", key, "err", err)
 	}
 
-	if dest != nil {
-		dv := reflect.ValueOf(dest).Elem()
-		vv := reflect.ValueOf(val)
-		if vv.Type().AssignableTo(dv.Type()) {
-			dv.Set(vv)
-		} else if b, err := json.Marshal(val); err == nil {
-			_ = json.Unmarshal(b, dest)
-		}
-	}
-
-	if c.appEnv == "development" {
-		c.log.Debug("cache disabled in dev mode", "key", key)
-	}
-
-	return false, nil
+	return tmp, nil
 }

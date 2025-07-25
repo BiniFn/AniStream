@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/service/anime"
@@ -19,6 +18,8 @@ func MountAnimeEpisodesRoutes(r chi.Router, svc *anime.AnimeService) {
 
 func getAnimeEpisodes(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		id, err := pathParam(r, "id")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -26,17 +27,26 @@ func getAnimeEpisodes(svc *anime.AnimeService) http.HandlerFunc {
 		}
 
 		resp, err := svc.GetAnimeEpisodes(r.Context(), id)
-		if err != nil {
-			log.Printf("failed to fetch anime episodes for ID %s: %v", id, err)
-			jsonError(w, http.StatusInternalServerError, "failed to fetch anime episodes")
+		switch err {
+		case anime.ErrAnimeNotFound:
+			log.Warn("anime not found", "id", id, "err", err)
+			jsonError(w, http.StatusNotFound, "anime not found")
+			return
+		case nil:
+			jsonOK(w, resp)
+			return
+		default:
+			log.Error("failed to fetch anime details", "id", id, "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
 			return
 		}
-		jsonOK(w, resp)
 	}
 }
 
 func getEpisodeLangs(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		id, err := pathParam(r, "id")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -50,17 +60,26 @@ func getEpisodeLangs(svc *anime.AnimeService) http.HandlerFunc {
 		}
 
 		resp, err := svc.GetEpisodeLangs(r.Context(), id, episodeID)
-		if err != nil {
-			log.Printf("failed to fetch languages for episode %s of anime %s: %v", episodeID, id, err)
-			jsonError(w, http.StatusInternalServerError, "failed to fetch languages for episode")
+		switch err {
+		case anime.ErrAnimeNotFound:
+			log.Warn("anime not found", "id", id, "err", err)
+			jsonError(w, http.StatusNotFound, "anime not found")
+			return
+		case nil:
+			jsonOK(w, resp)
+			return
+		default:
+			log.Error("failed to fetch anime details", "id", id, "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
 			return
 		}
-		jsonOK(w, resp)
 	}
 }
 
 func getEpisodeStream(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		id, err := pathParam(r, "id")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -80,17 +99,26 @@ func getEpisodeStream(svc *anime.AnimeService) http.HandlerFunc {
 		}
 
 		resp, err := svc.GetEpisodeStream(r.Context(), id, episodeID, streamType)
-		if err != nil {
-			log.Printf("failed to fetch stream for episode %s of anime %s: %v", episodeID, id, err)
-			jsonError(w, http.StatusInternalServerError, "failed to fetch stream for episode")
+		switch err {
+		case anime.ErrAnimeNotFound:
+			log.Warn("anime not found", "id", id, "err", err)
+			jsonError(w, http.StatusNotFound, "anime not found")
+			return
+		case nil:
+			jsonOK(w, resp)
+			return
+		default:
+			log.Error("failed to fetch anime details", "id", id, "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
 			return
 		}
-		jsonOK(w, resp)
 	}
 }
 
 func getEpisodeStreamMetadata(svc *anime.AnimeService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
 		id, err := pathParam(r, "id")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -110,11 +138,18 @@ func getEpisodeStreamMetadata(svc *anime.AnimeService) http.HandlerFunc {
 		}
 
 		resp, err := svc.GetStreamMetadata(r.Context(), id, episodeID, streamType)
-		if err != nil {
-			log.Printf("failed to fetch stream metadata for episode %s of anime %s: %v", episodeID, id, err)
-			jsonError(w, http.StatusInternalServerError, "failed to fetch stream metadata for episode")
+		switch err {
+		case anime.ErrAnimeNotFound:
+			log.Warn("anime not found", "id", id, "err", err)
+			jsonError(w, http.StatusNotFound, "anime not found")
+			return
+		case nil:
+			jsonOK(w, resp)
+			return
+		default:
+			log.Error("failed to fetch anime details", "id", id, "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
 			return
 		}
-		jsonOK(w, resp)
 	}
 }

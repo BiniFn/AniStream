@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/coeeter/aniways/internal/config"
+	"github.com/coeeter/aniways/internal/logctx"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -18,7 +19,8 @@ func UseMiddlewares(config *config.Env, r *chi.Mux, logger *slog.Logger) {
 	r.Use(
 		middleware.RealIP,
 		middleware.RequestID,
-		requestLogger(logger),
+		injectLogger(logger),
+		requestLogger,
 		middleware.Recoverer,
 		middleware.Timeout(60*time.Second),
 	)
@@ -39,14 +41,24 @@ func corsHandler(env *config.Env) func(http.Handler) http.Handler {
 	})
 }
 
-func requestLogger(logger *slog.Logger) func(http.Handler) http.Handler {
-	return httplog.RequestLogger(logger, &httplog.Options{
-		Level: slog.LevelInfo,
-		LogExtraAttrs: func(req *http.Request, reqBody string, respStatus int) []slog.Attr {
-			reqID := middleware.GetReqID(req.Context())
-			return []slog.Attr{
-				slog.String("request_id", reqID),
-			}
-		},
+func injectLogger(logger *slog.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			reqID := middleware.GetReqID(r.Context())
+			ctx := logctx.WithLogger(r.Context(), logger.With("request_id", reqID))
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func requestLogger(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := logctx.Logger(r.Context())
+
+		mw := httplog.RequestLogger(logger, &httplog.Options{
+			Level: slog.LevelInfo,
+		})
+
+		mw(h).ServeHTTP(w, r)
 	})
 }
