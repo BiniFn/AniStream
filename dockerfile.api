@@ -1,4 +1,3 @@
-# ---- Build Stage ----
 FROM golang:1.24.5-alpine AS builder
 WORKDIR /app
 
@@ -9,14 +8,13 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/api
 
-# ---- Runtime Stage ----
 FROM alpine:3.20
 WORKDIR /app
 
 COPY --from=builder /api /app/api
-COPY --chmod=755 wait-for.sh /app/wait-for.sh
+COPY --chmod=755 entrypoint.sh /app/entrypoint.sh
 
 RUN adduser -D aniways
 USER aniways
 
-CMD ["/app/wait-for.sh", "/app/api"]
+CMD ["/app/entrypoint.sh", "/app/api"]
