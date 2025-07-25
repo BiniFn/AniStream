@@ -57,12 +57,13 @@ func corsHandler(env *config.Env) func(http.Handler) http.Handler {
 func injectLogger(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			reqID := middleware.GetReqID(r.Context())
-			user, ok := ctxutil.Get[users.User](r.Context())
-			if ok {
-				logger = logger.With("user_id", user.ID)
+			reqLogger := logger.With("request_id", middleware.GetReqID(r.Context()))
+
+			if user, ok := ctxutil.Get[users.User](r.Context()); ok {
+				reqLogger = reqLogger.With("user_id", user.ID)
 			}
-			ctx := ctxutil.Set(r.Context(), logger.With("request_id", reqID))
+
+			ctx := ctxutil.Set(r.Context(), reqLogger)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
