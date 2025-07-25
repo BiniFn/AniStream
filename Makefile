@@ -44,8 +44,8 @@ tidy:               ## Go mod tidy
 docker:             ## Build multi-stage Docker image
 	docker build -t aniways:latest .
 
-docker-compose:
-	docker-compose --env-file .env.local up -d
+dev-compose:
+	docker-compose --file docker-compose.dev.yaml --env-file .env.local up -d
 
 # ----- GraphQL ----- #
 genqlient:          ## Generate GraphQL client code
