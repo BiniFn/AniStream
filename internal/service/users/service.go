@@ -101,11 +101,16 @@ func (s *UserService) UpdateUser(ctx context.Context, id, username, email string
 	return User{}.FromRepository(user), nil
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, email, password string) error {
-	user, err := s.AuthenticateUser(ctx, email, password)
+func (s *UserService) DeleteUser(ctx context.Context, id, password string) error {
+	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
-		return err
+		return ErrInvalidAuth
 	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return ErrInvalidAuth
+	}
+
 	err = s.repo.DeleteUser(ctx, user.ID)
 	if err != nil {
 		return err
