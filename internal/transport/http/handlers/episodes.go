@@ -92,7 +92,7 @@ func getEpisodeStream(svc *anime.AnimeService) http.HandlerFunc {
 			return
 		}
 
-		streamType, err := pathParam(r, "streamType")
+		streamType, err := pathParam(r, "type")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
 			return
@@ -131,7 +131,7 @@ func getEpisodeStreamMetadata(svc *anime.AnimeService) http.HandlerFunc {
 			return
 		}
 
-		streamType, err := pathParam(r, "streamType")
+		streamType, err := pathParam(r, "type")
 		if err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
 			return
