@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/service/users"
@@ -13,6 +14,7 @@ import (
 func MountAuthRoutes(r chi.Router, env *config.Env, userService *users.UserService) {
 	r.Post("/login", login(env, userService))
 	r.Get("/me", me(userService))
+	r.Post("/logout", logout(env, userService))
 }
 
 func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
@@ -74,5 +76,39 @@ func me(userService *users.UserService) http.HandlerFunc {
 		}
 
 		jsonOK(w, user)
+	}
+}
+
+func logout(env *config.Env, userService *users.UserService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("aniways_session")
+		if err != nil {
+			jsonError(w, http.StatusUnauthorized, "Invalid session")
+			return
+		}
+
+		err = userService.DeleteSession(r.Context(), cookie.Value)
+		if err != nil {
+			jsonError(w, http.StatusInternalServerError, "Failed to delete session")
+			return
+		}
+
+		domain := "localhost"
+		if env.CookieDomain != "" && env.CookieDomain != "localhost" {
+			domain = fmt.Sprintf(".%s", env.CookieDomain) // enable subdomain cookies
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "aniways_session",
+			Value:    "",
+			Expires:  time.Now().Add(-time.Hour),
+			HttpOnly: true,
+			Secure:   true,
+			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
+			Domain:   domain,
+		})
+
+		w.WriteHeader(http.StatusOK)
 	}
 }

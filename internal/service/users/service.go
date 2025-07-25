@@ -133,6 +133,14 @@ func (s *UserService) CreateSession(ctx context.Context, userID string) (reposit
 	return session, nil
 }
 
+func (s *UserService) DeleteSession(ctx context.Context, sessionID string) error {
+	err := s.repo.DeleteSession(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *UserService) GetUserBySessionID(ctx context.Context, sessionID string) (User, error) {
 	user, err := s.repo.GetUserBySessionID(ctx, sessionID)
 	if err != nil {
