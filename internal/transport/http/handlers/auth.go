@@ -8,12 +8,14 @@ import (
 
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/ctxutil"
+	"github.com/coeeter/aniways/internal/service/auth"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAuthRoutes(r chi.Router, env *config.Env, userService *users.UserService) {
+func MountAuthRoutes(r chi.Router, env *config.Env, userService *users.UserService, authService *auth.AuthService) {
 	r.Post("/login", login(env, userService))
+	r.Post("/forget-password", forgetPassword(authService))
 	r.Post("/logout", logout(env, userService))
 	r.Get("/me", me)
 }
@@ -101,6 +103,26 @@ func logout(env *config.Env, userService *users.UserService) http.HandlerFunc {
 			SameSite: http.SameSiteLaxMode,
 			Domain:   domain,
 		})
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func forgetPassword(authService *auth.AuthService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var input struct {
+			Email string `json:"email"`
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			jsonError(w, http.StatusBadRequest, "Invalid request")
+			return
+		}
+
+		if err := authService.SendForgetPasswordEmail(r.Context(), input.Email); err != nil {
+			jsonError(w, http.StatusInternalServerError, "Failed to send reset password email")
+			return
+		}
 
 		w.WriteHeader(http.StatusOK)
 	}

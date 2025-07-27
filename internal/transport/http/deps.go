@@ -7,17 +7,19 @@ import (
 	"github.com/coeeter/aniways/internal/client/myanimelist"
 	"github.com/coeeter/aniways/internal/client/shikimori"
 	"github.com/coeeter/aniways/internal/config"
+	"github.com/coeeter/aniways/internal/email"
 	"github.com/coeeter/aniways/internal/repository"
 )
 
 type Dependencies struct {
-	Env     *config.Env
-	Repo    *repository.Queries
-	Cache   *cache.RedisClient
-	MAL     *myanimelist.Client
-	Anilist *anilist.Client
-	Shiki   *shikimori.Client
-	Cld     *cloudinary.Cloudinary
+	Env         *config.Env
+	Repo        *repository.Queries
+	Cache       *cache.RedisClient
+	MAL         *myanimelist.Client
+	Anilist     *anilist.Client
+	Shiki       *shikimori.Client
+	Cld         *cloudinary.Cloudinary
+	EmailClient email.EmailClient
 }
 
 func BuildDeps(
@@ -39,13 +41,16 @@ func BuildDeps(
 		return nil, err
 	}
 
+	emailClient := email.NewClient(env.ResendAPIKey, env.ResendFromEmail)
+
 	return &Dependencies{
-		Env:     env,
-		Repo:    repo,
-		Cache:   cache,
-		MAL:     mal,
-		Anilist: anilist,
-		Shiki:   shiki,
-		Cld:     cld,
+		Env:         env,
+		Repo:        repo,
+		Cache:       cache,
+		MAL:         mal,
+		Anilist:     anilist,
+		Shiki:       shiki,
+		Cld:         cld,
+		EmailClient: emailClient,
 	}, nil
 }

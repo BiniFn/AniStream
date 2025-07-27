@@ -9,6 +9,7 @@ type Env struct {
 	AppEnv                  string `envconfig:"APP_ENV" default:"development"`
 	AppPort                 string `envconfig:"APP_PORT" default:"8080"`
 	AllowedOrigins          string `envconfig:"ALLOWED_ORIGINS" default:"*"`
+	FrontendURL             string `envconfig:"FRONTEND_URL" default:"http://localhost:3000"`
 	DatabaseURL             string `envconfig:"DATABASE_URL" required:"true"`
 	RedisAddr               string `envconfig:"REDIS_ADDR" required:"true"`
 	RedisPassword           string `envconfig:"REDIS_PASSWORD" required:"true"`
@@ -18,6 +19,8 @@ type Env struct {
 	CloudinaryAPIKey        string `envconfig:"CLOUDINARY_API_KEY" required:"true"`
 	CloudinaryAPISecret     string `envconfig:"CLOUDINARY_API_SECRET" required:"true"`
 	CookieDomain            string `envconfig:"COOKIE_DOMAIN" required:"true"`
+	ResendAPIKey            string `envconfig:"RESEND_API_KEY" required:"true"`
+	ResendFromEmail         string `envconfig:"RESEND_FROM_EMAIL" required:"true"`
 }
 
 func LoadEnv() (*Env, error) {

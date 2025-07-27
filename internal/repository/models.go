@@ -228,6 +228,13 @@ type AnimeMetadatum struct {
 	UpdatedAt          pgtype.Timestamp
 }
 
+type ResetPasswordToken struct {
+	Token     string
+	UserID    string
+	CreatedAt pgtype.Timestamp
+	ExpiresAt pgtype.Timestamp
+}
+
 type Session struct {
 	ID        string
 	UserID    string
