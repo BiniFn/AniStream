@@ -48,6 +48,7 @@ FROM
   reset_password_tokens
 WHERE
   token = $1
+  AND expires_at > NOW()
 `
 
 func (q *Queries) GetResetPasswordToken(ctx context.Context, token string) (ResetPasswordToken, error) {

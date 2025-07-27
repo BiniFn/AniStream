@@ -12,7 +12,8 @@ SELECT
 FROM
   reset_password_tokens
 WHERE
-  token = sqlc.arg (token);
+  token = sqlc.arg (token)
+  AND expires_at > NOW();
 
 -- name: DeleteResetPasswordToken :exec
 DELETE FROM reset_password_tokens
