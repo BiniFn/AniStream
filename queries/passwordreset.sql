@@ -26,4 +26,5 @@ FROM
   reset_password_tokens
   INNER JOIN users on users.id = reset_password_tokens.user_id
 WHERE
-  reset_password_tokens.token = sqlc.arg (token);
+  reset_password_tokens.token = sqlc.arg (token)
+  AND reset_password_tokens.expires_at > NOW();

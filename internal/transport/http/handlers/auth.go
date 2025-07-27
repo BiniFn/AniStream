@@ -16,6 +16,7 @@ import (
 func MountAuthRoutes(r chi.Router, env *config.Env, userService *users.UserService, authService *auth.AuthService) {
 	r.Post("/login", login(env, userService))
 	r.Post("/forget-password", forgetPassword(authService))
+	r.Get("/u/{token}", getUser(authService))
 	r.Post("/logout", logout(env, userService))
 	r.Get("/me", me)
 }
@@ -125,5 +126,23 @@ func forgetPassword(authService *auth.AuthService) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func getUser(authService *auth.AuthService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token, err := pathParam(r, "token")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, "Invalid token")
+			return
+		}
+
+		user, err := authService.GetUserByForgetPasswordToken(r.Context(), token)
+		if err != nil {
+			jsonError(w, http.StatusUnauthorized, "Invalid token")
+			return
+		}
+
+		jsonOK(w, user)
 	}
 }

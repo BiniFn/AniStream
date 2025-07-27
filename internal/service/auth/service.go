@@ -9,6 +9,7 @@ import (
 
 	"github.com/coeeter/aniways/internal/email"
 	"github.com/coeeter/aniways/internal/repository"
+	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/template"
 	"github.com/jackc/pgx/v5"
 )
@@ -59,4 +60,16 @@ func (s *AuthService) SendForgetPasswordEmail(ctx context.Context, email string)
 	}
 
 	return nil
+}
+
+func (s *AuthService) GetUserByForgetPasswordToken(ctx context.Context, token string) (users.User, error) {
+	user, err := s.repo.GetUserByResetPasswordToken(ctx, token)
+	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		return users.User{}, users.ErrUserDoesNotExist
+	}
+	if err != nil {
+		return users.User{}, err
+	}
+
+	return users.User{}.FromRepository(user), nil
 }

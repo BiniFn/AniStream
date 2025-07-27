@@ -70,6 +70,7 @@ FROM
   INNER JOIN users on users.id = reset_password_tokens.user_id
 WHERE
   reset_password_tokens.token = $1
+  AND reset_password_tokens.expires_at > NOW()
 `
 
 func (q *Queries) GetUserByResetPasswordToken(ctx context.Context, token string) (User, error) {
