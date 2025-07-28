@@ -242,6 +242,14 @@ type Session struct {
 	ExpiresAt pgtype.Timestamp
 }
 
+type Setting struct {
+	UserID            string
+	AutoNextEpisode   bool
+	AutoPlayEpisode   bool
+	AutoResumeEpisode bool
+	IncognitoMode     bool
+}
+
 type User struct {
 	ID             string
 	Username       string
