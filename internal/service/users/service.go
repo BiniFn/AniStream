@@ -187,7 +187,13 @@ func (s *UserService) UpdatePassword(ctx context.Context, id, oldPassword, newPa
 }
 
 func (s *UserService) ResetPassword(ctx context.Context, id, newPassword string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	newPasswordBytes := []byte(newPassword)
+
+	if len(newPasswordBytes) > 72 {
+		return ErrPasswordTooLong
+	}
+
+	hash, err := bcrypt.GenerateFromPassword(newPasswordBytes, bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}

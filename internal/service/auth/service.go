@@ -73,3 +73,23 @@ func (s *AuthService) GetUserByForgetPasswordToken(ctx context.Context, token st
 
 	return users.User{}.FromRepository(user), nil
 }
+
+var ErrInvalidToken = errors.New("invalid token")
+
+func (s *AuthService) ResetPassword(ctx context.Context, userService *users.UserService, token, password string) error {
+	user, err := s.GetUserByForgetPasswordToken(ctx, token)
+	if err != nil {
+		return ErrInvalidToken
+	}
+
+	if err := userService.ResetPassword(ctx, user.ID, password); err != nil {
+		return err
+	}
+
+	err = s.repo.DeleteResetPasswordToken(ctx, token)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
