@@ -17,6 +17,11 @@ func RequireUser(next http.Handler) http.Handler {
 	})
 }
 
+func GetUser(r *http.Request) *users.User {
+	user, _ := ctxutil.Get[users.User](r.Context())
+	return &user
+}
+
 func isUserAuthenticated(r *http.Request) bool {
 	user, ok := ctxutil.Get[users.User](r.Context())
 	if !ok {
