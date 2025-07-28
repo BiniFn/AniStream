@@ -14,21 +14,30 @@ import (
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/transport/http"
 	"github.com/coeeter/aniways/internal/worker"
+	"github.com/lmittmann/tint"
 )
 
 func newRootLogger() *slog.Logger {
-	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	})
+	var handler slog.Handler
+
+	if os.Getenv("APP_ENV") == "development" {
+		handler = tint.NewHandler(os.Stdout, &tint.Options{
+			Level: slog.LevelDebug,
+		})
+	} else {
+		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelInfo,
+		})
+	}
+
 	root := slog.New(handler)
 	slog.SetDefault(root)
 	return root
 }
 
 func main() {
-	rootLog := newRootLogger()
-
 	env, err := config.LoadEnv()
+	rootLog := newRootLogger()
 	if err != nil {
 		rootLog.Error("Error loading environment variables:", "err", err)
 		os.Exit(1)
