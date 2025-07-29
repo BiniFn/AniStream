@@ -228,6 +228,16 @@ type AnimeMetadatum struct {
 	UpdatedAt          pgtype.Timestamp
 }
 
+type OauthToken struct {
+	ID           string
+	UserID       string
+	Token        string
+	RefreshToken string
+	Provider     Provider
+	ExpiresAt    pgtype.Timestamp
+	CreatedAt    pgtype.Timestamp
+}
+
 type ResetPasswordToken struct {
 	Token     string
 	UserID    string
@@ -258,14 +268,4 @@ type User struct {
 	ProfilePicture pgtype.Text
 	CreatedAt      pgtype.Timestamp
 	UpdatedAt      pgtype.Timestamp
-}
-
-type UserToken struct {
-	ID           string
-	UserID       string
-	Token        string
-	RefreshToken string
-	Provider     Provider
-	ExpiresAt    pgtype.Timestamp
-	CreatedAt    pgtype.Timestamp
 }

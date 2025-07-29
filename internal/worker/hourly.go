@@ -15,10 +15,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const (
-	hourlyInterval = time.Hour
-)
-
 func hourlyTask(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,

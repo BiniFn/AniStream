@@ -62,6 +62,12 @@ func main() {
 	repo := repository.New(db)
 	scraper := hianime.NewHianimeScraper()
 
+	deps, err := http.BuildDeps(env, repo, redis)
+	if err != nil {
+		rootLog.Error("failed to build dependencies:", "err", err)
+		os.Exit(1)
+	}
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
@@ -73,13 +79,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	mgr.StartBackground(ctx)
-
-	deps, err := http.BuildDeps(env, repo, redis)
-	if err != nil {
-		rootLog.Error("failed to build dependencies:", "err", err)
-		os.Exit(1)
-	}
+	mgr.StartBackground(ctx, deps.Providers)
 
 	httpLog := rootLog.With("component", "http")
 	app := http.New(deps, httpLog)

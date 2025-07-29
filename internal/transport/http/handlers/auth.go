@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/ctxutil"
 	"github.com/coeeter/aniways/internal/service/auth"
@@ -21,7 +20,7 @@ func MountAuthRoutes(
 	env *config.Env,
 	userService *users.UserService,
 	authService *auth.AuthService,
-	redis *cache.RedisClient,
+	providers []oauth.Provider,
 ) {
 	r.Post("/login", login(env, userService))
 	r.Post("/forget-password", forgetPassword(authService))
@@ -31,21 +30,9 @@ func MountAuthRoutes(
 	r.Get("/me", me)
 
 	r.With(middleware.RequireUser).Group(func(r chi.Router) {
-		mal := oauth.NewMALProvider(
-			env.MyAnimeListClientID,
-			env.MyAnimeListClientSecret,
-			fmt.Sprintf("%s/auth/oauth/myanimelist/callback", env.ApiURL),
-			redis,
-		)
-
-		anilist := oauth.NewAnilistProvider(
-			env.AnilistClientID,
-			env.AnilistClientSecret,
-			fmt.Sprintf("%s/auth/oauth/anilist/callback", env.ApiURL),
-		)
-
-		MountOAuthRoutes(r, mal)
-		MountOAuthRoutes(r, anilist)
+		for _, provider := range providers {
+			mountOAuthRoutes(r, provider)
+		}
 	})
 }
 

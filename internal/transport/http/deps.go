@@ -1,6 +1,8 @@
 package http
 
 import (
+	"fmt"
+
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/client/anilist"
@@ -9,6 +11,7 @@ import (
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/email"
 	"github.com/coeeter/aniways/internal/repository"
+	"github.com/coeeter/aniways/internal/service/auth/oauth"
 )
 
 type Dependencies struct {
@@ -20,6 +23,7 @@ type Dependencies struct {
 	Shiki       *shikimori.Client
 	Cld         *cloudinary.Cloudinary
 	EmailClient email.EmailClient
+	Providers   []oauth.Provider
 }
 
 func BuildDeps(
@@ -27,12 +31,12 @@ func BuildDeps(
 	repo *repository.Queries,
 	cache *cache.RedisClient,
 ) (*Dependencies, error) {
-	mal := myanimelist.NewClient(myanimelist.ClientConfig{
+	malClient := myanimelist.NewClient(myanimelist.ClientConfig{
 		ClientID:     env.MyAnimeListClientID,
 		ClientSecret: env.MyAnimeListClientSecret,
 	})
 
-	anilist := anilist.New()
+	anilistClient := anilist.New()
 
 	shiki := shikimori.NewClient(cache)
 
@@ -43,14 +47,30 @@ func BuildDeps(
 
 	emailClient := email.NewClient(env.ResendAPIKey, env.ResendFromEmail)
 
+	malOauthProvider := oauth.NewMALProvider(
+		env.MyAnimeListClientID,
+		env.MyAnimeListClientSecret,
+		fmt.Sprintf("%s/auth/oauth/myanimelist/callback", env.ApiURL),
+		repo,
+		cache,
+	)
+
+	anilistOauthProvider := oauth.NewAnilistProvider(
+		env.AnilistClientID,
+		env.AnilistClientSecret,
+		fmt.Sprintf("%s/auth/oauth/anilist/callback", env.ApiURL),
+		repo,
+	)
+
 	return &Dependencies{
 		Env:         env,
 		Repo:        repo,
 		Cache:       cache,
-		MAL:         mal,
-		Anilist:     anilist,
+		MAL:         malClient,
+		Anilist:     anilistClient,
 		Shiki:       shiki,
 		Cld:         cld,
 		EmailClient: emailClient,
+		Providers:   []oauth.Provider{malOauthProvider, anilistOauthProvider},
 	}, nil
 }

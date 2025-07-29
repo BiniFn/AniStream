@@ -29,7 +29,7 @@ func RegisterRoutes(r *chi.Mux, deps *Dependencies) {
 	})
 
 	r.Route("/auth", func(r chi.Router) {
-		handlers.MountAuthRoutes(r, deps.Env, userService, authService, deps.Cache)
+		handlers.MountAuthRoutes(r, deps.Env, userService, authService, deps.Providers)
 	})
 
 	r.Route("/settings", func(r chi.Router) {

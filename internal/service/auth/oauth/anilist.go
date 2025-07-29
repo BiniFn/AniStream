@@ -4,22 +4,29 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
+
+	"github.com/coeeter/aniways/internal/repository"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type AnilistProvider struct {
 	clientID     string
 	clientSecret string
 	redirectURL  string
+	repo         *repository.Queries
 }
 
-func NewAnilistProvider(clientID, clientSecret, redirectURL string) *AnilistProvider {
+func NewAnilistProvider(clientID, clientSecret, redirectURL string, repo *repository.Queries) *AnilistProvider {
 	return &AnilistProvider{
 		clientID:     clientID,
 		clientSecret: clientSecret,
 		redirectURL:  redirectURL,
+		repo:         repo,
 	}
 }
 
@@ -35,7 +42,7 @@ func (a *AnilistProvider) AuthURL(ctx context.Context, _ string) (string, error)
 	), nil
 }
 
-func (a *AnilistProvider) ExchangeToken(ctx context.Context, _ string, code string) (TokenResponse, error) {
+func (a *AnilistProvider) ExchangeToken(ctx context.Context, userID, _, code string) error {
 	body := map[string]string{
 		"grant_type":    "authorization_code",
 		"client_id":     a.clientID,
@@ -46,7 +53,7 @@ func (a *AnilistProvider) ExchangeToken(ctx context.Context, _ string, code stri
 
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
-		return TokenResponse{}, err
+		return err
 	}
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, "https://anilist.co/api/v2/oauth/token", bytes.NewBuffer(bodyBytes))
@@ -55,20 +62,53 @@ func (a *AnilistProvider) ExchangeToken(ctx context.Context, _ string, code stri
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return TokenResponse{}, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return TokenResponse{}, fmt.Errorf("failed to exchange token")
+		return fmt.Errorf("failed to exchange token")
 	}
 
 	var token TokenResponse
 	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		return TokenResponse{}, err
+		return err
 	}
 
-	return token, nil
+	expiresAt := pgtype.Timestamp{
+		Time:  time.Now().Add(time.Duration(token.ExpiresIn) * time.Second),
+		Valid: true,
+	}
+
+	_, err = a.repo.GetToken(ctx, repository.GetTokenParams{
+		UserID:   userID,
+		Provider: repository.Provider(a.Name()),
+	})
+
+	if err == nil {
+		return a.repo.UpdateOauthToken(ctx, repository.UpdateOauthTokenParams{
+			UserID:       userID,
+			Token:        token.AccessToken,
+			RefreshToken: token.RefreshToken,
+			Provider:     repository.Provider(a.Name()),
+			ExpiresAt:    expiresAt,
+		})
+	}
+
+	return a.repo.SaveOauthToken(ctx, repository.SaveOauthTokenParams{
+		UserID:       userID,
+		Token:        token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		Provider:     repository.Provider(a.Name()),
+		ExpiresAt:    expiresAt,
+	})
+}
+
+var ErrUnsupportedOperation = errors.New("unsupported operation")
+
+func (a *AnilistProvider) RefreshToken(ctx context.Context, userID, refreshToken string) error {
+	// anilist does not support refresh tokens
+	return ErrUnsupportedOperation
 }
 
 var _ Provider = (*AnilistProvider)(nil)

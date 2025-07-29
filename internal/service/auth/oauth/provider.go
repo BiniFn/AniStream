@@ -3,8 +3,6 @@ package oauth
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"math/big"
 )
@@ -19,7 +17,8 @@ type TokenResponse struct {
 type Provider interface {
 	Name() string
 	AuthURL(ctx context.Context, state string) (string, error)
-	ExchangeToken(ctx context.Context, state, code string) (TokenResponse, error)
+	ExchangeToken(ctx context.Context, userID, state, code string) error
+	RefreshToken(ctx context.Context, userID, refreshToken string) error
 }
 
 var (
@@ -50,9 +49,4 @@ func generateCodeVerifier(params generateCodeVerifierParams) (string, error) {
 		res[i] = charset[n.Int64()]
 	}
 	return string(res), nil
-}
-
-func createCodeChallenge(codeVerifier string) string {
-	hash := sha256.Sum256([]byte(codeVerifier))
-	return base64.RawURLEncoding.EncodeToString(hash[:])
 }

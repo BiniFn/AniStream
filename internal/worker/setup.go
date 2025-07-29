@@ -8,6 +8,7 @@ import (
 	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/client/hianime"
 	"github.com/coeeter/aniways/internal/repository"
+	"github.com/coeeter/aniways/internal/service/auth/oauth"
 	"github.com/robfig/cron/v3"
 )
 
@@ -52,19 +53,25 @@ func (m *Manager) Bootstrap(ctx context.Context) error {
 	return nil
 }
 
-func (m *Manager) StartBackground(ctx context.Context) {
-	log := m.log.With("job", "hourly-scrape")
-
+func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provider) {
 	c := cron.New()
 	_, err := c.AddFunc("@hourly", func() {
-		hourlyTask(ctx, m.scraper, m.repo, m.redis, log)
+		hourlyTask(ctx, m.scraper, m.repo, m.redis, m.log.With("job", "hourly-scrape"))
 	})
 	if err != nil {
-		log.Error("failed to add hourly task", "err", err)
+		m.log.Error("failed to add hourly task", "err", err)
 		return
 	}
 
-	log.Info("bootstrapping hourly cron job")
+	_, err = c.AddFunc("@daily", func() {
+		dailyTask(ctx, m.repo, providers, m.log.With("job", "daily-refresh-token"))
+	})
+	if err != nil {
+		m.log.Error("failed to add daily task", "err", err)
+		return
+	}
+
+	m.log.Info("bootstrapping hourly + daily cron job")
 	c.Start()
 
 	go func() {
