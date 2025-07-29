@@ -39,13 +39,13 @@ func (m *Manager) Bootstrap(ctx context.Context) error {
 	}
 
 	if count == 0 {
-		seedLog := m.log.With("job", "full-seed")
-		seedLog.Info("no anime in DB — running initial scrape (blocking)")
+		log := m.log.With("job", "full-seed")
+		log.Info("no anime in DB — running initial scrape (blocking)")
 
-		if err := fullSeed(ctx, m.scraper, m.repo, seedLog); err != nil {
+		if err := fullSeed(ctx, m.scraper, m.repo, log); err != nil {
 			return fmt.Errorf("full seed: %w", err)
 		}
-		seedLog.Info("initial scrape complete")
+		log.Info("initial scrape complete")
 	} else {
 		m.log.Info("database already seeded; skipping initial scrape", "count", count)
 	}
