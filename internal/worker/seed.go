@@ -20,7 +20,7 @@ const (
 	updateSpacing  = 20 * time.Millisecond
 )
 
-func FullSeed(
+func fullSeed(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,

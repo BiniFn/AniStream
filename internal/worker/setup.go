@@ -8,6 +8,7 @@ import (
 	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/client/hianime"
 	"github.com/coeeter/aniways/internal/repository"
+	"github.com/robfig/cron/v3"
 )
 
 type Manager struct {
@@ -41,7 +42,7 @@ func (m *Manager) Bootstrap(ctx context.Context) error {
 		seedLog := m.log.With("job", "full-seed")
 		seedLog.Info("no anime in DB — running initial scrape (blocking)")
 
-		if err := FullSeed(ctx, m.scraper, m.repo, seedLog); err != nil {
+		if err := fullSeed(ctx, m.scraper, m.repo, seedLog); err != nil {
 			return fmt.Errorf("full seed: %w", err)
 		}
 		seedLog.Info("initial scrape complete")
@@ -52,5 +53,23 @@ func (m *Manager) Bootstrap(ctx context.Context) error {
 }
 
 func (m *Manager) StartBackground(ctx context.Context) {
-	go HourlyTask(ctx, m.scraper, m.repo, m.redis, m.log.With("job", "hourly-scrape"))
+	log := m.log.With("job", "hourly-scrape")
+
+	c := cron.New()
+	_, err := c.AddFunc("@hourly", func() {
+		hourlyTask(ctx, m.scraper, m.repo, m.redis, log)
+	})
+	if err != nil {
+		log.Error("failed to add hourly task", "err", err)
+		return
+	}
+
+	log.Info("bootstrapping hourly cron job")
+	c.Start()
+
+	go func() {
+		<-ctx.Done()
+		m.log.Info("Shutting down cron scheduler")
+		c.Stop()
+	}()
 }

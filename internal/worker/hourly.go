@@ -19,30 +19,18 @@ const (
 	hourlyInterval = time.Hour
 )
 
-func HourlyTask(
+func hourlyTask(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
 	redis *cache.RedisClient,
 	log *slog.Logger,
 ) {
-	ticker := time.NewTicker(hourlyInterval)
-	defer ticker.Stop()
-
-	log.Info("Bootstrapping hourly cron job")
-	for {
-		select {
-		case <-ctx.Done():
-			log.Info("HourlyTask shutting down")
-			return
-		case <-ticker.C:
-			log.Info("Running hourly task")
-			if err := scrapeRecentlyUpdated(ctx, scraper, repo, redis, log); err != nil {
-				log.Error("Error in hourly task", "err", err)
-			} else {
-				log.Info("Hourly task completed successfully")
-			}
-		}
+	log.Info("Running hourly task")
+	if err := scrapeRecentlyUpdated(ctx, scraper, repo, redis, log); err != nil {
+		log.Error("Error in hourly task", "err", err)
+	} else {
+		log.Info("Hourly task completed successfully")
 	}
 }
 
