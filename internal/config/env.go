@@ -10,6 +10,7 @@ type Env struct {
 	AppPort                 string `envconfig:"APP_PORT" default:"8080"`
 	AllowedOrigins          string `envconfig:"ALLOWED_ORIGINS" default:"*"`
 	FrontendURL             string `envconfig:"FRONTEND_URL" default:"http://localhost:3000"`
+	ApiURL                  string `envconfig:"API_URL" default:"http://localhost:8080"`
 	DatabaseURL             string `envconfig:"DATABASE_URL" required:"true"`
 	RedisAddr               string `envconfig:"REDIS_ADDR" required:"true"`
 	RedisPassword           string `envconfig:"REDIS_PASSWORD" required:"true"`

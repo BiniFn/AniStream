@@ -6,20 +6,40 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coeeter/aniways/internal/cache"
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/ctxutil"
 	"github.com/coeeter/aniways/internal/service/auth"
+	"github.com/coeeter/aniways/internal/service/auth/oauth"
 	"github.com/coeeter/aniways/internal/service/users"
+	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAuthRoutes(r chi.Router, env *config.Env, userService *users.UserService, authService *auth.AuthService) {
+func MountAuthRoutes(
+	r chi.Router,
+	env *config.Env,
+	userService *users.UserService,
+	authService *auth.AuthService,
+	redis *cache.RedisClient,
+) {
 	r.Post("/login", login(env, userService))
 	r.Post("/forget-password", forgetPassword(authService))
 	r.Get("/u/{token}", getUser(authService))
 	r.Put("/reset-password/{token}", resetPassword(authService, userService))
 	r.Post("/logout", logout(env, userService))
 	r.Get("/me", me)
+
+	r.With(middleware.RequireUser).Group(func(r chi.Router) {
+		mal := oauth.NewMALProvider(
+			env.MyAnimeListClientID,
+			env.MyAnimeListClientSecret,
+			fmt.Sprintf("%s/auth/oauth/myanimelist/callback", env.ApiURL),
+			redis,
+		)
+
+		MountOAuthRoutes(r, mal)
+	})
 }
 
 func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
