@@ -16,6 +16,8 @@ type Env struct {
 	RedisPassword           string `envconfig:"REDIS_PASSWORD" required:"true"`
 	MyAnimeListClientID     string `envconfig:"MYANIMELIST_CLIENT_ID" required:"true"`
 	MyAnimeListClientSecret string `envconfig:"MYANIMELIST_CLIENT_SECRET" required:"true"`
+	AnilistClientID         string `envconfig:"ANILIST_CLIENT_ID" required:"true"`
+	AnilistClientSecret     string `envconfig:"ANILIST_CLIENT_SECRET" required:"true"`
 	CloudinaryName          string `envconfig:"CLOUDINARY_NAME" required:"true"`
 	CloudinaryAPIKey        string `envconfig:"CLOUDINARY_API_KEY" required:"true"`
 	CloudinaryAPISecret     string `envconfig:"CLOUDINARY_API_SECRET" required:"true"`

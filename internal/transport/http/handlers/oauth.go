@@ -34,11 +34,6 @@ func callbackHandler(provider oauth.Provider) http.HandlerFunc {
 		code := r.URL.Query().Get("code")
 		state := r.URL.Query().Get("state")
 
-		if code == "" || state == "" {
-			jsonError(w, http.StatusBadRequest, "invalid code or state")
-			return
-		}
-
 		tokenJSON, err := provider.ExchangeToken(r.Context(), state, code)
 		if err != nil {
 			log.Error("unable to exchange token", "provider", provider.Name(), "err", err)

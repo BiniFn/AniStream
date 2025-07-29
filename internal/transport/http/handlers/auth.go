@@ -38,7 +38,14 @@ func MountAuthRoutes(
 			redis,
 		)
 
+		anilist := oauth.NewAnilistProvider(
+			env.AnilistClientID,
+			env.AnilistClientSecret,
+			fmt.Sprintf("%s/auth/oauth/anilist/callback", env.ApiURL),
+		)
+
 		MountOAuthRoutes(r, mal)
+		MountOAuthRoutes(r, anilist)
 	})
 }
 
