@@ -55,6 +55,139 @@ func (ns NullAiringStatus) Value() (driver.Value, error) {
 	return string(ns.AiringStatus), nil
 }
 
+type LibraryActions string
+
+const (
+	LibraryActionsAddEntry       LibraryActions = "add_entry"
+	LibraryActionsUpdateProgress LibraryActions = "update_progress"
+	LibraryActionsUpdateStatus   LibraryActions = "update_status"
+	LibraryActionsDeleteEntry    LibraryActions = "delete_entry"
+)
+
+func (e *LibraryActions) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LibraryActions(s)
+	case string:
+		*e = LibraryActions(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LibraryActions: %T", src)
+	}
+	return nil
+}
+
+type NullLibraryActions struct {
+	LibraryActions LibraryActions
+	Valid          bool // Valid is true if LibraryActions is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLibraryActions) Scan(value interface{}) error {
+	if value == nil {
+		ns.LibraryActions, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LibraryActions.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLibraryActions) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LibraryActions), nil
+}
+
+type LibraryStatus string
+
+const (
+	LibraryStatusPlanning  LibraryStatus = "planning"
+	LibraryStatusWatching  LibraryStatus = "watching"
+	LibraryStatusCompleted LibraryStatus = "completed"
+	LibraryStatusDropped   LibraryStatus = "dropped"
+	LibraryStatusPaused    LibraryStatus = "paused"
+)
+
+func (e *LibraryStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LibraryStatus(s)
+	case string:
+		*e = LibraryStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LibraryStatus: %T", src)
+	}
+	return nil
+}
+
+type NullLibraryStatus struct {
+	LibraryStatus LibraryStatus
+	Valid         bool // Valid is true if LibraryStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLibraryStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.LibraryStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LibraryStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLibraryStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LibraryStatus), nil
+}
+
+type LibrarySyncStatus string
+
+const (
+	LibrarySyncStatusPending LibrarySyncStatus = "pending"
+	LibrarySyncStatusSuccess LibrarySyncStatus = "success"
+	LibrarySyncStatusFailed  LibrarySyncStatus = "failed"
+	LibrarySyncStatusSkipped LibrarySyncStatus = "skipped"
+)
+
+func (e *LibrarySyncStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LibrarySyncStatus(s)
+	case string:
+		*e = LibrarySyncStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LibrarySyncStatus: %T", src)
+	}
+	return nil
+}
+
+type NullLibrarySyncStatus struct {
+	LibrarySyncStatus LibrarySyncStatus
+	Valid             bool // Valid is true if LibrarySyncStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLibrarySyncStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.LibrarySyncStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LibrarySyncStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLibrarySyncStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LibrarySyncStatus), nil
+}
+
 type Provider string
 
 const (
@@ -226,6 +359,27 @@ type AnimeMetadatum struct {
 	Season             Season
 	CreatedAt          pgtype.Timestamp
 	UpdatedAt          pgtype.Timestamp
+}
+
+type ExternalLibrarySync struct {
+	UserID    string
+	AnimeID   string
+	Provider  Provider
+	Action    LibraryActions
+	Payload   []byte
+	Status    LibrarySyncStatus
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
+}
+
+type Library struct {
+	ID              string
+	UserID          string
+	AnimeID         string
+	Status          LibraryStatus
+	WatchedEpisodes int32
+	CreatedAt       pgtype.Timestamp
+	UpdatedAt       pgtype.Timestamp
 }
 
 type OauthToken struct {
