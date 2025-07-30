@@ -5,3 +5,4 @@ DROP TABLE user_tokens;
 DROP TABLE sessions;
 
 DROP TYPE provider;
+

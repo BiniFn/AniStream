@@ -12,15 +12,8 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO
-  users (username, email, password_hash, profile_picture)
-VALUES
-  (
-    $1,
-    $2,
-    $3,
-    $4
-  )
+INSERT INTO users(username, email, password_hash, profile_picture)
+  VALUES ($1, $2, $3, $4)
 RETURNING
   id, username, email, password_hash, profile_picture, created_at, updated_at
 `
@@ -54,8 +47,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 const deleteUser = `-- name: DeleteUser :exec
 DELETE FROM users
-WHERE
-  id = $1
+WHERE id = $1
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id string) error {
@@ -112,7 +104,8 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 }
 
 const updatePassword = `-- name: UpdatePassword :exec
-UPDATE users
+UPDATE
+  users
 SET
   password_hash = $1
 WHERE
@@ -130,7 +123,8 @@ func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) 
 }
 
 const updateProfilePicture = `-- name: UpdateProfilePicture :exec
-UPDATE users
+UPDATE
+  users
 SET
   profile_picture = $1
 WHERE
@@ -148,7 +142,8 @@ func (q *Queries) UpdateProfilePicture(ctx context.Context, arg UpdateProfilePic
 }
 
 const updateUser = `-- name: UpdateUser :one
-UPDATE users
+UPDATE
+  users
 SET
   username = $1,
   email = $2

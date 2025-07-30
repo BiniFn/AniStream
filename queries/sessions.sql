@@ -1,8 +1,6 @@
 -- name: CreateSession :one
-INSERT INTO
-  sessions (user_id)
-VALUES
-  (sqlc.arg (user_id))
+INSERT INTO sessions(user_id)
+  VALUES (sqlc.arg(user_id))
 RETURNING
   *;
 
@@ -13,9 +11,9 @@ FROM
   sessions
   INNER JOIN users ON sessions.user_id = users.id
 WHERE
-  sessions.id = sqlc.arg (id);
+  sessions.id = sqlc.arg(id);
 
 -- name: DeleteSession :exec
 DELETE FROM sessions
-WHERE
-  id = sqlc.arg (id);
+WHERE id = sqlc.arg(id);
+

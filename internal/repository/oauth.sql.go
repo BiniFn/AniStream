@@ -13,8 +13,7 @@ import (
 
 const deleteOauthToken = `-- name: DeleteOauthToken :exec
 DELETE FROM oauth_tokens
-WHERE
-  user_id = $1
+WHERE user_id = $1
   AND provider = $2
 `
 
@@ -134,22 +133,8 @@ func (q *Queries) GetTokensNearToExpiry(ctx context.Context) ([]OauthToken, erro
 }
 
 const saveOauthToken = `-- name: SaveOauthToken :exec
-INSERT INTO
-  oauth_tokens (
-    user_id,
-    token,
-    refresh_token,
-    provider,
-    expires_at
-  )
-VALUES
-  (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5
-  )
+INSERT INTO oauth_tokens(user_id, token, refresh_token, provider, expires_at)
+  VALUES ($1, $2, $3, $4, $5)
 `
 
 type SaveOauthTokenParams struct {
@@ -172,7 +157,8 @@ func (q *Queries) SaveOauthToken(ctx context.Context, arg SaveOauthTokenParams) 
 }
 
 const updateOauthToken = `-- name: UpdateOauthToken :exec
-UPDATE oauth_tokens
+UPDATE
+  oauth_tokens
 SET
   token = $1,
   refresh_token = $2,

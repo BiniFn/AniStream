@@ -15,43 +15,39 @@ WHERE
   email = $1;
 
 -- name: CreateUser :one
-INSERT INTO
-  users (username, email, password_hash, profile_picture)
-VALUES
-  (
-    sqlc.arg (username),
-    sqlc.arg (email),
-    sqlc.arg (password_hash),
-    sqlc.arg (profile_picture)
-  )
+INSERT INTO users(username, email, password_hash, profile_picture)
+  VALUES (sqlc.arg(username), sqlc.arg(email), sqlc.arg(password_hash), sqlc.arg(profile_picture))
 RETURNING
   *;
 
 -- name: UpdateUser :one
-UPDATE users
+UPDATE
+  users
 SET
-  username = sqlc.arg (username),
-  email = sqlc.arg (email)
+  username = sqlc.arg(username),
+  email = sqlc.arg(email)
 WHERE
-  id = sqlc.arg (id)
+  id = sqlc.arg(id)
 RETURNING
   *;
 
 -- name: DeleteUser :exec
 DELETE FROM users
-WHERE
-  id = sqlc.arg (id);
+WHERE id = sqlc.arg(id);
 
 -- name: UpdatePassword :exec
-UPDATE users
+UPDATE
+  users
 SET
-  password_hash = sqlc.arg (password_hash)
+  password_hash = sqlc.arg(password_hash)
 WHERE
-  id = sqlc.arg (id);
+  id = sqlc.arg(id);
 
 -- name: UpdateProfilePicture :exec
-UPDATE users
+UPDATE
+  users
 SET
-  profile_picture = sqlc.arg (profile_picture)
+  profile_picture = sqlc.arg(profile_picture)
 WHERE
-  id = sqlc.arg (id);
+  id = sqlc.arg(id);
+

@@ -1,2 +1,2 @@
-ALTER TABLE user_tokens
-RENAME TO oauth_tokens;
+ALTER TABLE user_tokens RENAME TO oauth_tokens;
+

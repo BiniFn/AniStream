@@ -1,13 +1,13 @@
 -- 1) Remove full-text trigger and function
 DROP TRIGGER IF EXISTS tsvectorupdate ON animes;
 
-DROP FUNCTION IF EXISTS animes_search_trigger ();
+DROP FUNCTION IF EXISTS animes_search_trigger();
 
 -- 2) Drop full-text index & column
 DROP INDEX IF EXISTS anime_search_idx;
 
 ALTER TABLE animes
-DROP COLUMN IF EXISTS search_vector;
+  DROP COLUMN IF EXISTS search_vector;
 
 -- 3) Drop trigram extension and its indexes
 DROP INDEX IF EXISTS animes_ename_trgm_idx;
@@ -37,7 +37,8 @@ DROP INDEX IF EXISTS idx_animes_mal_id;
 DROP TABLE IF EXISTS animes;
 
 -- 8) Drop NanoID generator function
-DROP FUNCTION IF EXISTS generate_nanoid (INT);
+DROP FUNCTION IF EXISTS generate_nanoid(INT);
 
 -- 9) Optionally drop pgcrypto if no longer needed elsewhere
 DROP EXTENSION IF EXISTS pgcrypto;
+

@@ -1,7 +1,6 @@
-CREATE TABLE settings (
-  user_id VARCHAR(21) PRIMARY KEY,
-  auto_next_episode BOOLEAN NOT NULL DEFAULT true,
-  auto_play_episode BOOLEAN NOT NULL DEFAULT true,
-  auto_resume_episode BOOLEAN NOT NULL DEFAULT false,
-  incognito_mode BOOLEAN NOT NULL DEFAULT false
-)
+CREATE TABLE settings(
+  user_id varchar(21) PRIMARY KEY,
+  auto_next_episode boolean NOT NULL DEFAULT TRUE,
+  auto_play_episode boolean NOT NULL DEFAULT TRUE,
+  auto_resume_episode boolean NOT NULL DEFAULT FALSE,
+  incognito_mode boolean NOT NULL DEFAULT FALSE)

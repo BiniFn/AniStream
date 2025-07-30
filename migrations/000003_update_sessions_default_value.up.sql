@@ -1,3 +1,3 @@
 ALTER TABLE sessions
-ALTER COLUMN expires_at
-SET DEFAULT (CURRENT_TIMESTAMP + INTERVAL '1 month');
+  ALTER COLUMN expires_at SET DEFAULT (CURRENT_TIMESTAMP + interval '1 month');
+

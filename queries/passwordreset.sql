@@ -1,8 +1,6 @@
 -- name: CreateResetPasswordToken :one
-INSERT INTO
-  reset_password_tokens (user_id)
-VALUES
-  (sqlc.arg (user_id))
+INSERT INTO reset_password_tokens(user_id)
+  VALUES (sqlc.arg(user_id))
 RETURNING
   *;
 
@@ -12,20 +10,20 @@ SELECT
 FROM
   reset_password_tokens
 WHERE
-  token = sqlc.arg (token)
+  token = sqlc.arg(token)
   AND expires_at > NOW();
 
 -- name: DeleteResetPasswordToken :exec
 DELETE FROM reset_password_tokens
-WHERE
-  token = sqlc.arg (token);
+WHERE token = sqlc.arg(token);
 
 -- name: GetUserByResetPasswordToken :one
 SELECT
   users.*
 FROM
   reset_password_tokens
-  INNER JOIN users on users.id = reset_password_tokens.user_id
+  INNER JOIN users ON users.id = reset_password_tokens.user_id
 WHERE
-  reset_password_tokens.token = sqlc.arg (token)
+  reset_password_tokens.token = sqlc.arg(token)
   AND reset_password_tokens.expires_at > NOW();
+

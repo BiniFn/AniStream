@@ -79,10 +79,7 @@ WHERE
   genre ILIKE '%' || $3 || '%'
 ORDER BY
   updated_at DESC
-LIMIT
-  $1
-OFFSET
-  $2
+LIMIT $1 OFFSET $2
 `
 
 type GetAnimeByGenreParams struct {
@@ -462,8 +459,7 @@ FROM
   animes
 ORDER BY
   RANDOM()
-LIMIT
-  1
+LIMIT 1
 `
 
 func (q *Queries) GetRandomAnime(ctx context.Context) (Anime, error) {
@@ -495,8 +491,7 @@ WHERE
   genre ILIKE '%' || $1 || '%'
 ORDER BY
   RANDOM()
-LIMIT
-  1
+LIMIT 1
 `
 
 func (q *Queries) GetRandomAnimeByGenre(ctx context.Context, genre pgtype.Text) (Anime, error) {
@@ -529,10 +524,7 @@ WHERE
   OR animes.mal_id != 0
 ORDER BY
   updated_at DESC
-LIMIT
-  $1
-OFFSET
-  $2
+LIMIT $1 OFFSET $2
 `
 
 type GetRecentlyUpdatedAnimesParams struct {
@@ -591,32 +583,8 @@ func (q *Queries) GetRecentlyUpdatedAnimesCount(ctx context.Context) (int64, err
 }
 
 const insertAnime = `-- name: InsertAnime :exec
-INSERT INTO
-  animes (
-    ename,
-    jname,
-    image_url,
-    genre,
-    hi_anime_id,
-    mal_id,
-    anilist_id,
-    last_episode,
-    created_at,
-    updated_at
-  )
-VALUES
-  (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    $7,
-    $8,
-    COALESCE($9, NOW()),
-    COALESCE($10, NOW())
-  )
+INSERT INTO animes(ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, NOW()), COALESCE($10, NOW()))
 RETURNING
   id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector
 `
@@ -686,32 +654,21 @@ type InsertMultipleAnimesParams struct {
 const searchAnimes = `-- name: SearchAnimes :many
 SELECT
   animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector,
-  ts_rank(
-    animes.search_vector,
-    plainto_tsquery($3)
-  ) AS query_rank
+  ts_rank(animes.search_vector, plainto_tsquery($3)) AS query_rank
 FROM
   animes
-WHERE
-  (
-    $3 = ''
-    OR $3 IS NULL
-    OR ename % $3
-    OR jname % $3
-    OR search_vector @@ plainto_tsquery('english', $3)
-  )
-  AND (
-    $4 = ''
-    OR $4 IS NULL
-    OR genre ILIKE '%' || $4 || '%'
-  )
-  AND animes.mal_id IS NOT NULL
+WHERE ($3 = ''
+  OR $3 IS NULL
+  OR ename % $3
+  OR jname % $3
+  OR search_vector @@ plainto_tsquery('english', $3))
+AND ($4 = ''
+  OR $4 IS NULL
+  OR genre ILIKE '%' || $4 || '%')
+AND animes.mal_id IS NOT NULL
 ORDER BY
   query_rank DESC
-LIMIT
-  $1
-OFFSET
-  $2
+LIMIT $1 OFFSET $2
 `
 
 type SearchAnimesParams struct {
@@ -781,20 +738,15 @@ SELECT
   COUNT(*)
 FROM
   animes
-WHERE
-  (
-    $1 = ''
-    OR $1 IS NULL
-    OR ename % $1
-    OR jname % $1
-    OR search_vector @@ plainto_tsquery('english', $1)
-  )
-  AND (
-    $2 = ''
-    OR $2 IS NULL
-    OR genre ILIKE '%' || $2 || '%'
-  )
-  AND animes.mal_id IS NOT NULL
+WHERE ($1 = ''
+  OR $1 IS NULL
+  OR ename % $1
+  OR jname % $1
+  OR search_vector @@ plainto_tsquery('english', $1))
+AND ($2 = ''
+  OR $2 IS NULL
+  OR genre ILIKE '%' || $2 || '%')
+AND animes.mal_id IS NOT NULL
 `
 
 type SearchAnimesCountParams struct {
@@ -810,7 +762,8 @@ func (q *Queries) SearchAnimesCount(ctx context.Context, arg SearchAnimesCountPa
 }
 
 const updateAnime = `-- name: UpdateAnime :exec
-UPDATE animes
+UPDATE
+  animes
 SET
   ename = $1,
   jname = $2,
@@ -857,7 +810,8 @@ func (q *Queries) UpdateAnime(ctx context.Context, arg UpdateAnimeParams) error 
 }
 
 const updateAnimeMetadataTrailer = `-- name: UpdateAnimeMetadataTrailer :exec
-UPDATE anime_metadata
+UPDATE
+  anime_metadata
 SET
   trailer_embed_url = $1,
   updated_at = NOW()
@@ -878,73 +832,31 @@ func (q *Queries) UpdateAnimeMetadataTrailer(ctx context.Context, arg UpdateAnim
 }
 
 const upsertAnimeMetadata = `-- name: UpsertAnimeMetadata :exec
-INSERT INTO
-  anime_metadata (
-    mal_id,
-    description,
-    main_picture_url,
-    media_type,
-    rating,
-    airing_status,
-    avg_episode_duration,
-    total_episodes,
-    studio,
-    rank,
-    mean,
-    scoringUsers,
-    popularity,
-    airing_start_date,
-    airing_end_date,
-    source,
-    trailer_embed_url,
-    season_year,
-    season
-  )
-VALUES
-  (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    $7,
-    $8,
-    $9,
-    $10,
-    $11,
-    $12,
-    $13,
-    $14,
-    $15,
-    $16,
-    $17,
-    $18,
-    $19
-  )
-ON CONFLICT (mal_id) DO UPDATE
-SET
-  description = EXCLUDED.description,
-  main_picture_url = EXCLUDED.main_picture_url,
-  media_type = EXCLUDED.media_type,
-  rating = EXCLUDED.rating,
-  airing_status = EXCLUDED.airing_status,
-  avg_episode_duration = EXCLUDED.avg_episode_duration,
-  total_episodes = EXCLUDED.total_episodes,
-  studio = EXCLUDED.studio,
-  rank = EXCLUDED.rank,
-  mean = EXCLUDED.mean,
-  scoringUsers = EXCLUDED.scoringUsers,
-  popularity = EXCLUDED.popularity,
-  airing_start_date = EXCLUDED.airing_start_date,
-  airing_end_date = EXCLUDED.airing_end_date,
-  source = EXCLUDED.source,
-  trailer_embed_url = EXCLUDED.trailer_embed_url,
-  season_year = EXCLUDED.season_year,
-  season = EXCLUDED.season,
-  updated_at = NOW()
-RETURNING
-  mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringusers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season, created_at, updated_at
+INSERT INTO anime_metadata(mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringUsers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+ON CONFLICT (mal_id)
+  DO UPDATE SET
+    description = EXCLUDED.description,
+    main_picture_url = EXCLUDED.main_picture_url,
+    media_type = EXCLUDED.media_type,
+    rating = EXCLUDED.rating,
+    airing_status = EXCLUDED.airing_status,
+    avg_episode_duration = EXCLUDED.avg_episode_duration,
+    total_episodes = EXCLUDED.total_episodes,
+    studio = EXCLUDED.studio,
+    rank = EXCLUDED.rank,
+    mean = EXCLUDED.mean,
+    scoringUsers = EXCLUDED.scoringUsers,
+    popularity = EXCLUDED.popularity,
+    airing_start_date = EXCLUDED.airing_start_date,
+    airing_end_date = EXCLUDED.airing_end_date,
+    source = EXCLUDED.source,
+    trailer_embed_url = EXCLUDED.trailer_embed_url,
+    season_year = EXCLUDED.season_year,
+    season = EXCLUDED.season,
+    updated_at = NOW()
+  RETURNING
+    mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringusers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season, created_at, updated_at
 `
 
 type UpsertAnimeMetadataParams struct {

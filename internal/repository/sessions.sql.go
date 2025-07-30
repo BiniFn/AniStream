@@ -10,10 +10,8 @@ import (
 )
 
 const createSession = `-- name: CreateSession :one
-INSERT INTO
-  sessions (user_id)
-VALUES
-  ($1)
+INSERT INTO sessions(user_id)
+  VALUES ($1)
 RETURNING
   id, user_id, created_at, expires_at
 `
@@ -32,8 +30,7 @@ func (q *Queries) CreateSession(ctx context.Context, userID string) (Session, er
 
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM sessions
-WHERE
-  id = $1
+WHERE id = $1
 `
 
 func (q *Queries) DeleteSession(ctx context.Context, id string) error {

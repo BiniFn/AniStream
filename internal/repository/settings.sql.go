@@ -32,30 +32,16 @@ func (q *Queries) GetSettingsOfUser(ctx context.Context, userID string) (Setting
 }
 
 const saveSettings = `-- name: SaveSettings :one
-INSERT INTO
-  settings (
-    user_id,
-    auto_next_episode,
-    auto_play_episode,
-    auto_resume_episode,
-    incognito_mode
-  )
-VALUES
-  (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5
-  )
-ON CONFLICT (user_id) DO UPDATE
-SET
-  auto_next_episode = EXCLUDED.auto_next_episode,
-  auto_play_episode = EXCLUDED.auto_play_episode,
-  auto_resume_episode = EXCLUDED.auto_resume_episode,
-  incognito_mode = EXCLUDED.incognito_mode
-RETURNING
-  user_id, auto_next_episode, auto_play_episode, auto_resume_episode, incognito_mode
+INSERT INTO settings(user_id, auto_next_episode, auto_play_episode, auto_resume_episode, incognito_mode)
+  VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (user_id)
+  DO UPDATE SET
+    auto_next_episode = EXCLUDED.auto_next_episode,
+    auto_play_episode = EXCLUDED.auto_play_episode,
+    auto_resume_episode = EXCLUDED.auto_resume_episode,
+    incognito_mode = EXCLUDED.incognito_mode
+  RETURNING
+    user_id, auto_next_episode, auto_play_episode, auto_resume_episode, incognito_mode
 `
 
 type SaveSettingsParams struct {

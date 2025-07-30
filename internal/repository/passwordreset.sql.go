@@ -10,10 +10,8 @@ import (
 )
 
 const createResetPasswordToken = `-- name: CreateResetPasswordToken :one
-INSERT INTO
-  reset_password_tokens (user_id)
-VALUES
-  ($1)
+INSERT INTO reset_password_tokens(user_id)
+  VALUES ($1)
 RETURNING
   token, user_id, created_at, expires_at
 `
@@ -32,8 +30,7 @@ func (q *Queries) CreateResetPasswordToken(ctx context.Context, userID string) (
 
 const deleteResetPasswordToken = `-- name: DeleteResetPasswordToken :exec
 DELETE FROM reset_password_tokens
-WHERE
-  token = $1
+WHERE token = $1
 `
 
 func (q *Queries) DeleteResetPasswordToken(ctx context.Context, token string) error {
@@ -68,7 +65,7 @@ SELECT
   users.id, users.username, users.email, users.password_hash, users.profile_picture, users.created_at, users.updated_at
 FROM
   reset_password_tokens
-  INNER JOIN users on users.id = reset_password_tokens.user_id
+  INNER JOIN users ON users.id = reset_password_tokens.user_id
 WHERE
   reset_password_tokens.token = $1
   AND reset_password_tokens.expires_at > NOW()
