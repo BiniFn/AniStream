@@ -38,7 +38,7 @@ tidy:               ## Go mod tidy
 
 # ----- Docker ----- #
 dev-compose:
-	docker-compose --file docker-compose.dev.yaml --env-file .env.local up -d
+	docker-compose --file infra/docker-compose.dev.yaml --env-file .env.local up -d
 
 # ----- GraphQL ----- #
 genqlient:          ## Generate GraphQL client code

@@ -14,7 +14,7 @@ FROM alpine:3.20
 WORKDIR /app
 
 COPY --from=builder /api /app/api
-COPY --chmod=755 entrypoint.sh /app/entrypoint.sh
+COPY --chmod=755 /infra/api/entrypoint.sh /app/entrypoint.sh
 
 RUN adduser -D aniways
 USER aniways
