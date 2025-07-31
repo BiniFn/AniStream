@@ -34,9 +34,9 @@ type Deps struct {
 	Providers   []oauth.Provider
 }
 
-func InitDeps(ctx context.Context) (*Deps, error) {
+func InitDeps(ctx context.Context, svcName string) (*Deps, error) {
 	env, err := config.LoadEnv()
-	rootLogger := NewLogger() // if env is loaded wrongly just use json handler (prod way)
+	rootLogger := NewLogger(svcName) // if env is loaded wrongly just use json handler (prod way)
 	if err != nil {
 		return &Deps{Log: rootLogger}, err
 	}

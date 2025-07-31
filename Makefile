@@ -1,6 +1,6 @@
 MIGRATION_NAME := $(filter-out migrate,$(MAKECMDGOALS))
 
-.PHONY: migrate dev-api dev-proxy dev-worker sqlc genqlient build tidy docker-build-api docker-build-proxy docker-build-worker dev-up dev-down dev-logs help
+.PHONY: migrate dev-all dev-api dev-proxy dev-worker sqlc genqlient build tidy docker-build-api docker-build-proxy docker-build-worker dev-up dev-down dev-logs help
 
 # ----- Migration ----- #
 migrate: ## Generate migration files
@@ -14,6 +14,16 @@ migrate: ## Generate migration files
 	@:
 
 # ----- Local Dev ----- #
+dev-all: ## Run API, Proxy, and Worker together with tmux
+	tmux new-session -s aniways -n dev \; \
+		send-keys "make dev-api" C-m \; \
+		split-window -h \; \
+		send-keys "make dev-proxy" C-m \; \
+		split-window -v \; \
+		send-keys "make dev-worker" C-m \; \
+		select-pane -t 0 \; \
+		attach
+
 dev-api: ## Run API with Air
 	air -c .air.toml \
 		-build.cmd "go build -o ./tmp/api ./cmd/api" \
@@ -22,7 +32,7 @@ dev-api: ## Run API with Air
 dev-proxy: ## Run proxy locally
 	air -c .air.toml \
 		-build.cmd "go build -o ./tmp/proxy ./cmd/proxy" \
-		-build.bin "./tmp/proxy"
+		-build.full_bin "APP_ENV=development ./tmp/proxy"
 
 dev-worker: ## Run worker locally
 	air -c .air.toml \

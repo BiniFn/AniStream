@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"flag"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/coeeter/aniways/internal/app"
 )
 
 var (
@@ -27,6 +28,7 @@ var (
 		".html": true, ".js": true, ".css": true,
 		".txt": true,
 	}
+	logger = app.NewLogger("PROXY")
 )
 
 func main() {
@@ -42,7 +44,7 @@ func main() {
 
 	errChan := make(chan error, 1)
 	go func() {
-		log.Printf("📡 proxy listening on %s", *addr)
+		logger.Info("AniWays Proxy listening", "on", *addr)
 
 		if err := srv.ListenAndServe(); err != nil {
 			errChan <- err
@@ -54,15 +56,17 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		log.Fatalf("Error starting server: %v", err)
+		logger.Error("Error starting server", "err", err)
+		os.Exit(1)
 	case sig := <-stop:
-		log.Printf("🛑 caught signal %s, shutting down...", sig)
+		logger.Info("Shutting down...", "signal", sig)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
-			log.Fatalf("graceful shutdown failed: %v", err)
+			logger.Error("graceful shutdown failed", "err", err)
+			os.Exit(1)
 		}
-		log.Println("✅ server stopped gracefully")
+		logger.Info("server stopped gracefully")
 		os.Exit(0)
 	}
 }
@@ -98,7 +102,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 	req, err := http.NewRequestWithContext(ctx, r.Method, targetURL, nil)
 	if err != nil {
-		log.Println("Error creating request:", err)
+		logger.Error("error creating request", "err", err)
 		http.Error(w, "bad target URL", http.StatusBadRequest)
 		return
 	}
@@ -108,7 +112,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Error fetching upstream:", err)
+		logger.Error("error fetching upstream", "err", err)
 		http.Error(w, "upstream fetch failed", http.StatusBadGateway)
 		return
 	}
@@ -168,7 +172,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			log.Println("⚠️ playlist scan error:", err)
+			logger.Error("error scanning playlist", "err", err)
 		}
 	} else {
 		// static content (ts, images, etc.)—just pipe directly
@@ -178,5 +182,5 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 		io.Copy(w, resp.Body)
 	}
 
-	log.Printf("🔗 proxied %s %s -> %s", r.Method, r.RemoteAddr, targetURL)
+	logger.Info("proxied", "method", r.Method, "remoteAddr", r.RemoteAddr, "targetURL", targetURL)
 }

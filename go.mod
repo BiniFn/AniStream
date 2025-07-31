@@ -6,6 +6,7 @@ require (
 	github.com/Khan/genqlient v0.8.1
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/cloudinary/cloudinary-go/v2 v2.11.0
+	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.2
 	github.com/go-chi/httplog/v3 v3.2.2

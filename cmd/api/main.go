@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	deps, err := app.InitDeps(context.Background())
+	deps, err := app.InitDeps(context.Background(), "API")
 	if err != nil {
 		deps.Log.Error("Error initializing dependencies:", "err", err)
 		os.Exit(1)
