@@ -2,6 +2,7 @@ package library
 
 import (
 	"context"
+	"errors"
 
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
@@ -28,10 +29,29 @@ type GetLibraryParams struct {
 	ItemsPerPage int
 }
 
+func isValidStatus(status string) bool {
+	switch status {
+	case string(repository.LibraryStatusWatching),
+		string(repository.LibraryStatusCompleted),
+		string(repository.LibraryStatusDropped),
+		string(repository.LibraryStatusPaused),
+		string(repository.LibraryStatusPlanning):
+		return true
+	default:
+		return false
+	}
+}
+
+var ErrInvalidStatus = errors.New("invalid status")
+
 func (s *LibraryService) GetLibrary(ctx context.Context, params GetLibraryParams) (models.Pagination[LibraryDto], error) {
 	limit, offset, err := utils.ValidatePaginationParams(params.Page, params.ItemsPerPage)
 	if err != nil {
 		return models.Pagination[LibraryDto]{}, err
+	}
+
+	if !isValidStatus(params.Status) {
+		return models.Pagination[LibraryDto]{}, ErrInvalidStatus
 	}
 
 	rows, err := s.repo.GetLibrary(ctx, repository.GetLibraryParams{
@@ -81,15 +101,33 @@ func (s *LibraryService) GetLibraryByAnimeID(ctx context.Context, userID, animeI
 	return LibraryDto{}.FromRepository(row.Library, row.Anime), nil
 }
 
-func (s *LibraryService) SaveLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) error {
-	_, err := s.repo.UpsertLibrary(ctx, repository.UpsertLibraryParams{
+var ErrInvalidWatchedEpisodes = errors.New("invalid watched episodes")
+
+func (s *LibraryService) SaveLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) (LibraryDto, error) {
+	if !isValidStatus(status) {
+		return LibraryDto{}, ErrInvalidStatus
+	}
+
+	if watchedEpisodes < 0 {
+		return LibraryDto{}, ErrInvalidWatchedEpisodes
+	}
+
+	err := s.repo.UpsertLibrary(ctx, repository.UpsertLibraryParams{
 		UserID:          userID,
 		AnimeID:         animeID,
 		Status:          repository.LibraryStatus(status),
 		WatchedEpisodes: watchedEpisodes,
 	})
+	if err != nil {
+		return LibraryDto{}, err
+	}
 
-	return err
+	lib, err := s.GetLibraryByAnimeID(ctx, userID, animeID)
+	if err != nil {
+		return LibraryDto{}, err
+	}
+
+	return lib, nil
 }
 
 func (s *LibraryService) DeleteLibrary(ctx context.Context, userID, animeID string) error {

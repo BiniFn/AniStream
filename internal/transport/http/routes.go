@@ -5,6 +5,7 @@ import (
 
 	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/coeeter/aniways/internal/service/auth"
+	"github.com/coeeter/aniways/internal/service/library"
 	"github.com/coeeter/aniways/internal/service/settings"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/transport/http/handlers"
@@ -17,6 +18,7 @@ func RegisterRoutes(r *chi.Mux, deps *Dependencies) {
 	userService := users.NewUserService(deps.Repo, deps.Cld)
 	authService := auth.NewAuthService(deps.Repo, deps.EmailClient, deps.Env.FrontendURL)
 	settingsService := settings.NewSettingsService(deps.Repo)
+	libraryService := library.NewLibraryService(deps.Repo, refresher)
 
 	r.Route("/anime", func(r chi.Router) {
 		handlers.MountAnimeRoutes(r, animeService)
@@ -34,6 +36,10 @@ func RegisterRoutes(r *chi.Mux, deps *Dependencies) {
 
 	r.Route("/settings", func(r chi.Router) {
 		handlers.MountSettingsRoute(r, settingsService)
+	})
+
+	r.Route("/library", func(r chi.Router) {
+		handlers.MountLibraryRoutes(r, libraryService)
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {

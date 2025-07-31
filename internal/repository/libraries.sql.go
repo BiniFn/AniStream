@@ -383,7 +383,7 @@ func (q *Queries) GetPlanToWatchAnimeCount(ctx context.Context, userID string) (
 	return count, err
 }
 
-const upsertLibrary = `-- name: UpsertLibrary :one
+const upsertLibrary = `-- name: UpsertLibrary :exec
 INSERT INTO library(user_id, anime_id, status, watched_episodes)
   VALUES ($1, $2, $3, $4)
 ON CONFLICT (user_id, anime_id)
@@ -391,8 +391,6 @@ ON CONFLICT (user_id, anime_id)
     status = EXCLUDED.status,
     watched_episodes = EXCLUDED.watched_episodes,
     updated_at = NOW()
-  RETURNING
-    id, user_id, anime_id, status, watched_episodes, created_at, updated_at
 `
 
 type UpsertLibraryParams struct {
@@ -402,22 +400,12 @@ type UpsertLibraryParams struct {
 	WatchedEpisodes int32
 }
 
-func (q *Queries) UpsertLibrary(ctx context.Context, arg UpsertLibraryParams) (Library, error) {
-	row := q.db.QueryRow(ctx, upsertLibrary,
+func (q *Queries) UpsertLibrary(ctx context.Context, arg UpsertLibraryParams) error {
+	_, err := q.db.Exec(ctx, upsertLibrary,
 		arg.UserID,
 		arg.AnimeID,
 		arg.Status,
 		arg.WatchedEpisodes,
 	)
-	var i Library
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.AnimeID,
-		&i.Status,
-		&i.WatchedEpisodes,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+	return err
 }

@@ -42,16 +42,14 @@ WHERE
   library.user_id = sqlc.arg(user_id)
   AND library.anime_id = sqlc.arg(anime_id);
 
--- name: UpsertLibrary :one
+-- name: UpsertLibrary :exec
 INSERT INTO library(user_id, anime_id, status, watched_episodes)
   VALUES (sqlc.arg(user_id), sqlc.arg(anime_id), sqlc.arg(status), sqlc.arg(watched_episodes))
 ON CONFLICT (user_id, anime_id)
   DO UPDATE SET
     status = EXCLUDED.status,
     watched_episodes = EXCLUDED.watched_episodes,
-    updated_at = NOW()
-  RETURNING
-    *;
+    updated_at = NOW();
 
 -- name: DeleteLibrary :exec
 DELETE FROM library
