@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"github.com/coeeter/aniways/internal/app"
 	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/coeeter/aniways/internal/service/auth"
 	"github.com/coeeter/aniways/internal/service/library"
@@ -12,7 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func RegisterRoutes(r *chi.Mux, deps *Dependencies) {
+func RegisterRoutes(r *chi.Mux, deps *app.Deps) {
 	refresher := anime.NewRefresher(deps.Repo, deps.MAL)
 	animeService := anime.NewAnimeService(deps.Repo, refresher, deps.MAL, deps.Anilist, deps.Shiki, deps.Cache)
 	userService := users.NewUserService(deps.Repo, deps.Cld)

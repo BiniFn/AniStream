@@ -1,23 +1,31 @@
-package http
+package app
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/infra/cache"
 	"github.com/coeeter/aniways/internal/infra/client/anilist"
+	"github.com/coeeter/aniways/internal/infra/client/hianime"
 	"github.com/coeeter/aniways/internal/infra/client/myanimelist"
 	"github.com/coeeter/aniways/internal/infra/client/shikimori"
+	"github.com/coeeter/aniways/internal/infra/database"
 	"github.com/coeeter/aniways/internal/infra/email"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/auth/oauth"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Dependencies struct {
+type Deps struct {
 	Env         *config.Env
+	Log         *slog.Logger
+	Db          *pgxpool.Pool
 	Repo        *repository.Queries
 	Cache       *cache.RedisClient
+	Scraper     *hianime.HianimeScraper
 	MAL         *myanimelist.Client
 	Anilist     *anilist.Client
 	Shiki       *shikimori.Client
@@ -26,26 +34,36 @@ type Dependencies struct {
 	Providers   []oauth.Provider
 }
 
-func BuildDeps(
-	env *config.Env,
-	repo *repository.Queries,
-	cache *cache.RedisClient,
-) (*Dependencies, error) {
-	malClient := myanimelist.NewClient(myanimelist.ClientConfig{
-		ClientID:     env.MyAnimeListClientID,
-		ClientSecret: env.MyAnimeListClientSecret,
-	})
+func InitDeps(ctx context.Context) (*Deps, error) {
+	env, err := config.LoadEnv()
+	rootLogger := NewLogger() // if env is loaded wrongly just use json handler (prod way)
+	if err != nil {
+		return &Deps{Log: rootLogger}, err
+	}
 
+	dbLog := rootLogger.With("component", "database")
+	db, err := database.New(env, dbLog)
+	if err != nil {
+		return &Deps{Log: rootLogger}, err
+	}
+
+	cacheLog := rootLogger.With("component", "cache")
+	cache, err := cache.NewRedisClient(ctx, env.AppEnv, env.RedisAddr, env.RedisPassword, cacheLog)
+	if err != nil {
+		return &Deps{Log: rootLogger}, err
+	}
+
+	repo := repository.New(db)
+	scraper := hianime.NewHianimeScraper()
+	malClient := myanimelist.NewClient(env.MyAnimeListClientID)
 	anilistClient := anilist.New()
-
 	shiki := shikimori.NewClient(cache)
+	emailClient := email.NewClient(env.ResendAPIKey, env.ResendFromEmail)
 
 	cld, err := cloudinary.NewFromParams(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinaryAPISecret)
 	if err != nil {
-		return nil, err
+		return &Deps{Log: rootLogger}, err
 	}
-
-	emailClient := email.NewClient(env.ResendAPIKey, env.ResendFromEmail)
 
 	malOauthProvider := oauth.NewMALProvider(
 		env.MyAnimeListClientID,
@@ -62,10 +80,13 @@ func BuildDeps(
 		repo,
 	)
 
-	return &Dependencies{
+	return &Deps{
 		Env:         env,
+		Log:         rootLogger,
+		Db:          db,
 		Repo:        repo,
 		Cache:       cache,
+		Scraper:     scraper,
 		MAL:         malClient,
 		Anilist:     anilistClient,
 		Shiki:       shiki,
@@ -73,4 +94,17 @@ func BuildDeps(
 		EmailClient: emailClient,
 		Providers:   []oauth.Provider{malOauthProvider, anilistOauthProvider},
 	}, nil
+}
+
+func (d *Deps) Close() error {
+	d.Db.Close()
+	d.Log.Info("Closed db connections", "component", "database")
+
+	if err := d.Cache.Close(); err != nil {
+		d.Log.Error("Failed to close cache", "error", err)
+		return err
+	}
+	d.Log.Info("Closed cache connections", "component", "cache")
+
+	return nil
 }

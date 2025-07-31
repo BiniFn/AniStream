@@ -18,15 +18,10 @@ type Client struct {
 	httpClient *http.Client
 }
 
-type ClientConfig struct {
-	ClientID     string
-	ClientSecret string
-}
-
-func NewClient(config ClientConfig) *Client {
+func NewClient(clientID string) *Client {
 	return &Client{
 		baseURL:  "https://api.myanimelist.net/v2",
-		clientId: config.ClientID,
+		clientId: clientID,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 			Transport: &http.Transport{

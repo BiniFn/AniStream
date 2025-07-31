@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	"github.com/coeeter/aniways/internal/app"
-	"github.com/coeeter/aniways/internal/transport/http"
+	"github.com/coeeter/aniways/internal/worker"
 )
 
 func main() {
@@ -21,11 +21,14 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	httpLog := deps.Log.With("component", "http")
-	app := http.New(deps, httpLog)
+	mgr := worker.NewManager(deps.Repo, deps.Scraper, deps.Cache, deps.Log.With("component", "worker"))
 
-	if err := app.Run(ctx); err != nil {
-		deps.Log.Error("failed to run application", "err", err)
+	if err := mgr.Bootstrap(ctx); err != nil {
+		deps.Log.Error("Error in bootstrapping:", "err", err)
 		os.Exit(1)
 	}
+
+	mgr.StartBackground(ctx, deps.Providers)
+
+	<-ctx.Done()
 }

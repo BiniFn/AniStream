@@ -1,9 +1,6 @@
 MIGRATION_NAME := $(filter-out migrate,$(MAKECMDGOALS))
 
-.PHONY: help migrate dev-api dev-proxy sqlc build tidy \
-        docker-build-api docker-build-proxy \
-        dev-up dev-down dev-logs \
-        genqlient
+.PHONY: migrate dev-api dev-proxy dev-worker sqlc genqlient build tidy docker-build-api docker-build-proxy docker-build-worker dev-up dev-down dev-logs help
 
 # ----- Migration ----- #
 migrate: ## Generate migration files
@@ -17,11 +14,20 @@ migrate: ## Generate migration files
 	@:
 
 # ----- Local Dev ----- #
-dev-api: ## Hot-reload API with Air
-	air -c .air.toml
+dev-api: ## Run API with Air
+	air -c .air.toml \
+		-build.cmd "go build -o ./tmp/api ./cmd/api" \
+		-build.bin "./tmp/api"
 
 dev-proxy: ## Run proxy locally
-	go run ./cmd/proxy
+	air -c .air.toml \
+		-build.cmd "go build -o ./tmp/proxy ./cmd/proxy" \
+		-build.bin "./tmp/proxy"
+
+dev-worker: ## Run worker locally
+	air -c .air.toml \
+		-build.cmd "go build -o ./tmp/worker ./cmd/worker" \
+		-build.bin "./tmp/worker"
 
 # ----- SQLC & GraphQL ----- #
 sqlc: ## Generate SQLC code
@@ -47,10 +53,13 @@ tidy: ## Go mod tidy
 
 # ----- Docker Build ----- #
 docker-build-api: ## Build API Docker image
-	docker build -t aniways-api -f infra/api/Dockerfile .
+	docker build --target=api -t aniways-api -f infra/Dockerfile .
 
 docker-build-proxy: ## Build Proxy Docker image
-	docker build -t aniways-proxy -f infra/proxy/Dockerfile .
+	docker build --target=proxy -t aniways-proxy -f infra/Dockerfile .
+
+docker-build-worker: ## Build Worker Docker image
+	docker build --target=worker -t aniways-worker -f infra/Dockerfile .
 
 # ----- Docker Compose (Dev) ----- #
 dev-up: ## Start dev containers

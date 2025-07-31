@@ -39,9 +39,7 @@ services:
       - postgres_password
 
   redis:
-    image: redis:latest
-    command:
-      ["redis-server", "--requirepass", "$(cat /run/secrets/redis_password)"]
+    image: ghcr.io/coeeter/aniways-redis:latest
     volumes:
       - redis_data:/data
     networks:
@@ -73,6 +71,26 @@ services:
       - traefik.http.routers.api.tls.certresolver=myresolver
     deploy:
       replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: ghcr.io/coeeter/aniways-worker:latest
+    networks:
+      - aniways_net
+    depends_on:
+      - db
+      - redis
+    secrets:
+      - aniways_env
+    environment:
+      - ENV_FILE_PATH=/run/secrets/aniways_env
+    deploy:
+      replicas: 1
       restart_policy:
         condition: on-failure
 
@@ -87,7 +105,11 @@ services:
       - traefik.http.routers.proxy.entrypoints=websecure
       - traefik.http.routers.proxy.tls.certresolver=myresolver
     deploy:
-      replicas: 1
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
       restart_policy:
         condition: on-failure
 

@@ -4,8 +4,6 @@ tmp_dir = "./tmp"
 testdata_dir = "testdata"
 
 [build]
-bin = "./tmp/main"
-cmd = "genqlient genqlient.yaml && sqlc generate && go build -o ./tmp/main ./cmd/api"
 pre_cmd = ["gofmt -w ."]
 delay = 1000
 stop_on_error = true
@@ -29,6 +27,3 @@ time = true
 [screen]
 clear_on_rebuild = true
 keep_scroll = true
-
-[misc]
-clean_on_exit = true
