@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/coeeter/aniways/internal/client/hianime"
+	"github.com/coeeter/aniways/internal/infra/client/hianime"
 	"github.com/coeeter/aniways/internal/repository"
 )
 

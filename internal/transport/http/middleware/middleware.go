@@ -7,9 +7,9 @@ import (
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/coeeter/aniways/internal/config"
-	"github.com/coeeter/aniways/internal/ctxutil"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/users"
+	"github.com/coeeter/aniways/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -59,11 +59,11 @@ func injectLogger(logger *slog.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			reqLogger := logger.With("request_id", middleware.GetReqID(r.Context()))
 
-			if user, ok := ctxutil.Get[users.User](r.Context()); ok {
+			if user, ok := utils.CtxValue[users.User](r.Context()); ok {
 				reqLogger = reqLogger.With("user_id", user.ID)
 			}
 
-			ctx := ctxutil.Set(r.Context(), reqLogger)
+			ctx := utils.CtxWithValue(r.Context(), reqLogger)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -84,7 +84,7 @@ func injectUser(userService *users.UserService) func(http.Handler) http.Handler 
 				return
 			}
 
-			ctx := ctxutil.Set(r.Context(), user)
+			ctx := utils.CtxWithValue(r.Context(), user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -92,7 +92,7 @@ func injectUser(userService *users.UserService) func(http.Handler) http.Handler 
 
 func requestLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger, ok := ctxutil.Get[*slog.Logger](r.Context())
+		logger, ok := utils.CtxValue[*slog.Logger](r.Context())
 		if !ok {
 			logger = slog.Default()
 		}

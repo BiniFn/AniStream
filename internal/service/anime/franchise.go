@@ -1,6 +1,6 @@
 package anime
 
-import "github.com/coeeter/aniways/internal/client/shikimori"
+import "github.com/coeeter/aniways/internal/infra/client/shikimori"
 
 func deriveWatchOrder(fr *shikimori.FranchiseResponse, malID int) []int {
 	forward := make(map[int]int, len(fr.Links))

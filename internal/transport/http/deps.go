@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/cloudinary/cloudinary-go/v2"
-	"github.com/coeeter/aniways/internal/cache"
-	"github.com/coeeter/aniways/internal/client/anilist"
-	"github.com/coeeter/aniways/internal/client/myanimelist"
-	"github.com/coeeter/aniways/internal/client/shikimori"
 	"github.com/coeeter/aniways/internal/config"
-	"github.com/coeeter/aniways/internal/email"
+	"github.com/coeeter/aniways/internal/infra/cache"
+	"github.com/coeeter/aniways/internal/infra/client/anilist"
+	"github.com/coeeter/aniways/internal/infra/client/myanimelist"
+	"github.com/coeeter/aniways/internal/infra/client/shikimori"
+	"github.com/coeeter/aniways/internal/infra/email"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/auth/oauth"
 )

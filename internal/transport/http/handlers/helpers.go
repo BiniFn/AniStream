@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/coeeter/aniways/internal/ctxutil"
+	"github.com/coeeter/aniways/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -55,7 +55,7 @@ func jsonOK(w http.ResponseWriter, v interface{}) {
 }
 
 func logger(r *http.Request) *slog.Logger {
-	logger, ok := ctxutil.Get[*slog.Logger](r.Context())
+	logger, ok := utils.CtxValue[*slog.Logger](r.Context())
 	if !ok {
 		return slog.Default()
 	}

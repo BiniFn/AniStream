@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/coeeter/aniways/internal/cache"
+	"github.com/coeeter/aniways/internal/infra/cache"
 )
 
 type Client struct {

@@ -7,10 +7,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/coeeter/aniways/internal/email"
+	"github.com/coeeter/aniways/internal/infra/email"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/users"
-	"github.com/coeeter/aniways/template"
+	"github.com/coeeter/aniways/internal/template"
 	"github.com/jackc/pgx/v5"
 )
 

@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/coeeter/aniways/internal/config"
-	"github.com/coeeter/aniways/internal/ctxutil"
 	"github.com/coeeter/aniways/internal/service/auth"
 	"github.com/coeeter/aniways/internal/service/auth/oauth"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
+	"github.com/coeeter/aniways/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -85,7 +85,7 @@ func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
 }
 
 func me(w http.ResponseWriter, r *http.Request) {
-	user, ok := ctxutil.Get[users.User](r.Context())
+	user, ok := utils.CtxValue[users.User](r.Context())
 	if !ok {
 		jsonError(w, http.StatusUnauthorized, "Invalid session")
 		return

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/coeeter/aniways/internal/ctxutil"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
+	"github.com/coeeter/aniways/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -51,7 +51,7 @@ func createUser(userService *users.UserService) http.HandlerFunc {
 func updatePassword(userService *users.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger(r)
-		user, _ := ctxutil.Get[users.User](r.Context())
+		user, _ := utils.CtxValue[users.User](r.Context())
 
 		var updatePasswordBody struct {
 			OldPassword string `json:"oldPassword"`
@@ -82,7 +82,7 @@ func updatePassword(userService *users.UserService) http.HandlerFunc {
 func updateUser(userService *users.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger(r)
-		user, _ := ctxutil.Get[users.User](r.Context())
+		user, _ := utils.CtxValue[users.User](r.Context())
 
 		var updateUserBody struct {
 			Username string `json:"username"`
@@ -110,7 +110,7 @@ func updateUser(userService *users.UserService) http.HandlerFunc {
 func deleteUser(userService *users.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger(r)
-		user, _ := ctxutil.Get[users.User](r.Context())
+		user, _ := utils.CtxValue[users.User](r.Context())
 
 		var body struct {
 			Password string `json:"password"`
@@ -145,7 +145,7 @@ func deleteUser(userService *users.UserService) http.HandlerFunc {
 func updateImage(userService *users.UserService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger(r)
-		user, _ := ctxutil.Get[users.User](r.Context())
+		user, _ := utils.CtxValue[users.User](r.Context())
 
 		if err := r.ParseMultipartForm(10 << 20 /* 10 MiB */); err != nil {
 			jsonError(w, http.StatusBadRequest, "bad request")

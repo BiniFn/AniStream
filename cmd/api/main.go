@@ -7,10 +7,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/coeeter/aniways/internal/cache"
-	"github.com/coeeter/aniways/internal/client/hianime"
 	"github.com/coeeter/aniways/internal/config"
-	"github.com/coeeter/aniways/internal/database"
+	"github.com/coeeter/aniways/internal/infra/cache"
+	"github.com/coeeter/aniways/internal/infra/client/hianime"
+	"github.com/coeeter/aniways/internal/infra/database"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/transport/http"
 	"github.com/coeeter/aniways/internal/worker"

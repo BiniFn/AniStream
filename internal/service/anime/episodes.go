@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/coeeter/aniways/internal/cache"
+	"github.com/coeeter/aniways/internal/infra/cache"
 	"github.com/jackc/pgx/v5"
 )
 

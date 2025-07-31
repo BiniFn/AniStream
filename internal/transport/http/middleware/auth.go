@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/coeeter/aniways/internal/ctxutil"
 	"github.com/coeeter/aniways/internal/service/users"
+	"github.com/coeeter/aniways/internal/utils"
 )
 
 func RequireUser(next http.Handler) http.Handler {
@@ -18,12 +18,12 @@ func RequireUser(next http.Handler) http.Handler {
 }
 
 func GetUser(r *http.Request) *users.User {
-	user, _ := ctxutil.Get[users.User](r.Context())
+	user, _ := utils.CtxValue[users.User](r.Context())
 	return &user
 }
 
 func isUserAuthenticated(r *http.Request) bool {
-	user, ok := ctxutil.Get[users.User](r.Context())
+	user, ok := utils.CtxValue[users.User](r.Context())
 	if !ok {
 		return false
 	}

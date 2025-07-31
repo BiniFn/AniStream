@@ -1,11 +1,11 @@
 package anime
 
 import (
-	"github.com/coeeter/aniways/internal/cache"
-	"github.com/coeeter/aniways/internal/client/anilist"
-	"github.com/coeeter/aniways/internal/client/hianime"
-	"github.com/coeeter/aniways/internal/client/myanimelist"
-	"github.com/coeeter/aniways/internal/client/shikimori"
+	"github.com/coeeter/aniways/internal/infra/cache"
+	"github.com/coeeter/aniways/internal/infra/client/anilist"
+	"github.com/coeeter/aniways/internal/infra/client/hianime"
+	"github.com/coeeter/aniways/internal/infra/client/myanimelist"
+	"github.com/coeeter/aniways/internal/infra/client/shikimori"
 	"github.com/coeeter/aniways/internal/repository"
 )
 

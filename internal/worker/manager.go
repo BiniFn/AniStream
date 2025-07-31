@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/coeeter/aniways/internal/cache"
-	"github.com/coeeter/aniways/internal/client/hianime"
+	"github.com/coeeter/aniways/internal/infra/cache"
+	"github.com/coeeter/aniways/internal/infra/client/hianime"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/auth/oauth"
 	"github.com/robfig/cron/v3"

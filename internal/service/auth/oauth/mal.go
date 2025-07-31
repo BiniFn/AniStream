@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coeeter/aniways/internal/cache"
+	"github.com/coeeter/aniways/internal/infra/cache"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 )

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/coeeter/aniways/internal/cache"
-	"github.com/coeeter/aniways/internal/client/anilist/graphql"
+	"github.com/coeeter/aniways/internal/infra/cache"
+	"github.com/coeeter/aniways/internal/infra/client/anilist/graphql"
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/utils"

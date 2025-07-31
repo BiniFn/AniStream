@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coeeter/aniways/internal/client/myanimelist"
+	"github.com/coeeter/aniways/internal/infra/client/myanimelist"
 	"github.com/coeeter/aniways/internal/repository"
 	"golang.org/x/time/rate"
 )
