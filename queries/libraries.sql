@@ -42,14 +42,20 @@ WHERE
   library.user_id = sqlc.arg(user_id)
   AND library.anime_id = sqlc.arg(anime_id);
 
--- name: UpsertLibrary :exec
+-- name: InsertLibrary :exec
 INSERT INTO library(user_id, anime_id, status, watched_episodes)
-  VALUES (sqlc.arg(user_id), sqlc.arg(anime_id), sqlc.arg(status), sqlc.arg(watched_episodes))
-ON CONFLICT (user_id, anime_id)
-  DO UPDATE SET
-    status = EXCLUDED.status,
-    watched_episodes = EXCLUDED.watched_episodes,
-    updated_at = NOW();
+  VALUES (sqlc.arg(user_id), sqlc.arg(anime_id), sqlc.arg(status), sqlc.arg(watched_episodes));
+
+-- name: UpdateLibrary :exec
+UPDATE
+  library
+SET
+  status = sqlc.arg(status),
+  watched_episodes = sqlc.arg(watched_episodes),
+  updated_at = NOW()
+WHERE
+  user_id = sqlc.arg(user_id)
+  AND anime_id = sqlc.arg(anime_id);
 
 -- name: DeleteLibrary :exec
 DELETE FROM library

@@ -383,29 +383,53 @@ func (q *Queries) GetPlanToWatchAnimeCount(ctx context.Context, userID string) (
 	return count, err
 }
 
-const upsertLibrary = `-- name: UpsertLibrary :exec
+const insertLibrary = `-- name: InsertLibrary :exec
 INSERT INTO library(user_id, anime_id, status, watched_episodes)
   VALUES ($1, $2, $3, $4)
-ON CONFLICT (user_id, anime_id)
-  DO UPDATE SET
-    status = EXCLUDED.status,
-    watched_episodes = EXCLUDED.watched_episodes,
-    updated_at = NOW()
 `
 
-type UpsertLibraryParams struct {
+type InsertLibraryParams struct {
 	UserID          string
 	AnimeID         string
 	Status          LibraryStatus
 	WatchedEpisodes int32
 }
 
-func (q *Queries) UpsertLibrary(ctx context.Context, arg UpsertLibraryParams) error {
-	_, err := q.db.Exec(ctx, upsertLibrary,
+func (q *Queries) InsertLibrary(ctx context.Context, arg InsertLibraryParams) error {
+	_, err := q.db.Exec(ctx, insertLibrary,
 		arg.UserID,
 		arg.AnimeID,
 		arg.Status,
 		arg.WatchedEpisodes,
+	)
+	return err
+}
+
+const updateLibrary = `-- name: UpdateLibrary :exec
+UPDATE
+  library
+SET
+  status = $1,
+  watched_episodes = $2,
+  updated_at = NOW()
+WHERE
+  user_id = $3
+  AND anime_id = $4
+`
+
+type UpdateLibraryParams struct {
+	Status          LibraryStatus
+	WatchedEpisodes int32
+	UserID          string
+	AnimeID         string
+}
+
+func (q *Queries) UpdateLibrary(ctx context.Context, arg UpdateLibraryParams) error {
+	_, err := q.db.Exec(ctx, updateLibrary,
+		arg.Status,
+		arg.WatchedEpisodes,
+		arg.UserID,
+		arg.AnimeID,
 	)
 	return err
 }

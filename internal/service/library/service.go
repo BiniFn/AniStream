@@ -2,12 +2,14 @@ package library
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/coeeter/aniways/internal/utils"
+	"github.com/jackc/pgx/v5"
 )
 
 type LibraryService struct {
@@ -89,11 +91,16 @@ func (s *LibraryService) GetLibrary(ctx context.Context, params GetLibraryParams
 	}, nil
 }
 
+var ErrLibraryNotFound = errors.New("library not found")
+
 func (s *LibraryService) GetLibraryByAnimeID(ctx context.Context, userID, animeID string) (LibraryDto, error) {
 	row, err := s.repo.GetLibraryOfUserByAnimeID(ctx, repository.GetLibraryOfUserByAnimeIDParams{
 		UserID:  userID,
 		AnimeID: animeID,
 	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return LibraryDto{}, ErrLibraryNotFound
+	}
 	if err != nil {
 		return LibraryDto{}, err
 	}
@@ -103,7 +110,7 @@ func (s *LibraryService) GetLibraryByAnimeID(ctx context.Context, userID, animeI
 
 var ErrInvalidWatchedEpisodes = errors.New("invalid watched episodes")
 
-func (s *LibraryService) SaveLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) (LibraryDto, error) {
+func (s *LibraryService) CreateLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) (LibraryDto, error) {
 	if !isValidStatus(status) {
 		return LibraryDto{}, ErrInvalidStatus
 	}
@@ -112,7 +119,44 @@ func (s *LibraryService) SaveLibrary(ctx context.Context, userID, animeID, statu
 		return LibraryDto{}, ErrInvalidWatchedEpisodes
 	}
 
-	err := s.repo.UpsertLibrary(ctx, repository.UpsertLibraryParams{
+	err := s.repo.InsertLibrary(ctx, repository.InsertLibraryParams{
+		UserID:          userID,
+		AnimeID:         animeID,
+		Status:          repository.LibraryStatus(status),
+		WatchedEpisodes: watchedEpisodes,
+	})
+	if err != nil {
+		return LibraryDto{}, err
+	}
+
+	s.queueSync(ctx, userID, animeID, repository.LibraryActionsAddEntry, SyncPayload{
+		Status:          &status,
+		WatchedEpisodes: &watchedEpisodes,
+	})
+
+	lib, err := s.GetLibraryByAnimeID(ctx, userID, animeID)
+	if err != nil {
+		return LibraryDto{}, err
+	}
+
+	return lib, nil
+}
+
+func (s *LibraryService) UpdateLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) (LibraryDto, error) {
+	if !isValidStatus(status) {
+		return LibraryDto{}, ErrInvalidStatus
+	}
+
+	if watchedEpisodes < 0 {
+		return LibraryDto{}, ErrInvalidWatchedEpisodes
+	}
+
+	old, err := s.GetLibraryByAnimeID(ctx, userID, animeID)
+	if err != nil {
+		return LibraryDto{}, err
+	}
+
+	err = s.repo.UpdateLibrary(ctx, repository.UpdateLibraryParams{
 		UserID:          userID,
 		AnimeID:         animeID,
 		Status:          repository.LibraryStatus(status),
@@ -127,6 +171,18 @@ func (s *LibraryService) SaveLibrary(ctx context.Context, userID, animeID, statu
 		return LibraryDto{}, err
 	}
 
+	if old.Status != status {
+		s.queueSync(ctx, userID, animeID, repository.LibraryActionsUpdateStatus, SyncPayload{
+			Status: &status,
+		})
+	}
+
+	if old.WatchedEpisodes != watchedEpisodes {
+		s.queueSync(ctx, userID, animeID, repository.LibraryActionsUpdateProgress, SyncPayload{
+			WatchedEpisodes: &watchedEpisodes,
+		})
+	}
+
 	return lib, nil
 }
 
@@ -135,6 +191,7 @@ func (s *LibraryService) DeleteLibrary(ctx context.Context, userID, animeID stri
 		UserID:  userID,
 		AnimeID: animeID,
 	})
+	s.queueSync(ctx, userID, animeID, repository.LibraryActionsDeleteEntry, SyncPayload{})
 	return err
 }
 
@@ -212,4 +269,31 @@ func (s *LibraryService) GetPlanToWatch(ctx context.Context, params GetPlanToWat
 		Items:    out,
 		PageInfo: pageInfo,
 	}, nil
+}
+
+type SyncPayload struct {
+	Status          *string `json:"status,omitempty"`
+	WatchedEpisodes *int32  `json:"watched_episodes,omitempty"`
+}
+
+func (s *LibraryService) queueSync(ctx context.Context, userID, animeID string, action repository.LibraryActions, payload SyncPayload) {
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return
+	}
+
+	providers := []repository.Provider{
+		repository.ProviderMyanimelist,
+		repository.ProviderAnilist,
+	}
+
+	for _, p := range providers {
+		_ = s.repo.UpsertLibrarySync(ctx, repository.UpsertLibrarySyncParams{
+			UserID:   userID,
+			AnimeID:  animeID,
+			Provider: p,
+			Action:   action,
+			Payload:  data,
+		})
+	}
 }

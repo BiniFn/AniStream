@@ -15,7 +15,8 @@ func MountLibraryRoutes(r chi.Router, svc *library.LibraryService) {
 		r.Get("/{animeID}", getAnimeStatus(svc))
 		r.Get("/continue-watching", getContinueWatching(svc))
 		r.Get("/planning", getPlanning(svc))
-		r.Put("/{animeID}", saveAnime(svc))
+		r.Post("/{animeID}", createLibrary(svc))
+		r.Put("/{animeID}", updateLibrary(svc))
 		r.Delete("/{animeID}", deleteAnimeFromLib(svc))
 	})
 }
@@ -153,7 +154,7 @@ func deleteAnimeFromLib(svc *library.LibraryService) http.HandlerFunc {
 	}
 }
 
-func saveAnime(svc *library.LibraryService) http.HandlerFunc {
+func createLibrary(svc *library.LibraryService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger(r)
 		user := middleware.GetUser(r)
@@ -173,7 +174,7 @@ func saveAnime(svc *library.LibraryService) http.HandlerFunc {
 			return
 		}
 
-		lib, err := svc.SaveLibrary(r.Context(), user.ID, animeID, body.Status, body.WatchedEpisode)
+		lib, err := svc.CreateLibrary(r.Context(), user.ID, animeID, body.Status, body.WatchedEpisode)
 		switch err {
 		case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
 			jsonError(w, http.StatusBadRequest, err.Error())
@@ -182,6 +183,39 @@ func saveAnime(svc *library.LibraryService) http.HandlerFunc {
 		default:
 			log.Error("failed to save anime to library", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to save anime to library")
+		}
+	}
+}
+
+func updateLibrary(svc *library.LibraryService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+		user := middleware.GetUser(r)
+
+		animeID, err := pathParam(r, "animeID")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		var body struct {
+			Status         string `json:"status"`
+			WatchedEpisode int32  `json:"watched_episode"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		lib, err := svc.UpdateLibrary(r.Context(), user.ID, animeID, body.Status, body.WatchedEpisode)
+		switch err {
+		case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
+			jsonError(w, http.StatusBadRequest, err.Error())
+		case nil:
+			jsonOK(w, lib)
+		default:
+			log.Error("failed to update anime in library", "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to update anime in library")
 		}
 	}
 }
