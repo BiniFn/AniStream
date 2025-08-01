@@ -6,30 +6,42 @@ import (
 	"log/slog"
 
 	"github.com/coeeter/aniways/internal/infra/cache"
+	"github.com/coeeter/aniways/internal/infra/client/anilist"
 	"github.com/coeeter/aniways/internal/infra/client/hianime"
+	"github.com/coeeter/aniways/internal/infra/client/myanimelist"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/auth/oauth"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/robfig/cron/v3"
 )
 
 type Manager struct {
-	repo    *repository.Queries
-	scraper *hianime.HianimeScraper
-	redis   *cache.RedisClient
-	log     *slog.Logger
+	db        *pgxpool.Pool
+	repo      *repository.Queries
+	scraper   *hianime.HianimeScraper
+	malClient *myanimelist.Client
+	aniClient *anilist.Client
+	redis     *cache.RedisClient
+	log       *slog.Logger
 }
 
 func NewManager(
+	db *pgxpool.Pool,
 	repo *repository.Queries,
 	scraper *hianime.HianimeScraper,
+	malClient *myanimelist.Client,
+	aniClient *anilist.Client,
 	redis *cache.RedisClient,
 	log *slog.Logger,
 ) *Manager {
 	return &Manager{
-		repo:    repo,
-		scraper: scraper,
-		redis:   redis,
-		log:     log,
+		db:        db,
+		repo:      repo,
+		scraper:   scraper,
+		malClient: malClient,
+		aniClient: aniClient,
+		redis:     redis,
+		log:       log,
 	}
 }
 
@@ -73,6 +85,20 @@ func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provide
 
 	m.log.Info("bootstrapping hourly + daily cron job")
 	c.Start()
+
+	go func() {
+		err := startLibrarySyncListener(
+			ctx,
+			m.db,
+			m.repo,
+			m.malClient,
+			m.aniClient,
+			m.log.With("job", "library-sync"),
+		)
+		if err != nil {
+			m.log.Error("library sync listener stopped", "err", err)
+		}
+	}()
 
 	go func() {
 		<-ctx.Done()

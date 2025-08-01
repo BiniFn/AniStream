@@ -640,6 +640,69 @@ type GetUserEntryIdResponse struct {
 // GetMediaList returns GetUserEntryIdResponse.MediaList, and is useful for accessing the field via an interface.
 func (v *GetUserEntryIdResponse) GetMediaList() GetUserEntryIdMediaList { return v.MediaList }
 
+// InsertMediaListEntryResponse is returned by InsertMediaListEntry on success.
+type InsertMediaListEntryResponse struct {
+	// Create or update a media list entry
+	SaveMediaListEntry InsertMediaListEntrySaveMediaListEntryMediaList `json:"SaveMediaListEntry"`
+}
+
+// GetSaveMediaListEntry returns InsertMediaListEntryResponse.SaveMediaListEntry, and is useful for accessing the field via an interface.
+func (v *InsertMediaListEntryResponse) GetSaveMediaListEntry() InsertMediaListEntrySaveMediaListEntryMediaList {
+	return v.SaveMediaListEntry
+}
+
+// InsertMediaListEntrySaveMediaListEntryMediaList includes the requested fields of the GraphQL type MediaList.
+// The GraphQL type's documentation follows.
+//
+// List of anime or manga
+type InsertMediaListEntrySaveMediaListEntryMediaList struct {
+	// The id of the list entry
+	Id int `json:"id"`
+	// The watching/reading status
+	Status MediaListStatus `json:"status"`
+	// The amount of episodes/chapters consumed by the user
+	Progress int `json:"progress"`
+	// When the entry data was last updated
+	UpdatedAt int                                                  `json:"updatedAt"`
+	Media     InsertMediaListEntrySaveMediaListEntryMediaListMedia `json:"media"`
+}
+
+// GetId returns InsertMediaListEntrySaveMediaListEntryMediaList.Id, and is useful for accessing the field via an interface.
+func (v *InsertMediaListEntrySaveMediaListEntryMediaList) GetId() int { return v.Id }
+
+// GetStatus returns InsertMediaListEntrySaveMediaListEntryMediaList.Status, and is useful for accessing the field via an interface.
+func (v *InsertMediaListEntrySaveMediaListEntryMediaList) GetStatus() MediaListStatus {
+	return v.Status
+}
+
+// GetProgress returns InsertMediaListEntrySaveMediaListEntryMediaList.Progress, and is useful for accessing the field via an interface.
+func (v *InsertMediaListEntrySaveMediaListEntryMediaList) GetProgress() int { return v.Progress }
+
+// GetUpdatedAt returns InsertMediaListEntrySaveMediaListEntryMediaList.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *InsertMediaListEntrySaveMediaListEntryMediaList) GetUpdatedAt() int { return v.UpdatedAt }
+
+// GetMedia returns InsertMediaListEntrySaveMediaListEntryMediaList.Media, and is useful for accessing the field via an interface.
+func (v *InsertMediaListEntrySaveMediaListEntryMediaList) GetMedia() InsertMediaListEntrySaveMediaListEntryMediaListMedia {
+	return v.Media
+}
+
+// InsertMediaListEntrySaveMediaListEntryMediaListMedia includes the requested fields of the GraphQL type Media.
+// The GraphQL type's documentation follows.
+//
+// Anime or Manga
+type InsertMediaListEntrySaveMediaListEntryMediaListMedia struct {
+	// The id of the media
+	Id int `json:"id"`
+	// The mal id of the media
+	IdMal int `json:"idMal"`
+}
+
+// GetId returns InsertMediaListEntrySaveMediaListEntryMediaListMedia.Id, and is useful for accessing the field via an interface.
+func (v *InsertMediaListEntrySaveMediaListEntryMediaListMedia) GetId() int { return v.Id }
+
+// GetIdMal returns InsertMediaListEntrySaveMediaListEntryMediaListMedia.IdMal, and is useful for accessing the field via an interface.
+func (v *InsertMediaListEntrySaveMediaListEntryMediaListMedia) GetIdMal() int { return v.IdMal }
+
 // The format the media was released in
 type MediaFormat string
 
@@ -741,22 +804,22 @@ var AllMediaType = []MediaType{
 	MediaTypeManga,
 }
 
-// SaveMediaListResponse is returned by SaveMediaList on success.
-type SaveMediaListResponse struct {
+// UpdateMediaListProgressResponse is returned by UpdateMediaListProgress on success.
+type UpdateMediaListProgressResponse struct {
 	// Create or update a media list entry
-	SaveMediaListEntry SaveMediaListSaveMediaListEntryMediaList `json:"SaveMediaListEntry"`
+	SaveMediaListEntry UpdateMediaListProgressSaveMediaListEntryMediaList `json:"SaveMediaListEntry"`
 }
 
-// GetSaveMediaListEntry returns SaveMediaListResponse.SaveMediaListEntry, and is useful for accessing the field via an interface.
-func (v *SaveMediaListResponse) GetSaveMediaListEntry() SaveMediaListSaveMediaListEntryMediaList {
+// GetSaveMediaListEntry returns UpdateMediaListProgressResponse.SaveMediaListEntry, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListProgressResponse) GetSaveMediaListEntry() UpdateMediaListProgressSaveMediaListEntryMediaList {
 	return v.SaveMediaListEntry
 }
 
-// SaveMediaListSaveMediaListEntryMediaList includes the requested fields of the GraphQL type MediaList.
+// UpdateMediaListProgressSaveMediaListEntryMediaList includes the requested fields of the GraphQL type MediaList.
 // The GraphQL type's documentation follows.
 //
 // List of anime or manga
-type SaveMediaListSaveMediaListEntryMediaList struct {
+type UpdateMediaListProgressSaveMediaListEntryMediaList struct {
 	// The id of the list entry
 	Id int `json:"id"`
 	// The watching/reading status
@@ -764,43 +827,108 @@ type SaveMediaListSaveMediaListEntryMediaList struct {
 	// The amount of episodes/chapters consumed by the user
 	Progress int `json:"progress"`
 	// When the entry data was last updated
-	UpdatedAt int                                           `json:"updatedAt"`
-	Media     SaveMediaListSaveMediaListEntryMediaListMedia `json:"media"`
+	UpdatedAt int                                                     `json:"updatedAt"`
+	Media     UpdateMediaListProgressSaveMediaListEntryMediaListMedia `json:"media"`
 }
 
-// GetId returns SaveMediaListSaveMediaListEntryMediaList.Id, and is useful for accessing the field via an interface.
-func (v *SaveMediaListSaveMediaListEntryMediaList) GetId() int { return v.Id }
+// GetId returns UpdateMediaListProgressSaveMediaListEntryMediaList.Id, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListProgressSaveMediaListEntryMediaList) GetId() int { return v.Id }
 
-// GetStatus returns SaveMediaListSaveMediaListEntryMediaList.Status, and is useful for accessing the field via an interface.
-func (v *SaveMediaListSaveMediaListEntryMediaList) GetStatus() MediaListStatus { return v.Status }
+// GetStatus returns UpdateMediaListProgressSaveMediaListEntryMediaList.Status, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListProgressSaveMediaListEntryMediaList) GetStatus() MediaListStatus {
+	return v.Status
+}
 
-// GetProgress returns SaveMediaListSaveMediaListEntryMediaList.Progress, and is useful for accessing the field via an interface.
-func (v *SaveMediaListSaveMediaListEntryMediaList) GetProgress() int { return v.Progress }
+// GetProgress returns UpdateMediaListProgressSaveMediaListEntryMediaList.Progress, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListProgressSaveMediaListEntryMediaList) GetProgress() int { return v.Progress }
 
-// GetUpdatedAt returns SaveMediaListSaveMediaListEntryMediaList.UpdatedAt, and is useful for accessing the field via an interface.
-func (v *SaveMediaListSaveMediaListEntryMediaList) GetUpdatedAt() int { return v.UpdatedAt }
+// GetUpdatedAt returns UpdateMediaListProgressSaveMediaListEntryMediaList.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListProgressSaveMediaListEntryMediaList) GetUpdatedAt() int { return v.UpdatedAt }
 
-// GetMedia returns SaveMediaListSaveMediaListEntryMediaList.Media, and is useful for accessing the field via an interface.
-func (v *SaveMediaListSaveMediaListEntryMediaList) GetMedia() SaveMediaListSaveMediaListEntryMediaListMedia {
+// GetMedia returns UpdateMediaListProgressSaveMediaListEntryMediaList.Media, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListProgressSaveMediaListEntryMediaList) GetMedia() UpdateMediaListProgressSaveMediaListEntryMediaListMedia {
 	return v.Media
 }
 
-// SaveMediaListSaveMediaListEntryMediaListMedia includes the requested fields of the GraphQL type Media.
+// UpdateMediaListProgressSaveMediaListEntryMediaListMedia includes the requested fields of the GraphQL type Media.
 // The GraphQL type's documentation follows.
 //
 // Anime or Manga
-type SaveMediaListSaveMediaListEntryMediaListMedia struct {
+type UpdateMediaListProgressSaveMediaListEntryMediaListMedia struct {
 	// The id of the media
 	Id int `json:"id"`
 	// The mal id of the media
 	IdMal int `json:"idMal"`
 }
 
-// GetId returns SaveMediaListSaveMediaListEntryMediaListMedia.Id, and is useful for accessing the field via an interface.
-func (v *SaveMediaListSaveMediaListEntryMediaListMedia) GetId() int { return v.Id }
+// GetId returns UpdateMediaListProgressSaveMediaListEntryMediaListMedia.Id, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListProgressSaveMediaListEntryMediaListMedia) GetId() int { return v.Id }
 
-// GetIdMal returns SaveMediaListSaveMediaListEntryMediaListMedia.IdMal, and is useful for accessing the field via an interface.
-func (v *SaveMediaListSaveMediaListEntryMediaListMedia) GetIdMal() int { return v.IdMal }
+// GetIdMal returns UpdateMediaListProgressSaveMediaListEntryMediaListMedia.IdMal, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListProgressSaveMediaListEntryMediaListMedia) GetIdMal() int { return v.IdMal }
+
+// UpdateMediaListStatusResponse is returned by UpdateMediaListStatus on success.
+type UpdateMediaListStatusResponse struct {
+	// Create or update a media list entry
+	SaveMediaListEntry UpdateMediaListStatusSaveMediaListEntryMediaList `json:"SaveMediaListEntry"`
+}
+
+// GetSaveMediaListEntry returns UpdateMediaListStatusResponse.SaveMediaListEntry, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListStatusResponse) GetSaveMediaListEntry() UpdateMediaListStatusSaveMediaListEntryMediaList {
+	return v.SaveMediaListEntry
+}
+
+// UpdateMediaListStatusSaveMediaListEntryMediaList includes the requested fields of the GraphQL type MediaList.
+// The GraphQL type's documentation follows.
+//
+// List of anime or manga
+type UpdateMediaListStatusSaveMediaListEntryMediaList struct {
+	// The id of the list entry
+	Id int `json:"id"`
+	// The watching/reading status
+	Status MediaListStatus `json:"status"`
+	// The amount of episodes/chapters consumed by the user
+	Progress int `json:"progress"`
+	// When the entry data was last updated
+	UpdatedAt int                                                   `json:"updatedAt"`
+	Media     UpdateMediaListStatusSaveMediaListEntryMediaListMedia `json:"media"`
+}
+
+// GetId returns UpdateMediaListStatusSaveMediaListEntryMediaList.Id, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListStatusSaveMediaListEntryMediaList) GetId() int { return v.Id }
+
+// GetStatus returns UpdateMediaListStatusSaveMediaListEntryMediaList.Status, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListStatusSaveMediaListEntryMediaList) GetStatus() MediaListStatus {
+	return v.Status
+}
+
+// GetProgress returns UpdateMediaListStatusSaveMediaListEntryMediaList.Progress, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListStatusSaveMediaListEntryMediaList) GetProgress() int { return v.Progress }
+
+// GetUpdatedAt returns UpdateMediaListStatusSaveMediaListEntryMediaList.UpdatedAt, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListStatusSaveMediaListEntryMediaList) GetUpdatedAt() int { return v.UpdatedAt }
+
+// GetMedia returns UpdateMediaListStatusSaveMediaListEntryMediaList.Media, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListStatusSaveMediaListEntryMediaList) GetMedia() UpdateMediaListStatusSaveMediaListEntryMediaListMedia {
+	return v.Media
+}
+
+// UpdateMediaListStatusSaveMediaListEntryMediaListMedia includes the requested fields of the GraphQL type Media.
+// The GraphQL type's documentation follows.
+//
+// Anime or Manga
+type UpdateMediaListStatusSaveMediaListEntryMediaListMedia struct {
+	// The id of the media
+	Id int `json:"id"`
+	// The mal id of the media
+	IdMal int `json:"idMal"`
+}
+
+// GetId returns UpdateMediaListStatusSaveMediaListEntryMediaListMedia.Id, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListStatusSaveMediaListEntryMediaListMedia) GetId() int { return v.Id }
+
+// GetIdMal returns UpdateMediaListStatusSaveMediaListEntryMediaListMedia.IdMal, and is useful for accessing the field via an interface.
+func (v *UpdateMediaListStatusSaveMediaListEntryMediaListMedia) GetIdMal() int { return v.IdMal }
 
 // __DeleteMediaListEntryInput is used internally by genqlient
 type __DeleteMediaListEntryInput struct {
@@ -866,21 +994,45 @@ func (v *__GetUserEntryIdInput) GetMediaId() int { return v.MediaId }
 // GetUserId returns __GetUserEntryIdInput.UserId, and is useful for accessing the field via an interface.
 func (v *__GetUserEntryIdInput) GetUserId() int { return v.UserId }
 
-// __SaveMediaListInput is used internally by genqlient
-type __SaveMediaListInput struct {
+// __InsertMediaListEntryInput is used internally by genqlient
+type __InsertMediaListEntryInput struct {
 	MediaId  int             `json:"mediaId"`
 	Status   MediaListStatus `json:"status"`
 	Progress int             `json:"progress"`
 }
 
-// GetMediaId returns __SaveMediaListInput.MediaId, and is useful for accessing the field via an interface.
-func (v *__SaveMediaListInput) GetMediaId() int { return v.MediaId }
+// GetMediaId returns __InsertMediaListEntryInput.MediaId, and is useful for accessing the field via an interface.
+func (v *__InsertMediaListEntryInput) GetMediaId() int { return v.MediaId }
 
-// GetStatus returns __SaveMediaListInput.Status, and is useful for accessing the field via an interface.
-func (v *__SaveMediaListInput) GetStatus() MediaListStatus { return v.Status }
+// GetStatus returns __InsertMediaListEntryInput.Status, and is useful for accessing the field via an interface.
+func (v *__InsertMediaListEntryInput) GetStatus() MediaListStatus { return v.Status }
 
-// GetProgress returns __SaveMediaListInput.Progress, and is useful for accessing the field via an interface.
-func (v *__SaveMediaListInput) GetProgress() int { return v.Progress }
+// GetProgress returns __InsertMediaListEntryInput.Progress, and is useful for accessing the field via an interface.
+func (v *__InsertMediaListEntryInput) GetProgress() int { return v.Progress }
+
+// __UpdateMediaListProgressInput is used internally by genqlient
+type __UpdateMediaListProgressInput struct {
+	MediaId  int `json:"mediaId"`
+	Progress int `json:"progress"`
+}
+
+// GetMediaId returns __UpdateMediaListProgressInput.MediaId, and is useful for accessing the field via an interface.
+func (v *__UpdateMediaListProgressInput) GetMediaId() int { return v.MediaId }
+
+// GetProgress returns __UpdateMediaListProgressInput.Progress, and is useful for accessing the field via an interface.
+func (v *__UpdateMediaListProgressInput) GetProgress() int { return v.Progress }
+
+// __UpdateMediaListStatusInput is used internally by genqlient
+type __UpdateMediaListStatusInput struct {
+	MediaId int             `json:"mediaId"`
+	Status  MediaListStatus `json:"status"`
+}
+
+// GetMediaId returns __UpdateMediaListStatusInput.MediaId, and is useful for accessing the field via an interface.
+func (v *__UpdateMediaListStatusInput) GetMediaId() int { return v.MediaId }
+
+// GetStatus returns __UpdateMediaListStatusInput.Status, and is useful for accessing the field via an interface.
+func (v *__UpdateMediaListStatusInput) GetStatus() MediaListStatus { return v.Status }
 
 // The mutation executed by DeleteMediaListEntry.
 const DeleteMediaListEntry_Operation = `
@@ -1241,9 +1393,9 @@ func GetUserEntryId(
 	return data_, err_
 }
 
-// The mutation executed by SaveMediaList.
-const SaveMediaList_Operation = `
-mutation SaveMediaList ($mediaId: Int, $status: MediaListStatus, $progress: Int) {
+// The mutation executed by InsertMediaListEntry.
+const InsertMediaListEntry_Operation = `
+mutation InsertMediaListEntry ($mediaId: Int, $status: MediaListStatus, $progress: Int) {
 	SaveMediaListEntry(mediaId: $mediaId, status: $status, progress: $progress) {
 		id
 		status
@@ -1257,24 +1409,110 @@ mutation SaveMediaList ($mediaId: Int, $status: MediaListStatus, $progress: Int)
 }
 `
 
-func SaveMediaList(
+func InsertMediaListEntry(
 	ctx_ context.Context,
 	client_ graphql.Client,
 	mediaId int,
 	status MediaListStatus,
 	progress int,
-) (data_ *SaveMediaListResponse, err_ error) {
+) (data_ *InsertMediaListEntryResponse, err_ error) {
 	req_ := &graphql.Request{
-		OpName: "SaveMediaList",
-		Query:  SaveMediaList_Operation,
-		Variables: &__SaveMediaListInput{
+		OpName: "InsertMediaListEntry",
+		Query:  InsertMediaListEntry_Operation,
+		Variables: &__InsertMediaListEntryInput{
 			MediaId:  mediaId,
 			Status:   status,
 			Progress: progress,
 		},
 	}
 
-	data_ = &SaveMediaListResponse{}
+	data_ = &InsertMediaListEntryResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by UpdateMediaListProgress.
+const UpdateMediaListProgress_Operation = `
+mutation UpdateMediaListProgress ($mediaId: Int, $progress: Int) {
+	SaveMediaListEntry(mediaId: $mediaId, progress: $progress) {
+		id
+		status
+		progress
+		updatedAt
+		media {
+			id
+			idMal
+		}
+	}
+}
+`
+
+func UpdateMediaListProgress(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	mediaId int,
+	progress int,
+) (data_ *UpdateMediaListProgressResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "UpdateMediaListProgress",
+		Query:  UpdateMediaListProgress_Operation,
+		Variables: &__UpdateMediaListProgressInput{
+			MediaId:  mediaId,
+			Progress: progress,
+		},
+	}
+
+	data_ = &UpdateMediaListProgressResponse{}
+	resp_ := &graphql.Response{Data: data_}
+
+	err_ = client_.MakeRequest(
+		ctx_,
+		req_,
+		resp_,
+	)
+
+	return data_, err_
+}
+
+// The mutation executed by UpdateMediaListStatus.
+const UpdateMediaListStatus_Operation = `
+mutation UpdateMediaListStatus ($mediaId: Int, $status: MediaListStatus) {
+	SaveMediaListEntry(mediaId: $mediaId, status: $status) {
+		id
+		status
+		progress
+		updatedAt
+		media {
+			id
+			idMal
+		}
+	}
+}
+`
+
+func UpdateMediaListStatus(
+	ctx_ context.Context,
+	client_ graphql.Client,
+	mediaId int,
+	status MediaListStatus,
+) (data_ *UpdateMediaListStatusResponse, err_ error) {
+	req_ := &graphql.Request{
+		OpName: "UpdateMediaListStatus",
+		Query:  UpdateMediaListStatus_Operation,
+		Variables: &__UpdateMediaListStatusInput{
+			MediaId: mediaId,
+			Status:  status,
+		},
+	}
+
+	data_ = &UpdateMediaListStatusResponse{}
 	resp_ := &graphql.Response{Data: data_}
 
 	err_ = client_.MakeRequest(

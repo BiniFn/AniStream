@@ -21,7 +21,15 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	mgr := worker.NewManager(deps.Repo, deps.Scraper, deps.Cache, deps.Log.With("component", "worker"))
+	mgr := worker.NewManager(
+		deps.Db,
+		deps.Repo,
+		deps.Scraper,
+		deps.MAL,
+		deps.Anilist,
+		deps.Cache,
+		deps.Log.With("component", "worker"),
+	)
 
 	if err := mgr.Bootstrap(ctx); err != nil {
 		deps.Log.Error("Error in bootstrapping:", "err", err)

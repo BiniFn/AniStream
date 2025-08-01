@@ -175,7 +175,7 @@ func (c *Client) GetUserAnimeList(ctx context.Context, params GetUserAnimeListPa
 	return *data, nil
 }
 
-type UpdateAnimeListParams struct {
+type InsertAnimeToListParams struct {
 	Token           string
 	MalID           int
 	Status          string
@@ -197,7 +197,7 @@ func (c *Client) convertFromRepoStatus(status string) operations.MediaListStatus
 	}
 }
 
-func (c *Client) UpdateAnimeList(ctx context.Context, params UpdateAnimeListParams) error {
+func (c *Client) InsertAnimeToList(ctx context.Context, params InsertAnimeToListParams) error {
 	ctx = c.withToken(ctx, params.Token)
 
 	mediaID, err := c.getAnilistIDFromMALID(ctx, params.MalID)
@@ -207,7 +207,55 @@ func (c *Client) UpdateAnimeList(ctx context.Context, params UpdateAnimeListPara
 
 	status := c.convertFromRepoStatus(params.Status)
 
-	res, err := operations.SaveMediaList(ctx, c.graphqlClient, mediaID, status, params.WatchedEpisodes)
+	res, err := operations.InsertMediaListEntry(ctx, c.graphqlClient, mediaID, status, params.WatchedEpisodes)
+	if err != nil {
+		return err
+	}
+
+	c.setEntryCache(params.MalID, res.SaveMediaListEntry.GetId())
+	return nil
+}
+
+type UpdateAnimeEntryStatusParams struct {
+	Token  string
+	MalID  int
+	Status string
+}
+
+func (c *Client) UpdateAnimeEntryStatus(ctx context.Context, params UpdateAnimeEntryStatusParams) error {
+	ctx = c.withToken(ctx, params.Token)
+
+	mediaID, err := c.getAnilistIDFromMALID(ctx, params.MalID)
+	if err != nil {
+		return err
+	}
+
+	status := c.convertFromRepoStatus(params.Status)
+
+	res, err := operations.UpdateMediaListStatus(ctx, c.graphqlClient, mediaID, status)
+	if err != nil {
+		return err
+	}
+
+	c.setEntryCache(params.MalID, res.SaveMediaListEntry.GetId())
+	return nil
+}
+
+type UpdateAnimeEntryProgressParams struct {
+	Token           string
+	MalID           int
+	WatchedEpisodes int
+}
+
+func (c *Client) UpdateAnimeEntryProgress(ctx context.Context, params UpdateAnimeEntryProgressParams) error {
+	ctx = c.withToken(ctx, params.Token)
+
+	mediaID, err := c.getAnilistIDFromMALID(ctx, params.MalID)
+	if err != nil {
+		return err
+	}
+
+	res, err := operations.UpdateMediaListProgress(ctx, c.graphqlClient, mediaID, params.WatchedEpisodes)
 	if err != nil {
 		return err
 	}

@@ -138,7 +138,7 @@ query GetUserEntryId($mediaId: Int!, $userId: Int!) {
     }
 }
 
-mutation SaveMediaList(
+mutation InsertMediaListEntry(
     $mediaId: Int
     $status: MediaListStatus
     $progress: Int
@@ -148,6 +148,32 @@ mutation SaveMediaList(
         status: $status
         progress: $progress
     ) {
+        id
+        status
+        progress
+        updatedAt
+        media {
+            id
+            idMal
+        }
+    }
+}
+
+mutation UpdateMediaListStatus($mediaId: Int, $status: MediaListStatus) {
+    SaveMediaListEntry(mediaId: $mediaId, status: $status) {
+        id
+        status
+        progress
+        updatedAt
+        media {
+            id
+            idMal
+        }
+    }
+}
+
+mutation UpdateMediaListProgress($mediaId: Int, $progress: Int) {
+    SaveMediaListEntry(mediaId: $mediaId, progress: $progress) {
         id
         status
         progress

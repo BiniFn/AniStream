@@ -167,7 +167,7 @@ func createLibrary(svc *library.LibraryService) http.HandlerFunc {
 
 		var body struct {
 			Status         string `json:"status"`
-			WatchedEpisode int32  `json:"watched_episode"`
+			WatchedEpisode int32  `json:"watchedEpisodes"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
