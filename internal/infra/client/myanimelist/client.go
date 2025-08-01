@@ -218,3 +218,24 @@ func (c *Client) UpdateAnimeList(ctx context.Context, params UpdateAnimeListPara
 
 	return nil
 }
+
+type DeleteAnimeListParams struct {
+	Token   string
+	AnimeID int
+}
+
+func (c *Client) DeleteAnimeList(ctx context.Context, params DeleteAnimeListParams) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/anime/%d/my_list_status", c.baseURL, params.AnimeID), nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+params.Token)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	return nil
+}
