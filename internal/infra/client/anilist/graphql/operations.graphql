@@ -111,8 +111,8 @@ query GetAnimeDetails($idMal: Int!) {
     }
 }
 
-query GetAnimeId($idIn: [Int], $idMalIn: [Int]) {
-    Media(id_in: $idIn, idMal_in: $idMalIn) {
+query GetAnimeId($idMal: Int!) {
+    Media(idMal: $idMal, type: ANIME) {
         id
     }
 }

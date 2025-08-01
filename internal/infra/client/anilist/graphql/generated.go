@@ -820,15 +820,11 @@ func (v *__GetAnimeDetailsInput) GetIdMal() int { return v.IdMal }
 
 // __GetAnimeIdInput is used internally by genqlient
 type __GetAnimeIdInput struct {
-	IdIn    []int `json:"idIn"`
-	IdMalIn []int `json:"idMalIn"`
+	IdMal int `json:"idMal"`
 }
 
-// GetIdIn returns __GetAnimeIdInput.IdIn, and is useful for accessing the field via an interface.
-func (v *__GetAnimeIdInput) GetIdIn() []int { return v.IdIn }
-
-// GetIdMalIn returns __GetAnimeIdInput.IdMalIn, and is useful for accessing the field via an interface.
-func (v *__GetAnimeIdInput) GetIdMalIn() []int { return v.IdMalIn }
+// GetIdMal returns __GetAnimeIdInput.IdMal, and is useful for accessing the field via an interface.
+func (v *__GetAnimeIdInput) GetIdMal() int { return v.IdMal }
 
 // __GetSeasonalAnimeInput is used internally by genqlient
 type __GetSeasonalAnimeInput struct {
@@ -974,8 +970,8 @@ func GetAnimeDetails(
 
 // The query executed by GetAnimeId.
 const GetAnimeId_Operation = `
-query GetAnimeId ($idIn: [Int], $idMalIn: [Int]) {
-	Media(id_in: $idIn, idMal_in: $idMalIn) {
+query GetAnimeId ($idMal: Int!) {
+	Media(idMal: $idMal, type: ANIME) {
 		id
 	}
 }
@@ -984,15 +980,13 @@ query GetAnimeId ($idIn: [Int], $idMalIn: [Int]) {
 func GetAnimeId(
 	ctx_ context.Context,
 	client_ graphql.Client,
-	idIn []int,
-	idMalIn []int,
+	idMal int,
 ) (data_ *GetAnimeIdResponse, err_ error) {
 	req_ := &graphql.Request{
 		OpName: "GetAnimeId",
 		Query:  GetAnimeId_Operation,
 		Variables: &__GetAnimeIdInput{
-			IdIn:    idIn,
-			IdMalIn: idMalIn,
+			IdMal: idMal,
 		},
 	}
 

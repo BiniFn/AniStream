@@ -7,18 +7,24 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/Khan/genqlient/graphql"
 	operations "github.com/coeeter/aniways/internal/infra/client/anilist/graphql"
 	"github.com/coeeter/aniways/internal/repository"
 )
 
-var (
-	url = "https://graphql.anilist.co"
-)
+const apiURL = "https://graphql.anilist.co"
+
+var ErrInvalidToken = errors.New("invalid token")
 
 type Client struct {
 	graphqlClient graphql.Client
+
+	mu         sync.RWMutex
+	tokenCache map[string]int
+	malIDCache map[int]int
+	entryCache map[int]int
 }
 
 type httpClient struct {
@@ -34,10 +40,85 @@ func (h *httpClient) Do(req *http.Request) (*http.Response, error) {
 
 func New() *Client {
 	return &Client{
-		graphqlClient: graphql.NewClient(url, &httpClient{
-			client: http.DefaultClient,
-		}),
+		graphqlClient: graphql.NewClient(apiURL, &httpClient{client: http.DefaultClient}),
+		tokenCache:    make(map[string]int),
+		malIDCache:    make(map[int]int),
+		entryCache:    make(map[int]int),
 	}
+}
+
+func (c *Client) withToken(ctx context.Context, token string) context.Context {
+	return context.WithValue(ctx, "token", token)
+}
+
+func (c *Client) extractUserID(token string) (int, error) {
+	c.mu.RLock()
+	if id, ok := c.tokenCache[token]; ok {
+		c.mu.RUnlock()
+		return id, nil
+	}
+	c.mu.RUnlock()
+
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return 0, ErrInvalidToken
+	}
+
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return 0, ErrInvalidToken
+	}
+
+	var claims map[string]interface{}
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return 0, ErrInvalidToken
+	}
+
+	userID, ok := claims["sub"].(float64)
+	if !ok {
+		return 0, ErrInvalidToken
+	}
+
+	c.mu.Lock()
+	c.tokenCache[token] = int(userID)
+	c.mu.Unlock()
+
+	return int(userID), nil
+}
+
+func (c *Client) getAnilistIDFromMALID(ctx context.Context, malID int) (int, error) {
+	c.mu.RLock()
+	if id, ok := c.malIDCache[malID]; ok {
+		c.mu.RUnlock()
+		return id, nil
+	}
+	c.mu.RUnlock()
+
+	res, err := operations.GetAnimeId(ctx, c.graphqlClient, malID)
+	if err != nil {
+		return 0, err
+	}
+
+	id := res.Media.GetId()
+
+	c.mu.Lock()
+	c.malIDCache[malID] = id
+	c.mu.Unlock()
+
+	return id, nil
+}
+
+func (c *Client) setEntryCache(malID, entryID int) {
+	c.mu.Lock()
+	c.entryCache[malID] = entryID
+	c.mu.Unlock()
+}
+
+func (c *Client) getEntryCache(malID int) (int, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	id, ok := c.entryCache[malID]
+	return id, ok
 }
 
 func (c *Client) GetSeasonalMedia(ctx context.Context, year int, season string) (operations.GetSeasonalAnimeResponse, error) {
@@ -78,36 +159,6 @@ type GetUserAnimeListParams struct {
 	ItemsPerPage int
 }
 
-var ErrInvalidToken = errors.New("invalid token")
-
-func (c *Client) extractUserID(token string) (int, error) {
-	parts := strings.Split(token, ".")
-	if len(parts) != 3 {
-		return 0, ErrInvalidToken
-	}
-
-	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
-	if err != nil {
-		return 0, ErrInvalidToken
-	}
-
-	var claims map[string]interface{}
-	if err := json.Unmarshal(payload, &claims); err != nil {
-		return 0, ErrInvalidToken
-	}
-
-	userID, ok := claims["sub"].(float64)
-	if !ok {
-		return 0, ErrInvalidToken
-	}
-
-	return int(userID), nil
-}
-
-func (c *Client) withToken(ctx context.Context, token string) context.Context {
-	return context.WithValue(ctx, "token", token)
-}
-
 func (c *Client) GetUserAnimeList(ctx context.Context, params GetUserAnimeListParams) (operations.GetUserAnimeListResponse, error) {
 	userID, err := c.extractUserID(params.Token)
 	if err != nil {
@@ -127,7 +178,6 @@ func (c *Client) GetUserAnimeList(ctx context.Context, params GetUserAnimeListPa
 type UpdateAnimeListParams struct {
 	Token           string
 	MalID           int
-	AnilistID       int
 	Status          string
 	WatchedEpisodes int
 }
@@ -142,8 +192,6 @@ func (c *Client) convertFromRepoStatus(status string) operations.MediaListStatus
 		return operations.MediaListStatusPaused
 	case string(repository.LibraryStatusDropped):
 		return operations.MediaListStatusDropped
-	case string(repository.LibraryStatusPlanning):
-		return operations.MediaListStatusPlanning
 	default:
 		return operations.MediaListStatusPlanning
 	}
@@ -152,50 +200,50 @@ func (c *Client) convertFromRepoStatus(status string) operations.MediaListStatus
 func (c *Client) UpdateAnimeList(ctx context.Context, params UpdateAnimeListParams) error {
 	ctx = c.withToken(ctx, params.Token)
 
+	mediaID, err := c.getAnilistIDFromMALID(ctx, params.MalID)
+	if err != nil {
+		return err
+	}
+
 	status := c.convertFromRepoStatus(params.Status)
-	watchedEpisodes := params.WatchedEpisodes
 
-	res, err := operations.GetAnimeId(ctx, c.graphqlClient, []int{params.AnilistID}, []int{params.MalID})
+	res, err := operations.SaveMediaList(ctx, c.graphqlClient, mediaID, status, params.WatchedEpisodes)
 	if err != nil {
 		return err
 	}
 
-	_, err = operations.SaveMediaList(ctx, c.graphqlClient, res.Media.GetId(), status, watchedEpisodes)
-	if err != nil {
-		return err
-	}
-
+	c.setEntryCache(params.MalID, res.SaveMediaListEntry.GetId())
 	return nil
 }
 
 type DeleteAnimeListParams struct {
-	Token     string
-	MalID     int
-	AnilistID int
+	Token string
+	MalID int
 }
 
 func (c *Client) DeleteAnimeList(ctx context.Context, params DeleteAnimeListParams) error {
 	ctx = c.withToken(ctx, params.Token)
 
-	userId, err := c.extractUserID(params.Token)
+	userID, err := c.extractUserID(params.Token)
 	if err != nil {
 		return err
 	}
 
-	res, err := operations.GetAnimeId(ctx, c.graphqlClient, []int{params.AnilistID}, []int{params.MalID})
+	mediaID, err := c.getAnilistIDFromMALID(ctx, params.MalID)
 	if err != nil {
 		return err
 	}
 
-	entry, err := operations.GetUserEntryId(ctx, c.graphqlClient, res.Media.GetId(), userId)
-	if err != nil {
-		return err
+	entryID, ok := c.getEntryCache(params.MalID)
+	if !ok {
+		entry, err := operations.GetUserEntryId(ctx, c.graphqlClient, mediaID, userID)
+		if err != nil {
+			return err
+		}
+		entryID = entry.MediaList.GetId()
+		c.setEntryCache(params.MalID, entryID)
 	}
 
-	_, err = operations.DeleteMediaListEntry(ctx, c.graphqlClient, entry.MediaList.GetId())
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err = operations.DeleteMediaListEntry(ctx, c.graphqlClient, entryID)
+	return err
 }
