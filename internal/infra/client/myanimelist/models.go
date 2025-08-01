@@ -190,7 +190,9 @@ func (MalListStatus) FromRepository(status string) MalListStatus {
 
 type AnimeList struct {
 	Data []struct {
-		Node       MalAnimeMetadata `json:"node"`
+		Node struct {
+			ID int `json:"id"`
+		} `json:"node"`
 		ListStatus struct {
 			Status          string `json:"status"`
 			EpisodesWatched int    `json:"num_watched_episodes"`

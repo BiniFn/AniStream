@@ -1,112 +1,166 @@
 query GetSeasonalAnime($year: Int!, $season: MediaSeason!) {
-  page: Page(page: 1, perPage: 10) {
-    media(
-      season: $season
-      seasonYear: $year
-      sort: POPULARITY_DESC
-      type: ANIME
-      isAdult: false
-    ) {
-      id
-      idMal
-      title {
-        romaji
-      }
-      type
-      bannerImage
-      coverImage {
-        large
-        extraLarge
-      }
-      description
-      format
-      episodes
-      startDate {
-        year
-        month
-        day
-      }
+    page: Page(page: 1, perPage: 10) {
+        media(
+            season: $season
+            seasonYear: $year
+            sort: POPULARITY_DESC
+            type: ANIME
+            isAdult: false
+        ) {
+            id
+            idMal
+            title {
+                romaji
+            }
+            type
+            bannerImage
+            coverImage {
+                large
+                extraLarge
+            }
+            description
+            format
+            episodes
+            startDate {
+                year
+                month
+                day
+            }
+        }
     }
-  }
 }
 
 query GetTrendingAnime {
-  page: Page(page: 1, perPage: 10) {
-    media(
-      sort: TRENDING_DESC
-      type: ANIME
-      isAdult: false
-      startDate_greater: 19800101
-    ) {
-      id
-      idMal
-      title {
-        romaji
-      }
-      type
-      bannerImage
-      coverImage {
-        large
-        extraLarge
-      }
-      description
-      format
-      episodes
-      startDate {
-        year
-        month
-        day
-      }
+    page: Page(page: 1, perPage: 10) {
+        media(
+            sort: TRENDING_DESC
+            type: ANIME
+            isAdult: false
+            startDate_greater: 19800101
+        ) {
+            id
+            idMal
+            title {
+                romaji
+            }
+            type
+            bannerImage
+            coverImage {
+                large
+                extraLarge
+            }
+            description
+            format
+            episodes
+            startDate {
+                year
+                month
+                day
+            }
+        }
     }
-  }
 }
 
 query GetPopularAnime {
-  page: Page(page: 1, perPage: 10) {
-    media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
-      id
-      idMal
-      title {
-        romaji
-      }
-      type
-      bannerImage
-      coverImage {
-        large
-        extraLarge
-      }
-      description
-      format
-      episodes
-      startDate {
-        year
-        month
-        day
-      }
+    page: Page(page: 1, perPage: 10) {
+        media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
+            id
+            idMal
+            title {
+                romaji
+            }
+            type
+            bannerImage
+            coverImage {
+                large
+                extraLarge
+            }
+            description
+            format
+            episodes
+            startDate {
+                year
+                month
+                day
+            }
+        }
     }
-  }
 }
 
 query GetAnimeDetails($idMal: Int!) {
-  Media(idMal: $idMal, type: ANIME) {
-    id
-    idMal
-    title {
-      romaji
+    Media(idMal: $idMal, type: ANIME) {
+        id
+        idMal
+        title {
+            romaji
+        }
+        type
+        bannerImage
+        coverImage {
+            large
+            extraLarge
+        }
+        description
+        format
+        episodes
+        startDate {
+            year
+            month
+            day
+        }
     }
-    type
-    bannerImage
-    coverImage {
-      large
-      extraLarge
+}
+
+query GetAnimeId($idIn: [Int], $idMalIn: [Int]) {
+    Media(id_in: $idIn, idMal_in: $idMalIn) {
+        id
     }
-    description
-    format
-    episodes
-    startDate {
-      year
-      month
-      day
+}
+
+query GetUserAnimeList($page: Int, $perPage: Int, $userId: Int) {
+    Page(page: $page, perPage: $perPage) {
+        mediaList(userId: $userId, type: ANIME) {
+            id
+            status
+            progress
+            updatedAt
+            media {
+                id
+                idMal
+            }
+        }
     }
-  }
+}
+
+query GetUserEntryId($mediaId: Int!, $userId: Int!) {
+    MediaList(userId: $userId, mediaId: $mediaId, type: ANIME) {
+        id
+    }
+}
+
+mutation SaveMediaList(
+    $mediaId: Int
+    $status: MediaListStatus
+    $progress: Int
+) {
+    SaveMediaListEntry(
+        mediaId: $mediaId
+        status: $status
+        progress: $progress
+    ) {
+        id
+        status
+        progress
+        updatedAt
+        media {
+            id
+            idMal
+        }
+    }
+}
+
+mutation DeleteMediaListEntry($mediaListEntryId: Int) {
+    DeleteMediaListEntry(id: $mediaListEntryId) {
+        deleted
+    }
 }
