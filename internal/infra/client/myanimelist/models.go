@@ -135,3 +135,66 @@ func (m MalAnimeMetadata) ToUpsertParams() repository.UpsertAnimeMetadataParams 
 		Season:             season,
 	}
 }
+
+type MalListStatus string
+
+var (
+	MalListStatusWatching    = MalListStatus("watching")
+	MalListStatusCompleted   = MalListStatus("completed")
+	MalListStatusOnHold      = MalListStatus("on_hold")
+	MalListStatusDropped     = MalListStatus("dropped")
+	MalListStatusPlanToWatch = MalListStatus("plan_to_watch")
+)
+
+func (status MalListStatus) IsValid() bool {
+	return status == MalListStatusWatching ||
+		status == MalListStatusCompleted ||
+		status == MalListStatusOnHold ||
+		status == MalListStatusDropped ||
+		status == MalListStatusPlanToWatch
+}
+
+func (status MalListStatus) ToRepository() string {
+	switch status {
+	case MalListStatusWatching:
+		return string(repository.LibraryStatusWatching)
+	case MalListStatusCompleted:
+		return string(repository.LibraryStatusCompleted)
+	case MalListStatusOnHold:
+		return string(repository.LibraryStatusPaused)
+	case MalListStatusDropped:
+		return string(repository.LibraryStatusDropped)
+	case MalListStatusPlanToWatch:
+		return string(repository.LibraryStatusPlanning)
+	default:
+		return "unknown"
+	}
+}
+
+func (MalListStatus) FromRepository(status string) MalListStatus {
+	switch status {
+	case string(repository.LibraryStatusWatching):
+		return MalListStatusWatching
+	case string(repository.LibraryStatusCompleted):
+		return MalListStatusCompleted
+	case string(repository.LibraryStatusPaused):
+		return MalListStatusOnHold
+	case string(repository.LibraryStatusDropped):
+		return MalListStatusDropped
+	case string(repository.LibraryStatusPlanning):
+		return MalListStatusPlanToWatch
+	default:
+		return MalListStatusPlanToWatch
+	}
+}
+
+type AnimeList struct {
+	Data []struct {
+		Node       MalAnimeMetadata `json:"node"`
+		ListStatus struct {
+			Status          string `json:"status"`
+			EpisodesWatched int    `json:"num_watched_episodes"`
+			UpdatedAt       string `json:"updated_at"`
+		} `json:"list_status"`
+	} `json:"data"`
+}

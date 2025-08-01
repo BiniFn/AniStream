@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -116,4 +117,104 @@ func (c *Client) GetTrailer(ctx context.Context, malID int) (string, error) {
 		return "", fmt.Errorf("trailer is not a YouTube link: %s", trailerURL)
 	}
 	return trailerURL, nil
+}
+
+type GetAnimeListParams struct {
+	Token        string
+	Status       string
+	Sort         string
+	Page         int
+	ItemsPerPage int
+}
+
+func (c *Client) GetAnimeList(ctx context.Context, params GetAnimeListParams) (AnimeList, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/users/@me/animelist", c.baseURL))
+	if err != nil {
+		return AnimeList{}, fmt.Errorf("failed to parse URL: %w", err)
+	}
+
+	query := url.Values{}
+
+	s := MalListStatus("").FromRepository(params.Status)
+	if s.IsValid() {
+		query.Set("status", string(s))
+	}
+
+	if params.Sort != "" {
+		query.Set("sort", params.Sort)
+	}
+
+	limit := params.ItemsPerPage
+	if limit == 0 {
+		limit = 30
+	}
+
+	offset := (params.Page - 1) * limit
+
+	query.Set("limit", strconv.Itoa(limit))
+	query.Set("offset", strconv.Itoa(offset))
+	query.Set("fields", strings.Join(metadataFields, ","))
+
+	u.RawQuery = query.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return AnimeList{}, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+params.Token)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return AnimeList{}, fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return AnimeList{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var animeList AnimeList
+	if err := json.NewDecoder(resp.Body).Decode(&animeList); err != nil {
+		return AnimeList{}, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return animeList, nil
+}
+
+type UpdateAnimeListParams struct {
+	Token           string
+	AnimeID         int
+	Status          string
+	WatchedEpisodes int
+}
+
+func (c *Client) UpdateAnimeList(ctx context.Context, params UpdateAnimeListParams) error {
+	body := url.Values{}
+
+	s := MalListStatus("").FromRepository(params.Status)
+	if s.IsValid() {
+		body.Set("status", string(s))
+	}
+	if params.WatchedEpisodes > 0 {
+		body.Set("num_watched_episodes", strconv.Itoa(params.WatchedEpisodes))
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "PATCH", fmt.Sprintf("%s/anime/%d/my_list_status", c.baseURL, params.AnimeID), strings.NewReader(body.Encode()))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+params.Token)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
 }
