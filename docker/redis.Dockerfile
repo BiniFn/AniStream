@@ -1,4 +1,4 @@
-FROM redis:8-alpine
+FROM redis:8-alpine as redis
 
 # Copy custom entrypoint
 COPY docker/redis-entrypoint.sh /usr/local/bin/redis-entrypoint.sh
