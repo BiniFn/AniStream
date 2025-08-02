@@ -135,9 +135,8 @@ func (c *Client) GetAnimeList(ctx context.Context, params GetAnimeListParams) (A
 
 	query := url.Values{}
 
-	s := MalListStatus("").FromRepository(params.Status)
-	if s.IsValid() {
-		query.Set("status", string(s))
+	if params.Status != "" {
+		query.Set("status", params.Status)
 	}
 
 	if params.Sort != "" {
@@ -153,7 +152,7 @@ func (c *Client) GetAnimeList(ctx context.Context, params GetAnimeListParams) (A
 
 	query.Set("limit", strconv.Itoa(limit))
 	query.Set("offset", strconv.Itoa(offset))
-	query.Set("fields", strings.Join(metadataFields, ","))
+	query.Set("fields", "list_status")
 
 	u.RawQuery = query.Encode()
 

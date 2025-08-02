@@ -30,3 +30,23 @@ func (LibraryDto) FromRepository(l repository.Library, a repository.Anime) Libra
 		Anime:           anime.AnimeDto{}.FromRepository(a),
 	}
 }
+
+type LibraryImportJobDto struct {
+	ID          string    `json:"id"`
+	UserID      string    `json:"userId"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	CompletedAt time.Time `json:"completedAt"`
+}
+
+func (LibraryImportJobDto) FromRepository(j repository.LibraryImportJob) LibraryImportJobDto {
+	return LibraryImportJobDto{
+		ID:          j.ID,
+		UserID:      j.UserID,
+		Status:      string(j.Status),
+		CreatedAt:   j.CreatedAt.Time,
+		UpdatedAt:   j.UpdatedAt.Time,
+		CompletedAt: j.CompletedAt.Time,
+	}
+}

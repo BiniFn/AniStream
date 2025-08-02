@@ -21,6 +21,15 @@ WHERE
   user_id = sqlc.arg(user_id)
   AND status = sqlc.arg(status);
 
+-- name: IsAnimeInLibrary :one
+SELECT
+  COUNT(*) > 0
+FROM
+  library
+WHERE
+  user_id = sqlc.arg(user_id)
+  AND anime_id = sqlc.arg(anime_id);
+
 -- name: GetLibraryByID :one
 SELECT
   sqlc.embed(library),
@@ -43,8 +52,8 @@ WHERE
   AND library.anime_id = sqlc.arg(anime_id);
 
 -- name: InsertLibrary :exec
-INSERT INTO library(user_id, anime_id, status, watched_episodes)
-  VALUES (sqlc.arg(user_id), sqlc.arg(anime_id), sqlc.arg(status), sqlc.arg(watched_episodes));
+INSERT INTO library(user_id, anime_id, status, watched_episodes, updated_at)
+  VALUES (sqlc.arg(user_id), sqlc.arg(anime_id), sqlc.arg(status), sqlc.arg(watched_episodes), coalesce(sqlc.arg(updated_at), NOW()));
 
 -- name: UpdateLibrary :exec
 UPDATE
@@ -52,7 +61,7 @@ UPDATE
 SET
   status = sqlc.arg(status),
   watched_episodes = sqlc.arg(watched_episodes),
-  updated_at = NOW()
+  updated_at = coalesce(sqlc.arg(updated_at), NOW())
 WHERE
   user_id = sqlc.arg(user_id)
   AND anime_id = sqlc.arg(anime_id);

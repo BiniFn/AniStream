@@ -99,6 +99,50 @@ func (ns NullLibraryActions) Value() (driver.Value, error) {
 	return string(ns.LibraryActions), nil
 }
 
+type LibraryImportStatus string
+
+const (
+	LibraryImportStatusPending    LibraryImportStatus = "pending"
+	LibraryImportStatusInProgress LibraryImportStatus = "in_progress"
+	LibraryImportStatusCompleted  LibraryImportStatus = "completed"
+	LibraryImportStatusFailed     LibraryImportStatus = "failed"
+)
+
+func (e *LibraryImportStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LibraryImportStatus(s)
+	case string:
+		*e = LibraryImportStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LibraryImportStatus: %T", src)
+	}
+	return nil
+}
+
+type NullLibraryImportStatus struct {
+	LibraryImportStatus LibraryImportStatus
+	Valid               bool // Valid is true if LibraryImportStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLibraryImportStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.LibraryImportStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LibraryImportStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLibraryImportStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LibraryImportStatus), nil
+}
+
 type LibraryStatus string
 
 const (
@@ -380,6 +424,17 @@ type Library struct {
 	WatchedEpisodes int32
 	CreatedAt       pgtype.Timestamp
 	UpdatedAt       pgtype.Timestamp
+}
+
+type LibraryImportJob struct {
+	ID           string
+	UserID       string
+	Provider     Provider
+	Status       LibraryImportStatus
+	ErrorMessage pgtype.Text
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
+	CompletedAt  pgtype.Timestamp
 }
 
 type OauthToken struct {

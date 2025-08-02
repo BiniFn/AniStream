@@ -162,13 +162,16 @@ func handleLibrarySync(
 		log.Error("Failed to handle provider", "provider", token.Provider, "err", err)
 	}
 
-	repo.UpdateLibrarySyncStatus(ctx, repository.UpdateLibrarySyncStatusParams{
+	err = repo.UpdateLibrarySyncStatus(ctx, repository.UpdateLibrarySyncStatusParams{
 		Status:   finalStatus,
 		UserID:   payload.UserID,
 		AnimeID:  payload.AnimeID,
 		Provider: repository.Provider(payload.Provider),
 		Action:   repository.LibraryActions(payload.Action),
 	})
+	if err != nil {
+		log.Error("Failed to update library sync status", "err", err)
+	}
 }
 
 func handleMalProvider(

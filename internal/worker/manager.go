@@ -105,6 +105,20 @@ func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provide
 	}()
 
 	go func() {
+		err := startLibraryImportJobListener(
+			ctx,
+			m.db,
+			m.repo,
+			m.malClient,
+			m.aniClient,
+			m.log.With("job", "library-import"),
+		)
+		if err != nil {
+			m.log.Error("library import listener stopped", "err", err)
+		}
+	}()
+
+	go func() {
 		<-ctx.Done()
 		m.log.Info("Shutting down cron scheduler")
 		c.Stop()

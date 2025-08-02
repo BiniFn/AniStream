@@ -297,3 +297,30 @@ func (s *LibraryService) queueSync(ctx context.Context, userID, animeID string, 
 		})
 	}
 }
+
+var ErrInvalidProvider = errors.New("invalid provider")
+
+func (s *LibraryService) ImportLibrary(ctx context.Context, userID, provider string) (string, error) {
+	if provider != string(repository.ProviderMyanimelist) && provider != string(repository.ProviderAnilist) {
+		return "", ErrInvalidProvider
+	}
+
+	return s.repo.CreateLibraryImportJob(ctx, repository.CreateLibraryImportJobParams{
+		UserID:   userID,
+		Provider: repository.Provider(provider),
+	})
+}
+
+var ErrJobNotFound = errors.New("job not found")
+
+func (s *LibraryService) GetImportLibraryStatus(ctx context.Context, jobID string) (LibraryImportJobDto, error) {
+	status, err := s.repo.GetLibraryImportJob(ctx, jobID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return LibraryImportJobDto{}, ErrJobNotFound
+	}
+	if err != nil {
+		return LibraryImportJobDto{}, err
+	}
+
+	return LibraryImportJobDto{}.FromRepository(status), nil
+}

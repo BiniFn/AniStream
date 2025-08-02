@@ -18,6 +18,9 @@ func MountLibraryRoutes(r chi.Router, svc *library.LibraryService) {
 		r.Post("/{animeID}", createLibrary(svc))
 		r.Put("/{animeID}", updateLibrary(svc))
 		r.Delete("/{animeID}", deleteAnimeFromLib(svc))
+
+		r.Post("/import", importLibrary(svc))
+		r.Get("/import/{id}", getLibraryImportStatus(svc))
 	})
 }
 
@@ -218,6 +221,55 @@ func updateLibrary(svc *library.LibraryService) http.HandlerFunc {
 		default:
 			log.Error("failed to update anime in library", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to update anime in library")
+		}
+	}
+}
+
+func importLibrary(svc *library.LibraryService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+		user := middleware.GetUser(r)
+
+		provider := r.URL.Query().Get("provider")
+		if provider == "" {
+			jsonError(w, http.StatusBadRequest, "provider is required")
+			return
+		}
+
+		id, err := svc.ImportLibrary(r.Context(), user.ID, provider)
+		switch err {
+		case library.ErrInvalidProvider:
+			jsonError(w, http.StatusBadRequest, err.Error())
+		case nil:
+			jsonOK(w, map[string]string{
+				"id": id,
+			})
+		default:
+			log.Error("failed to import library", "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to import library")
+		}
+	}
+}
+
+func getLibraryImportStatus(svc *library.LibraryService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
+		id, err := pathParam(r, "id")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		status, err := svc.GetImportLibraryStatus(r.Context(), id)
+		switch err {
+		case library.ErrJobNotFound:
+			jsonError(w, http.StatusNotFound, err.Error())
+		case nil:
+			jsonOK(w, status)
+		default:
+			log.Error("failed to get library import status", "err", err)
+			jsonError(w, http.StatusInternalServerError, "failed to get library import status")
 		}
 	}
 }

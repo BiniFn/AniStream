@@ -7,6 +7,8 @@ package repository
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteLibrary = `-- name: DeleteLibrary :exec
@@ -384,8 +386,8 @@ func (q *Queries) GetPlanToWatchAnimeCount(ctx context.Context, userID string) (
 }
 
 const insertLibrary = `-- name: InsertLibrary :exec
-INSERT INTO library(user_id, anime_id, status, watched_episodes)
-  VALUES ($1, $2, $3, $4)
+INSERT INTO library(user_id, anime_id, status, watched_episodes, updated_at)
+  VALUES ($1, $2, $3, $4, coalesce($5, NOW()))
 `
 
 type InsertLibraryParams struct {
@@ -393,6 +395,7 @@ type InsertLibraryParams struct {
 	AnimeID         string
 	Status          LibraryStatus
 	WatchedEpisodes int32
+	UpdatedAt       interface{}
 }
 
 func (q *Queries) InsertLibrary(ctx context.Context, arg InsertLibraryParams) error {
@@ -401,8 +404,31 @@ func (q *Queries) InsertLibrary(ctx context.Context, arg InsertLibraryParams) er
 		arg.AnimeID,
 		arg.Status,
 		arg.WatchedEpisodes,
+		arg.UpdatedAt,
 	)
 	return err
+}
+
+const isAnimeInLibrary = `-- name: IsAnimeInLibrary :one
+SELECT
+  COUNT(*) > 0
+FROM
+  library
+WHERE
+  user_id = $1
+  AND anime_id = $2
+`
+
+type IsAnimeInLibraryParams struct {
+	UserID  string
+	AnimeID string
+}
+
+func (q *Queries) IsAnimeInLibrary(ctx context.Context, arg IsAnimeInLibraryParams) (bool, error) {
+	row := q.db.QueryRow(ctx, isAnimeInLibrary, arg.UserID, arg.AnimeID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const updateLibrary = `-- name: UpdateLibrary :exec
@@ -411,15 +437,16 @@ UPDATE
 SET
   status = $1,
   watched_episodes = $2,
-  updated_at = NOW()
+  updated_at = coalesce($3, NOW())
 WHERE
-  user_id = $3
-  AND anime_id = $4
+  user_id = $4
+  AND anime_id = $5
 `
 
 type UpdateLibraryParams struct {
 	Status          LibraryStatus
 	WatchedEpisodes int32
+	UpdatedAt       pgtype.Timestamp
 	UserID          string
 	AnimeID         string
 }
@@ -428,6 +455,7 @@ func (q *Queries) UpdateLibrary(ctx context.Context, arg UpdateLibraryParams) er
 	_, err := q.db.Exec(ctx, updateLibrary,
 		arg.Status,
 		arg.WatchedEpisodes,
+		arg.UpdatedAt,
 		arg.UserID,
 		arg.AnimeID,
 	)

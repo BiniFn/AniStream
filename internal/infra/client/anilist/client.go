@@ -159,6 +159,21 @@ func (c *Client) convertFromRepoStatus(status string) operations.MediaListStatus
 	}
 }
 
+func (c *Client) ConvertToRepoStatus(status operations.MediaListStatus) string {
+	switch status {
+	case operations.MediaListStatusCurrent:
+		return string(repository.LibraryStatusWatching)
+	case operations.MediaListStatusCompleted:
+		return string(repository.LibraryStatusCompleted)
+	case operations.MediaListStatusPaused:
+		return string(repository.LibraryStatusPaused)
+	case operations.MediaListStatusDropped:
+		return string(repository.LibraryStatusDropped)
+	default:
+		return string(repository.LibraryStatusPlanning)
+	}
+}
+
 func (c *Client) InsertAnimeToList(ctx context.Context, params InsertAnimeToListParams) error {
 	ctx = c.withToken(ctx, params.Token)
 
