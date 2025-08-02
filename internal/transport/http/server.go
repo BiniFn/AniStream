@@ -10,6 +10,7 @@ import (
 
 	"github.com/coeeter/aniways/internal/app"
 	"github.com/coeeter/aniways/internal/config"
+	"github.com/coeeter/aniways/internal/transport/http/handlers"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/go-chi/chi/v5"
 )
@@ -32,7 +33,8 @@ func New(d *app.Deps, log *slog.Logger) *App {
 		Cld:    d.Cld,
 	})
 
-	RegisterRoutes(r, d)
+	h := handlers.New(d, r)
+	h.RegisterRoutes()
 
 	srv := &http.Server{
 		Addr:              ":" + d.Env.AppPort,

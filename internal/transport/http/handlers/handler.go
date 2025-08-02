@@ -57,6 +57,9 @@ func New(deps *app.Deps, r *chi.Mux) *Handler {
 }
 
 func (h *Handler) RegisterRoutes() {
+	h.r.Get("/", h.home)
+	h.r.Get("/healthz", h.healthz)
+
 	h.AnimeDetailsRoutes()
 	h.AnimeListingRoutes()
 	h.AnimeEpisodeRoutes()
@@ -65,6 +68,18 @@ func (h *Handler) RegisterRoutes() {
 	h.UserRoutes()
 	h.LibraryRoutes()
 	h.SettingsRoutes()
+
+	h.r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		http.NotFound(w, r)
+	})
+}
+
+func (h *Handler) home(w http.ResponseWriter, _ *http.Request) {
+	w.Write([]byte("AniWays API"))
+}
+
+func (h *Handler) healthz(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) Router() *chi.Mux {
