@@ -6,247 +6,231 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/service/auth"
-	"github.com/coeeter/aniways/internal/service/auth/oauth"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/coeeter/aniways/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
-func MountAuthRoutes(
-	r chi.Router,
-	env *config.Env,
-	userService *users.UserService,
-	authService *auth.AuthService,
-	providers []oauth.Provider,
-) {
-	r.Post("/login", login(env, userService))
-	r.Post("/forget-password", forgetPassword(authService))
-	r.Get("/u/{token}", getUser(authService))
-	r.Put("/reset-password/{token}", resetPassword(authService, userService))
-	r.Post("/logout", logout(env, userService))
-	r.Get("/me", me)
+func (h *Handler) AuthRoutes() {
+	h.r.Route("/auth", func(r chi.Router) {
+		r.Post("/login", h.login)
+		r.Post("/forget-password", h.forgetPassword)
+		r.Get("/u/{token}", h.getUser)
+		r.Put("/reset-password/{token}", h.resetPassword)
+		r.Post("/logout", h.logout)
+		r.Get("/me", h.me)
 
-	r.With(middleware.RequireUser).Group(func(r chi.Router) {
-		for _, provider := range providers {
-			mountOAuthRoutes(r, provider)
-		}
-
-		r.Get("/providers", getProviders(authService))
-		r.Delete("/providers/{provider}", deleteProvider(authService))
+		r.With(middleware.RequireUser).Group(func(r chi.Router) {
+			r.Get("/providers", h.getProviders)
+			r.Delete("/providers/{provider}", h.deleteProvider)
+		})
 	})
 }
 
-func login(env *config.Env, userService *users.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger(r)
+// login handles user login
+func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
 
-		var body struct {
-			Email    string `json:"email"`
-			Password string `json:"password"`
-		}
-
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			jsonError(w, http.StatusBadRequest, "Invalid JSON")
-			return
-		}
-
-		user, err := userService.AuthenticateUser(r.Context(), body.Email, body.Password)
-		if err != nil {
-			log.Warn("Failed to authenticate user", "err", err)
-			jsonError(w, http.StatusUnauthorized, "Invalid credentials")
-			return
-		}
-
-		session, err := userService.CreateSession(r.Context(), user.ID)
-		if err != nil {
-			log.Error("Failed to create session", "err", err)
-			jsonError(w, http.StatusInternalServerError, "Failed to create token")
-			return
-		}
-
-		domain := "localhost"
-		if env.CookieDomain != "" && env.CookieDomain != "localhost" {
-			domain = fmt.Sprintf(".%s", env.CookieDomain) // enable subdomain cookies
-		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "aniways_session",
-			Value:    session.ID,
-			Expires:  session.ExpiresAt.Time,
-			HttpOnly: true,
-			Secure:   true,
-			Path:     "/",
-			SameSite: http.SameSiteLaxMode,
-			Domain:   domain,
-		})
-
-		jsonOK(w, user)
+	var body struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
-}
 
-func me(w http.ResponseWriter, r *http.Request) {
-	user, ok := utils.CtxValue[users.User](r.Context())
-	if !ok {
-		jsonError(w, http.StatusUnauthorized, "Invalid session")
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		h.jsonError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
-	jsonOK(w, user)
+	user, err := h.userService.AuthenticateUser(r.Context(), body.Email, body.Password)
+	if err != nil {
+		log.Warn("Failed to authenticate user", "err", err)
+		h.jsonError(w, http.StatusUnauthorized, "Invalid credentials")
+		return
+	}
+
+	session, err := h.userService.CreateSession(r.Context(), user.ID)
+	if err != nil {
+		log.Error("Failed to create session", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "Failed to create token")
+		return
+	}
+
+	domain := "localhost"
+	if h.deps.Env.CookieDomain != "" && h.deps.Env.CookieDomain != "localhost" {
+		domain = fmt.Sprintf(".%s", h.deps.Env.CookieDomain) // enable subdomain cookies
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "aniways_session",
+		Value:    session.ID,
+		Expires:  session.ExpiresAt.Time,
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Domain:   domain,
+	})
+
+	h.jsonOK(w, user)
 }
 
-func logout(env *config.Env, userService *users.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger(r)
+// me handles user profile retrieval
+func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
+	user, ok := utils.CtxValue[users.User](r.Context())
+	if !ok {
+		h.jsonError(w, http.StatusUnauthorized, "Invalid session")
+		return
+	}
 
-		cookie, err := r.Cookie("aniways_session")
-		if err != nil {
-			jsonError(w, http.StatusUnauthorized, "Invalid session")
-			return
-		}
+	h.jsonOK(w, user)
+}
 
-		err = userService.DeleteSession(r.Context(), cookie.Value)
-		if err != nil {
-			log.Error("Failed to delete session", "err", err)
-			jsonError(w, http.StatusInternalServerError, "Failed to delete session")
-			return
-		}
+// logout handles user logout
+func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
 
-		domain := "localhost"
-		if env.CookieDomain != "" && env.CookieDomain != "localhost" {
-			domain = fmt.Sprintf(".%s", env.CookieDomain) // enable subdomain cookies
-		}
+	cookie, err := r.Cookie("aniways_session")
+	if err != nil {
+		h.jsonError(w, http.StatusUnauthorized, "Invalid session")
+		return
+	}
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     "aniways_session",
-			Value:    "",
-			Expires:  time.Now().Add(-time.Hour),
-			HttpOnly: true,
-			Secure:   true,
-			Path:     "/",
-			SameSite: http.SameSiteLaxMode,
-			Domain:   domain,
-		})
+	err = h.userService.DeleteSession(r.Context(), cookie.Value)
+	if err != nil {
+		log.Error("Failed to delete session", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "Failed to delete session")
+		return
+	}
 
+	domain := "localhost"
+	if h.deps.Env.CookieDomain != "" && h.deps.Env.CookieDomain != "localhost" {
+		domain = fmt.Sprintf(".%s", h.deps.Env.CookieDomain) // enable subdomain cookies
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "aniways_session",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Domain:   domain,
+	})
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// forgetPassword sends reset password email to user
+func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	var input struct {
+		Email string `json:"email"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		h.jsonError(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	if err := h.authService.SendForgetPasswordEmail(r.Context(), input.Email); err != nil {
+		log.Error("Failed to send reset password email", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "Failed to send reset password email")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// getUser returns user information
+func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	token, err := h.pathParam(r, "token")
+	if err != nil {
+		h.jsonError(w, http.StatusBadRequest, "Invalid token")
+		return
+	}
+
+	user, err := h.authService.GetUserByForgetPasswordToken(r.Context(), token)
+	if err != nil {
+		log.Error("Failed to get user by forget password token", "err", err)
+		h.jsonError(w, http.StatusUnauthorized, "Invalid token")
+		return
+	}
+
+	h.jsonOK(w, user)
+}
+
+// resetPassword resets user password
+func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	token, err := h.pathParam(r, "token")
+	if err != nil {
+		h.jsonError(w, http.StatusBadRequest, "Invalid token")
+		return
+	}
+
+	var input struct {
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		h.jsonError(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	err = h.authService.ResetPassword(r.Context(), h.userService, token, input.Password)
+	switch err {
+	case nil:
 		w.WriteHeader(http.StatusOK)
+	case auth.ErrInvalidToken:
+		h.jsonError(w, http.StatusUnauthorized, "Invalid token")
+	case users.ErrPasswordTooLong:
+		h.jsonError(w, http.StatusBadRequest, "Password is too long")
+	default:
+		log.Error("Failed to reset password", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "Failed to reset password")
 	}
 }
 
-func forgetPassword(authService *auth.AuthService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger(r)
+// getProviders returns connected oauth providers
+func (h *Handler) getProviders(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
 
-		var input struct {
-			Email string `json:"email"`
-		}
+	user := middleware.GetUser(r)
 
-		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-			jsonError(w, http.StatusBadRequest, "Invalid request")
-			return
-		}
-
-		if err := authService.SendForgetPasswordEmail(r.Context(), input.Email); err != nil {
-			log.Error("Failed to send reset password email", "err", err)
-			jsonError(w, http.StatusInternalServerError, "Failed to send reset password email")
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
+	providers, err := h.authService.GetConnectedProviders(r.Context(), user.ID)
+	if err != nil {
+		log.Error("Failed to get providers", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "Failed to get providers")
+		return
 	}
+
+	h.jsonOK(w, providers)
 }
 
-func getUser(authService *auth.AuthService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger(r)
+// deleteProvider deletes a connected oauth provider
+func (h *Handler) deleteProvider(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+	user := middleware.GetUser(r)
 
-		token, err := pathParam(r, "token")
-		if err != nil {
-			jsonError(w, http.StatusBadRequest, "Invalid token")
-			return
-		}
-
-		user, err := authService.GetUserByForgetPasswordToken(r.Context(), token)
-		if err != nil {
-			log.Error("Failed to get user by forget password token", "err", err)
-			jsonError(w, http.StatusUnauthorized, "Invalid token")
-			return
-		}
-
-		jsonOK(w, user)
+	provider, err := h.pathParam(r, "provider")
+	if err != nil {
+		h.jsonError(w, http.StatusBadRequest, "Invalid provider")
+		return
 	}
-}
 
-func resetPassword(authService *auth.AuthService, userService *users.UserService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger(r)
-
-		token, err := pathParam(r, "token")
-		if err != nil {
-			jsonError(w, http.StatusBadRequest, "Invalid token")
-			return
-		}
-
-		var input struct {
-			Password string `json:"password"`
-		}
-
-		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-			jsonError(w, http.StatusBadRequest, "Invalid request")
-			return
-		}
-
-		err = authService.ResetPassword(r.Context(), userService, token, input.Password)
-		switch err {
-		case nil:
-			w.WriteHeader(http.StatusOK)
-		case auth.ErrInvalidToken:
-			jsonError(w, http.StatusUnauthorized, "Invalid token")
-		case users.ErrPasswordTooLong:
-			jsonError(w, http.StatusBadRequest, "Password is too long")
-		default:
-			log.Error("Failed to reset password", "err", err)
-			jsonError(w, http.StatusInternalServerError, "Failed to reset password")
-		}
+	err = h.authService.DisconnectProvider(r.Context(), user.ID, provider)
+	if err != nil {
+		log.Error("Failed to disconnect provider", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "Failed to disconnect provider")
+		return
 	}
-}
 
-func getProviders(authService *auth.AuthService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger(r)
-
-		user := middleware.GetUser(r)
-
-		providers, err := authService.GetConnectedProviders(r.Context(), user.ID)
-		if err != nil {
-			log.Error("Failed to get providers", "err", err)
-			jsonError(w, http.StatusInternalServerError, "Failed to get providers")
-			return
-		}
-
-		jsonOK(w, providers)
-	}
-}
-
-func deleteProvider(authService *auth.AuthService) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger(r)
-		user := middleware.GetUser(r)
-
-		provider, err := pathParam(r, "provider")
-		if err != nil {
-			jsonError(w, http.StatusBadRequest, "Invalid provider")
-			return
-		}
-
-		err = authService.DisconnectProvider(r.Context(), user.ID, provider)
-		if err != nil {
-			log.Error("Failed to disconnect provider", "err", err)
-			jsonError(w, http.StatusInternalServerError, "Failed to disconnect provider")
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-	}
+	w.WriteHeader(http.StatusOK)
 }

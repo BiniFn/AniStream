@@ -7,6 +7,7 @@ import (
 	"github.com/coeeter/aniways/internal/utils"
 )
 
+// RequireUser middleware ensures that the user is authenticated.
 func RequireUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !isUserAuthenticated(r) {
@@ -17,6 +18,7 @@ func RequireUser(next http.Handler) http.Handler {
 	})
 }
 
+// GetUser retrieves the authenticated user from the request context.
 func GetUser(r *http.Request) *users.User {
 	user, _ := utils.CtxValue[users.User](r.Context())
 	return &user
