@@ -67,6 +67,37 @@ func startLibrarySyncListener(
 	}
 }
 
+func retryFailedLibrarySyncs(
+	ctx context.Context,
+	repo *repository.Queries,
+	malClient *myanimelist.Client,
+	aniClient *anilist.Client,
+	log *slog.Logger,
+) {
+	entries, err := repo.GetFailedPendingLibrarySyncs(ctx)
+	if err != nil {
+		log.Error("Failed to fetch failed/pending library syncs", "err", err)
+		return
+	}
+
+	sem := make(chan struct{}, 5)
+	for _, entry := range entries {
+		payload := librarySyncPayload{
+			UserID:   entry.UserID,
+			AnimeID:  entry.AnimeID,
+			Provider: string(entry.Provider),
+			Action:   string(entry.Action),
+			Payload:  entry.Payload,
+		}
+
+		sem <- struct{}{}
+		go func(paylaod librarySyncPayload) {
+			defer func() { <-sem }()
+			handleLibrarySync(ctx, repo, malClient, aniClient, log, payload)
+		}(payload)
+	}
+}
+
 func handleLibrarySync(
 	ctx context.Context,
 	repo *repository.Queries,
@@ -115,6 +146,7 @@ func handleLibrarySync(
 	tokenCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
+	finalStatus := repository.LibrarySyncStatusSuccess
 	switch token.Provider {
 	case repository.ProviderMyanimelist:
 		err = handleMalProvider(tokenCtx, malClient, anime, token.Token, payload.Action, status, episodes)
@@ -122,10 +154,9 @@ func handleLibrarySync(
 		err = handleAniProvider(tokenCtx, aniClient, anime, token.Token, payload.Action, status, episodes)
 	default:
 		log.Warn("Unsupported provider", "provider", token.Provider)
-		return
+		finalStatus = repository.LibrarySyncStatusSkipped
 	}
 
-	finalStatus := repository.LibrarySyncStatusSuccess
 	if err != nil {
 		finalStatus = repository.LibrarySyncStatusFailed
 		log.Error("Failed to handle provider", "provider", token.Provider, "err", err)

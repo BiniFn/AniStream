@@ -19,6 +19,16 @@ WHERE
   AND provider = sqlc.arg(provider)
   AND action = sqlc.arg(action);
 
+-- name: GetFailedPendingLibrarySyncs :many
+SELECT
+  *
+FROM
+  external_library_sync
+WHERE
+  status IN ('failed', 'pending')
+ORDER BY
+  updated_at ASC;
+
 -- name: GetPendingLibrarySyncs :many
 SELECT
   *

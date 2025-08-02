@@ -117,6 +117,46 @@ func (q *Queries) GetFailedLibrarySyncs(ctx context.Context, userID string) ([]E
 	return items, nil
 }
 
+const getFailedPendingLibrarySyncs = `-- name: GetFailedPendingLibrarySyncs :many
+SELECT
+  user_id, anime_id, provider, action, payload, status, created_at, updated_at
+FROM
+  external_library_sync
+WHERE
+  status IN ('failed', 'pending')
+ORDER BY
+  updated_at ASC
+`
+
+func (q *Queries) GetFailedPendingLibrarySyncs(ctx context.Context) ([]ExternalLibrarySync, error) {
+	rows, err := q.db.Query(ctx, getFailedPendingLibrarySyncs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExternalLibrarySync
+	for rows.Next() {
+		var i ExternalLibrarySync
+		if err := rows.Scan(
+			&i.UserID,
+			&i.AnimeID,
+			&i.Provider,
+			&i.Action,
+			&i.Payload,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPendingLibrarySyncs = `-- name: GetPendingLibrarySyncs :many
 SELECT
   user_id, anime_id, provider, action, payload, status, created_at, updated_at
@@ -233,7 +273,7 @@ INSERT INTO external_library_sync(user_id, anime_id, provider, action, payload)
   VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT (user_id, anime_id, provider, action)
   DO UPDATE SET
-    payload = $5,
+    payload = EXCLUDED.payload,
     status = 'pending',
     updated_at = NOW()
 `

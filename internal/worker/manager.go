@@ -83,6 +83,10 @@ func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provide
 		return
 	}
 
+	_, err = c.AddFunc("@every 6h", func() {
+		retryFailedLibrarySyncs(ctx, m.repo, m.malClient, m.aniClient, m.log.With("job", "failed-library-sync-cron"))
+	})
+
 	m.log.Info("bootstrapping hourly + daily cron job")
 	c.Start()
 
