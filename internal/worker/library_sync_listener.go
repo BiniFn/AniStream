@@ -97,13 +97,12 @@ func handleLibrarySync(
 		episodes = int(*syncData.WatchedEpisodes)
 	}
 
-	tokens, err := repo.GetAllOauthTokensOfUser(ctx, payload.UserID)
+	token, err := repo.GetToken(ctx, repository.GetTokenParams{
+		UserID:   payload.UserID,
+		Provider: repository.Provider(payload.Provider),
+	})
 	if err != nil {
-		log.Error("Failed to get oauth tokens", "err", err)
-		return
-	}
-	if len(tokens) == 0 {
-		log.Error("No oauth tokens found")
+		log.Error("Failed to get token", "err", err)
 		return
 	}
 
@@ -113,37 +112,32 @@ func handleLibrarySync(
 		return
 	}
 
-	for _, token := range tokens {
-		ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
-		defer cancel()
+	tokenCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
 
-		var err error
-		switch token.Provider {
-		case repository.ProviderMyanimelist:
-			err = handleMalProvider(ctx, malClient, anime, token.Token, payload.Action, status, episodes)
-
-		case repository.ProviderAnilist:
-			err = handleAniProvider(ctx, aniClient, anime, token.Token, payload.Action, status, episodes)
-
-		default:
-			log.Warn("Unsupported provider", "provider", token.Provider)
-			continue
-		}
-
-		finalStatus := repository.LibrarySyncStatusSuccess
-		if err != nil {
-			finalStatus = repository.LibrarySyncStatusFailed
-			log.Error("Failed to handle provider", "provider", token.Provider, "err", err)
-		}
-
-		repo.UpdateLibrarySyncStatus(ctx, repository.UpdateLibrarySyncStatusParams{
-			Status:   finalStatus,
-			UserID:   payload.UserID,
-			AnimeID:  payload.AnimeID,
-			Provider: repository.Provider(payload.Provider),
-			Action:   repository.LibraryActions(payload.Action),
-		})
+	switch token.Provider {
+	case repository.ProviderMyanimelist:
+		err = handleMalProvider(tokenCtx, malClient, anime, token.Token, payload.Action, status, episodes)
+	case repository.ProviderAnilist:
+		err = handleAniProvider(tokenCtx, aniClient, anime, token.Token, payload.Action, status, episodes)
+	default:
+		log.Warn("Unsupported provider", "provider", token.Provider)
+		return
 	}
+
+	finalStatus := repository.LibrarySyncStatusSuccess
+	if err != nil {
+		finalStatus = repository.LibrarySyncStatusFailed
+		log.Error("Failed to handle provider", "provider", token.Provider, "err", err)
+	}
+
+	repo.UpdateLibrarySyncStatus(ctx, repository.UpdateLibrarySyncStatusParams{
+		Status:   finalStatus,
+		UserID:   payload.UserID,
+		AnimeID:  payload.AnimeID,
+		Provider: repository.Provider(payload.Provider),
+		Action:   repository.LibraryActions(payload.Action),
+	})
 }
 
 func handleMalProvider(

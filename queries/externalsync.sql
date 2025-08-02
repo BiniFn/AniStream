@@ -3,7 +3,7 @@ INSERT INTO external_library_sync(user_id, anime_id, provider, action, payload)
   VALUES (sqlc.arg(user_id), sqlc.arg(anime_id), sqlc.arg(provider), sqlc.arg(action), sqlc.arg(payload))
 ON CONFLICT (user_id, anime_id, provider, action)
   DO UPDATE SET
-    payload = sqlc.arg(payload),
+    payload = EXCLUDED.payload,
     status = 'pending',
     updated_at = NOW();
 

@@ -70,13 +70,16 @@ func getAnimeStatus(svc *library.LibraryService) http.HandlerFunc {
 		}
 
 		status, err := svc.GetLibraryByAnimeID(r.Context(), user.ID, animeID)
-		if err != nil {
+		switch err {
+		case library.ErrLibraryNotFound:
+			jsonError(w, http.StatusNotFound, "library not found")
+		case nil:
+			jsonOK(w, status)
+		default:
 			log.Error("failed to get library by anime ID", "err", err)
 			jsonError(w, http.StatusInternalServerError, "failed to get library by anime ID")
 			return
 		}
-
-		jsonOK(w, status)
 	}
 }
 
@@ -150,8 +153,13 @@ func deleteAnimeFromLib(svc *library.LibraryService) http.HandlerFunc {
 			return
 		}
 
-		jsonOK(w, nil)
+		w.WriteHeader(http.StatusOK)
 	}
+}
+
+type LibraryBody struct {
+	Status         string `json:"status"`
+	WatchedEpisode int32  `json:"watchedEpisodes"`
 }
 
 func createLibrary(svc *library.LibraryService) http.HandlerFunc {
@@ -165,10 +173,7 @@ func createLibrary(svc *library.LibraryService) http.HandlerFunc {
 			return
 		}
 
-		var body struct {
-			Status         string `json:"status"`
-			WatchedEpisode int32  `json:"watchedEpisodes"`
-		}
+		var body LibraryBody
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
 			return
@@ -198,10 +203,7 @@ func updateLibrary(svc *library.LibraryService) http.HandlerFunc {
 			return
 		}
 
-		var body struct {
-			Status         string `json:"status"`
-			WatchedEpisode int32  `json:"watched_episode"`
-		}
+		var body LibraryBody
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			jsonError(w, http.StatusBadRequest, err.Error())
 			return
