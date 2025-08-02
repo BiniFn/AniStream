@@ -93,3 +93,23 @@ func (s *AuthService) ResetPassword(ctx context.Context, userService *users.User
 
 	return nil
 }
+
+func (s *AuthService) GetConnectedProviders(ctx context.Context, userID string) ([]string, error) {
+	providers, err := s.repo.GetAllOauthTokensOfUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]string, len(providers))
+	for i, provider := range providers {
+		out[i] = string(provider.Provider)
+	}
+	return out, nil
+}
+
+func (s *AuthService) DisconnectProvider(ctx context.Context, userID string, provider string) error {
+	return s.repo.DeleteOauthToken(ctx, repository.DeleteOauthTokenParams{
+		UserID:   userID,
+		Provider: repository.Provider(provider),
+	})
+}

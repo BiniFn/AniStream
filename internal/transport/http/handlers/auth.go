@@ -33,6 +33,9 @@ func MountAuthRoutes(
 		for _, provider := range providers {
 			mountOAuthRoutes(r, provider)
 		}
+
+		r.Get("/providers", getProviders(authService))
+		r.Delete("/providers/{provider}", deleteProvider(authService))
 	})
 }
 
@@ -206,5 +209,44 @@ func resetPassword(authService *auth.AuthService, userService *users.UserService
 			log.Error("Failed to reset password", "err", err)
 			jsonError(w, http.StatusInternalServerError, "Failed to reset password")
 		}
+	}
+}
+
+func getProviders(authService *auth.AuthService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+
+		user := middleware.GetUser(r)
+
+		providers, err := authService.GetConnectedProviders(r.Context(), user.ID)
+		if err != nil {
+			log.Error("Failed to get providers", "err", err)
+			jsonError(w, http.StatusInternalServerError, "Failed to get providers")
+			return
+		}
+
+		jsonOK(w, providers)
+	}
+}
+
+func deleteProvider(authService *auth.AuthService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger(r)
+		user := middleware.GetUser(r)
+
+		provider, err := pathParam(r, "provider")
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, "Invalid provider")
+			return
+		}
+
+		err = authService.DisconnectProvider(r.Context(), user.ID, provider)
+		if err != nil {
+			log.Error("Failed to disconnect provider", "err", err)
+			jsonError(w, http.StatusInternalServerError, "Failed to disconnect provider")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }
