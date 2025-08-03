@@ -15,7 +15,6 @@ func (h *Handler) OauthRoutes() {
 	})
 }
 
-// beginAuthHandler initiates the OAuth authentication process
 func (h *Handler) beginAuthHandler(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	state := uuid.NewString()
@@ -38,7 +37,6 @@ func (h *Handler) beginAuthHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
-// callbackHandler handles the OAuth callback
 func (h *Handler) callbackHandler(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)

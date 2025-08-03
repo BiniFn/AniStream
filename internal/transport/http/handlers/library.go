@@ -24,7 +24,6 @@ func (h *Handler) LibraryRoutes() {
 	})
 }
 
-// getLibrary returns the library of a user
 func (h *Handler) getLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -59,7 +58,6 @@ func (h *Handler) getLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getAnimeStatus returns the status of an anime in the user's library
 func (h *Handler) getAnimeStatus(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -83,7 +81,6 @@ func (h *Handler) getAnimeStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getContinueWatching returns the user's continue watching list
 func (h *Handler) getContinueWatching(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -108,7 +105,6 @@ func (h *Handler) getContinueWatching(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, library)
 }
 
-// getPlanning returns the user's planning list
 func (h *Handler) getPlanning(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -133,7 +129,6 @@ func (h *Handler) getPlanning(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, library)
 }
 
-// deleteAnimeFromLib deletes an anime from the user's library
 func (h *Handler) deleteAnimeFromLib(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -159,7 +154,6 @@ type LibraryBody struct {
 	WatchedEpisode int32  `json:"watchedEpisodes"`
 }
 
-// createLibrary creates a new library entry for the user
 func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -188,7 +182,6 @@ func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// updateLibrary updates an existing library entry for the user
 func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -217,7 +210,6 @@ func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// importLibrary starts a job to import the user's library from a provider
 func (h *Handler) importLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -242,7 +234,6 @@ func (h *Handler) importLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getLibraryImportStatus returns the status of a library import job
 func (h *Handler) getLibraryImportStatus(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

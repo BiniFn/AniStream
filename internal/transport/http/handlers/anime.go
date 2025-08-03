@@ -16,7 +16,6 @@ func (h *Handler) AnimeDetailsRoutes() {
 	})
 }
 
-// getAnimeByID retrieves an anime by its ID.
 func (h *Handler) getAnimeByID(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -42,7 +41,6 @@ func (h *Handler) getAnimeByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getAnimeTrailer retrieves the trailer of an anime by its ID.
 func (h *Handler) getAnimeTrailer(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -68,7 +66,6 @@ func (h *Handler) getAnimeTrailer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getAnimeBanner retrieves the banner of an anime by its ID.
 func (h *Handler) getAnimeBanner(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -94,7 +91,6 @@ func (h *Handler) getAnimeBanner(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getAnimeFranchise retrieves the franchise of an anime by its ID.
 func (h *Handler) getAnimeFranchise(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

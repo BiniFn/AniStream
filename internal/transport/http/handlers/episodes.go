@@ -16,7 +16,6 @@ func (h *Handler) AnimeEpisodeRoutes() {
 	})
 }
 
-// getAnimeEpisodes returns the episodes of an anime
 func (h *Handler) getAnimeEpisodes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -42,7 +41,6 @@ func (h *Handler) getAnimeEpisodes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getEpisodeLangs returns the languages of an episode
 func (h *Handler) getEpisodeLangs(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -74,7 +72,6 @@ func (h *Handler) getEpisodeLangs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getEpisodeStream returns the stream of an episode
 func (h *Handler) getEpisodeStream(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -112,7 +109,6 @@ func (h *Handler) getEpisodeStream(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getEpisodeStreamMetadata returns the metadata of an episode stream
 func (h *Handler) getEpisodeStreamMetadata(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

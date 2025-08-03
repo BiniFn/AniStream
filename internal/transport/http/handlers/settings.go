@@ -16,7 +16,6 @@ func (h *Handler) SettingsRoutes() {
 	})
 }
 
-// getSettings retrieves the user's settings.
 func (h *Handler) getSettings(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -32,7 +31,6 @@ func (h *Handler) getSettings(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, settings)
 }
 
-// saveSettings saves the user's settings.
 func (h *Handler) saveSettings(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

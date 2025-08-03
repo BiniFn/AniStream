@@ -29,7 +29,6 @@ func (h *Handler) AuthRoutes() {
 	})
 }
 
-// login handles user login
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -76,7 +75,6 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, user)
 }
 
-// me handles user profile retrieval
 func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
 	user, ok := utils.CtxValue[users.User](r.Context())
 	if !ok {
@@ -87,7 +85,6 @@ func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, user)
 }
 
-// logout handles user logout
 func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -123,7 +120,6 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// forgetPassword sends reset password email to user
 func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -145,7 +141,6 @@ func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// getUser returns user information
 func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -165,7 +160,6 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, user)
 }
 
-// resetPassword resets user password
 func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -198,7 +192,6 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getProviders returns connected oauth providers
 func (h *Handler) getProviders(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -214,7 +207,6 @@ func (h *Handler) getProviders(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, providers)
 }
 
-// deleteProvider deletes a connected oauth provider
 func (h *Handler) deleteProvider(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)

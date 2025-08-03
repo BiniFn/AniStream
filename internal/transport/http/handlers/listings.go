@@ -20,7 +20,6 @@ func (h *Handler) AnimeListingRoutes() {
 	})
 }
 
-// listRecentlyUpdated returns a list of recently updated animes
 func (h *Handler) listRecentlyUpdated(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -39,7 +38,6 @@ func (h *Handler) listRecentlyUpdated(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
-// seasonalAnimes returns a list of seasonal animes
 func (h *Handler) seasonalAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -52,7 +50,6 @@ func (h *Handler) seasonalAnimes(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
-// randomAnime returns a random anime
 func (h *Handler) randomAnime(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -82,7 +79,6 @@ func (h *Handler) randomAnime(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
-// listGenres returns a list of anime genres
 func (h *Handler) listGenres(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	resp, err := h.animeService.GetAnimeGenres(r.Context())
@@ -94,7 +90,6 @@ func (h *Handler) listGenres(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
-// searchAnimes returns a list of animes matching the search query
 func (h *Handler) searchAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -129,7 +124,6 @@ func (h *Handler) searchAnimes(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
-// animeByGenre returns a list of animes by genre
 func (h *Handler) animeByGenre(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -154,7 +148,6 @@ func (h *Handler) animeByGenre(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
-// trendingAnimes returns a list of trending animes
 func (h *Handler) trendingAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -167,7 +160,6 @@ func (h *Handler) trendingAnimes(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
-// popularAnimes returns a list of popular animes
 func (h *Handler) popularAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

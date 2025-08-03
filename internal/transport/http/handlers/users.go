@@ -22,7 +22,6 @@ func (h *Handler) UserRoutes() {
 	})
 }
 
-// createUser creates a new user.
 func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -48,7 +47,6 @@ func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// updatePassword updates password of user
 func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -78,7 +76,6 @@ func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// updateUser updates user information
 func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -105,7 +102,6 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// deleteUser deletes user
 func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -140,7 +136,6 @@ func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// updateImage updates user profile picture
 func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
