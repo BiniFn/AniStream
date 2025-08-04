@@ -9,39 +9,47 @@ import (
 )
 
 type AnimeDto struct {
-	ID          string `json:"id"`
-	Ename       string `json:"ename"`
-	JName       string `json:"jname"`
-	ImageURL    string `json:"imageUrl"`
-	Genre       string `json:"genre"`
-	MalID       int32  `json:"malId"`
-	AnilistID   int32  `json:"anilistId"`
-	LastEpisode int32  `json:"lastEpisode"`
+	ID          string  `json:"id"`
+	Ename       *string `json:"ename"`
+	JName       *string `json:"jname"`
+	ImageURL    string  `json:"imageUrl"`
+	Genre       string  `json:"genre"`
+	MalID       *int32  `json:"malId"`
+	AnilistID   *int32  `json:"anilistId"`
+	LastEpisode *int32  `json:"lastEpisode"`
+}
+
+func nilIfEmpty[T comparable](value T) *T {
+	var zero T
+	if value == zero {
+		return nil
+	}
+	return &value
 }
 
 func (a AnimeDto) FromRepository(anime repository.Anime) AnimeDto {
 	return AnimeDto{
 		ID:          anime.ID,
-		Ename:       anime.Ename,
-		JName:       anime.Jname,
+		Ename:       nilIfEmpty(anime.Ename),
+		JName:       nilIfEmpty(anime.Jname),
 		ImageURL:    anime.ImageUrl,
 		Genre:       anime.Genre,
-		MalID:       anime.MalID.Int32,
-		AnilistID:   anime.AnilistID.Int32,
-		LastEpisode: anime.LastEpisode,
+		MalID:       nilIfEmpty(anime.MalID.Int32),
+		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
+		LastEpisode: nilIfEmpty(anime.LastEpisode),
 	}
 }
 
 func (a AnimeDto) FromSearch(anime repository.SearchAnimesRow) AnimeDto {
 	return AnimeDto{
 		ID:          anime.ID,
-		Ename:       anime.Ename,
-		JName:       anime.Jname,
+		Ename:       nilIfEmpty(anime.Ename),
+		JName:       nilIfEmpty(anime.Jname),
 		ImageURL:    anime.ImageUrl,
 		Genre:       anime.Genre,
-		MalID:       anime.MalID.Int32,
-		AnilistID:   anime.AnilistID.Int32,
-		LastEpisode: anime.LastEpisode,
+		MalID:       nilIfEmpty(anime.MalID.Int32),
+		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
+		LastEpisode: nilIfEmpty(anime.LastEpisode),
 	}
 }
 
@@ -92,28 +100,35 @@ func (m AnimeMetadataDto) FromRepository(metadata repository.AnimeMetadatum) Ani
 }
 
 type AnimeWithMetadataDto struct {
-	ID          string           `json:"id"`
-	Ename       string           `json:"ename"`
-	JName       string           `json:"jname"`
-	ImageURL    string           `json:"imageUrl"`
-	Genre       string           `json:"genre"`
-	MalID       int32            `json:"malId"`
-	AnilistID   int32            `json:"anilistId"`
-	LastEpisode int32            `json:"lastEpisode"`
-	Metadata    AnimeMetadataDto `json:"metadata"`
+	ID          string            `json:"id"`
+	Ename       *string           `json:"ename"`
+	JName       *string           `json:"jname"`
+	ImageURL    string            `json:"imageUrl"`
+	Genre       string            `json:"genre"`
+	MalID       *int32            `json:"malId"`
+	AnilistID   *int32            `json:"anilistId"`
+	LastEpisode *int32            `json:"lastEpisode"`
+	Metadata    *AnimeMetadataDto `json:"metadata"`
 }
 
 func (a AnimeWithMetadataDto) FromRepository(anime repository.Anime, metadata repository.AnimeMetadatum) AnimeWithMetadataDto {
+	meta := AnimeMetadataDto{}.FromRepository(metadata)
+
+	metaPointer := &meta
+	if meta.MalID == 0 {
+		metaPointer = nil
+	}
+
 	return AnimeWithMetadataDto{
 		ID:          anime.ID,
-		Ename:       anime.Ename,
-		JName:       anime.Jname,
+		Ename:       nilIfEmpty(anime.Ename),
+		JName:       nilIfEmpty(anime.Jname),
 		ImageURL:    anime.ImageUrl,
 		Genre:       anime.Genre,
-		MalID:       anime.MalID.Int32,
-		AnilistID:   anime.AnilistID.Int32,
-		LastEpisode: anime.LastEpisode,
-		Metadata:    AnimeMetadataDto{}.FromRepository(metadata),
+		MalID:       nilIfEmpty(anime.MalID.Int32),
+		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
+		LastEpisode: nilIfEmpty(anime.LastEpisode),
+		Metadata:    metaPointer,
 	}
 }
 

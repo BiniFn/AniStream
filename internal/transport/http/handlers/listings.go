@@ -8,7 +8,7 @@ import (
 )
 
 func (h *Handler) AnimeListingRoutes() {
-	h.r.Route("/anime", func(r chi.Router) {
+	h.r.Route("/anime/listings", func(r chi.Router) {
 		r.Get("/recently-updated", h.listRecentlyUpdated)
 		r.Get("/seasonal", h.seasonalAnimes)
 		r.Get("/random", h.randomAnime)

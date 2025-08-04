@@ -55,9 +55,6 @@ func (s *AnimeService) GetAnimeByID(
 
 func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*TrailerDto, error) {
 	a, err := s.GetAnimeByID(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
-		return nil, ErrAnimeNotFound
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -66,18 +63,23 @@ func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*Trailer
 		return &TrailerDto{Trailer: a.Metadata.TrailerEmbedURL}, nil
 	}
 
-	t, err := s.malClient.GetTrailer(ctx, int(a.MalID))
+	malID := *a.MalID
+	if malID == 0 {
+		return nil, ErrAnimeNotFound
+	}
+
+	t, err := s.malClient.GetTrailer(ctx, int(malID))
 	if err != nil || t == "" {
-		return nil, fmt.Errorf("failed to fetch trailer for MAL ID %d: %v", a.MalID, err)
+		return nil, fmt.Errorf("failed to fetch trailer for MAL ID %d: %v", malID, err)
 	}
 
 	a.Metadata.TrailerEmbedURL = t
 	params := repository.UpdateAnimeMetadataTrailerParams{
 		TrailerEmbedUrl: pgtype.Text{String: t, Valid: true},
-		MalID:           a.MalID,
+		MalID:           malID,
 	}
 	if err := s.repo.UpdateAnimeMetadataTrailer(ctx, params); err != nil {
-		return nil, fmt.Errorf("failed to update metadata for MAL ID %d: %v", a.MalID, err)
+		return nil, fmt.Errorf("failed to update metadata for MAL ID %d: %v", malID, err)
 	}
 
 	return &TrailerDto{Trailer: t}, nil
