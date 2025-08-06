@@ -13,4 +13,12 @@ export default defineNuxtConfig({
     prefix: "",
     componentDir: "./app/components/ui",
   },
+  typescript: {
+    typeCheck: true,
+  },
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.API_URL || "http://localhost:8080",
+    },
+  },
 });
