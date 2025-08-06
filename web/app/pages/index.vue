@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { PaginatedAnimeSchema } from "~/types/anime";
-
 const config = useRuntimeConfig();
 const { data, error } = await useFetch(
     `${config.public.apiBase}/anime/listings/recently-updated`,

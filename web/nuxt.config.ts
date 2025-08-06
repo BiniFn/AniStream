@@ -21,4 +21,7 @@ export default defineNuxtConfig({
       apiBase: process.env.API_URL || "http://localhost:8080",
     },
   },
+  imports: {
+    dirs: ["types"],
+  },
 });
