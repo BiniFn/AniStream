@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -88,6 +89,8 @@ func scrapeAllAZ(
 					MalID:       pgtype.Int4{Int32: int32(info.MalID), Valid: info.MalID > 0},
 					AnilistID:   pgtype.Int4{Int32: int32(info.AnilistID), Valid: info.AnilistID > 0},
 					LastEpisode: int32(item.LastEpisode),
+					Season:      repository.Season(strings.ToLower(info.Season)),
+					SeasonYear:  int32(info.SeasonYear),
 				}
 
 				mu.Lock()
@@ -118,7 +121,7 @@ func retryFetchDetail(
 	hiID string,
 ) (hianime.ScrapedAnimeInfoDto, error) {
 	var lastErr error
-	for i := 0; i < retryCount; i++ {
+	for range retryCount {
 		info, err := scraper.GetAnimeInfoByHiAnimeID(ctx, hiID)
 		if err == nil {
 			return info, nil
@@ -201,6 +204,8 @@ func scrapeAllRecentlyUpdated(
 						AnilistID:   pgtype.Int4{Int32: int32(info.AnilistID), Valid: info.AnilistID > 0},
 						LastEpisode: int32(scraped.LastEpisode),
 						UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
+						Season:      repository.Season(strings.ToLower(info.Season)),
+						SeasonYear:  int32(info.SeasonYear),
 					}); err != nil {
 						child.Error("update failed", "err", err)
 					}
@@ -216,6 +221,8 @@ func scrapeAllRecentlyUpdated(
 						LastEpisode: int32(scraped.LastEpisode),
 						CreatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
 						UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
+						Season:      repository.Season(strings.ToLower(info.Season)),
+						SeasonYear:  int32(info.SeasonYear),
 					}); err != nil {
 						child.Error("insert failed", "err", err)
 					}

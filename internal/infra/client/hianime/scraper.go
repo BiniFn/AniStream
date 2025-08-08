@@ -175,6 +175,24 @@ func (s *HianimeScraper) GetAnimeInfoByHiAnimeID(
 		}
 	})
 
+	var season, seasonYear string
+	doc.Find(".anisc-info .item-title").Each(func(_ int, el *goquery.Selection) {
+		head := strings.TrimSpace(el.Find(".item-head").Text())
+		if head != "Premiered:" {
+			return
+		}
+		seasonText := strings.TrimSpace(el.Find(".name").Text())
+		parts := strings.SplitN(seasonText, " ", 2)
+		if len(parts) == 2 {
+			season = parts[0]
+			seasonYear = parts[1]
+		} else {
+			season = seasonText
+		}
+	})
+
+	seasonYearInt, _ := strconv.Atoi(seasonYear)
+
 	genre := "Unknown"
 	if len(genreSlice) > 0 {
 		genre = strings.Join(genreSlice, ", ")
@@ -192,6 +210,8 @@ func (s *HianimeScraper) GetAnimeInfoByHiAnimeID(
 		MalID:       malID,
 		AnilistID:   anilistID,
 		LastEpisode: lastEp,
+		Season:      season,
+		SeasonYear:  seasonYearInt,
 	}, nil
 }
 

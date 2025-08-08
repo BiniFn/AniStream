@@ -21,6 +21,8 @@ type ScrapedAnimeInfoDto struct {
 	MalID       int    `json:"malId"`
 	AnilistID   int    `json:"anilistId"`
 	LastEpisode int    `json:"lastEpisode"`
+	Season      string `json:"season"`
+	SeasonYear  int    `json:"seasonYear"`
 }
 
 type ScrapedEpisodeDto struct {

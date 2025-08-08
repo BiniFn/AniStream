@@ -379,6 +379,8 @@ type Anime struct {
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
 	SearchVector string
+	Season       Season
+	SeasonYear   int32
 }
 
 type AnimeMetadatum struct {

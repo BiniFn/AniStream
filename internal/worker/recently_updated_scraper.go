@@ -2,10 +2,10 @@ package worker
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log/slog"
-	"sync"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/coeeter/aniways/internal/infra/cache"
@@ -13,6 +13,7 @@ import (
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"golang.org/x/sync/errgroup"
 )
 
 func hourlyTask(
@@ -44,42 +45,42 @@ func scrapeRecentlyUpdated(
 	items := listing.Items
 	now := time.Now()
 
-	sem := make(chan struct{}, maxConcurrency)
-	var wg sync.WaitGroup
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(maxConcurrency)
 
-	for idx := len(items) - 1; idx >= 0; idx-- {
-		scraped := items[idx]
-		offset := (len(items) - 1) - idx
+	var success, skipped, failed int32
 
-		wg.Add(1)
-		go func(scraped hianime.ScrapedAnimeInfoDto, offset int) {
-			defer wg.Done()
+	for i, scraped := range items {
+		offset := (len(items) - 1) - i
 
+		g.Go(func() error {
 			select {
-			case sem <- struct{}{}:
 			case <-ctx.Done():
-				return
+				return nil
+			default:
 			}
-			defer func() { <-sem }()
 
 			child := log.With("hi_id", scraped.HiAnimeID)
 
 			dbAnime, err := repo.GetAnimeByHiAnimeId(ctx, scraped.HiAnimeID)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows) {
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 				child.Error("db lookup failed", "err", err)
-				return
+				atomic.AddInt32(&failed, 1)
+				return nil
 			}
 
 			hasExisting := dbAnime.ID != "" && dbAnime.HiAnimeID == scraped.HiAnimeID
-			needsFetch := errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) || dbAnime.LastEpisode != int32(scraped.LastEpisode)
+			needsFetch := errors.Is(err, pgx.ErrNoRows) || dbAnime.LastEpisode != int32(scraped.LastEpisode)
 			if !needsFetch {
-				return
+				atomic.AddInt32(&skipped, 1)
+				return nil
 			}
 
 			info, err := retryFetchDetail(ctx, scraper, scraped.HiAnimeID)
 			if err != nil {
 				child.Warn("detail fetch failed", "err", err)
-				return
+				atomic.AddInt32(&failed, 1)
+				return nil
 			}
 
 			updatedAt := now.Add(time.Duration(offset) * updateSpacing)
@@ -96,9 +97,13 @@ func scrapeRecentlyUpdated(
 					AnilistID:   pgtype.Int4{Int32: int32(info.AnilistID), Valid: info.AnilistID > 0},
 					LastEpisode: int32(scraped.LastEpisode),
 					UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
+					Season:      repository.Season(strings.ToLower(info.Season)),
+					SeasonYear:  int32(info.SeasonYear),
 				}
 				if err := repo.UpdateAnime(ctx, params); err != nil {
 					child.Error("update failed", "err", err)
+					atomic.AddInt32(&failed, 1)
+					return nil
 				}
 				if err := redis.Del(ctx, "anime_episodes:"+dbAnime.ID); err != nil {
 					child.Warn("cache delete failed", "err", err)
@@ -115,15 +120,28 @@ func scrapeRecentlyUpdated(
 					LastEpisode: int32(scraped.LastEpisode),
 					CreatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
 					UpdatedAt:   pgtype.Timestamp{Time: updatedAt, Valid: true},
+					Season:      repository.Season(strings.ToLower(info.Season)),
+					SeasonYear:  int32(info.SeasonYear),
 				}
 				if err := repo.InsertAnime(ctx, params); err != nil {
 					child.Error("insert failed", "err", err)
+					atomic.AddInt32(&failed, 1)
+					return nil
 				}
 			}
-		}(scraped, offset)
+
+			atomic.AddInt32(&success, 1)
+			return nil
+		})
 	}
 
-	wg.Wait()
-	log.Info("recently‑updated page processed", "items", len(items))
+	_ = g.Wait()
+
+	log.Info("recently-updated page processed",
+		"items", len(items),
+		"success", success,
+		"skipped", skipped,
+		"failed", failed,
+	)
 	return nil
 }

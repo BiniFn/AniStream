@@ -89,14 +89,6 @@ FROM
 WHERE
   mal_id = $1;
 
--- name: GetAnimeByAnilistId :one
-SELECT
-  *
-FROM
-  animes
-WHERE
-  anilist_id = $1;
-
 -- name: GetAnimeByHiAnimeId :one
 SELECT
   *
@@ -113,16 +105,6 @@ FROM
 WHERE
   mal_id = $1;
 
--- name: GetAnimesByIds :many
-SELECT
-  *
-FROM
-  animes
-WHERE
-  id = ANY (sqlc.arg(ids)::text[])
-ORDER BY
-  updated_at DESC;
-
 -- name: GetAnimesByMalIds :many
 SELECT
   *
@@ -130,16 +112,6 @@ FROM
   animes
 WHERE
   mal_id = ANY (sqlc.arg(mal_ids)::int[])
-ORDER BY
-  updated_at DESC;
-
--- name: GetAnimesByAnilistIds :many
-SELECT
-  *
-FROM
-  animes
-WHERE
-  anilist_id = ANY (sqlc.arg(anilist_ids)::int[])
 ORDER BY
   updated_at DESC;
 
@@ -188,14 +160,14 @@ AND (sqlc.arg(genre) = ''
 AND animes.mal_id IS NOT NULL;
 
 -- name: InsertAnime :exec
-INSERT INTO animes(ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at)
-  VALUES (sqlc.arg(ename), sqlc.arg(jname), sqlc.arg(image_url), sqlc.arg(genre), sqlc.arg(hi_anime_id), sqlc.arg(mal_id), sqlc.arg(anilist_id), sqlc.arg(last_episode), COALESCE(sqlc.arg(created_at), NOW()), COALESCE(sqlc.arg(updated_at), NOW()))
+INSERT INTO animes(ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, season, season_year)
+  VALUES (sqlc.arg(ename), sqlc.arg(jname), sqlc.arg(image_url), sqlc.arg(genre), sqlc.arg(hi_anime_id), sqlc.arg(mal_id), sqlc.arg(anilist_id), sqlc.arg(last_episode), COALESCE(sqlc.arg(created_at), NOW()), COALESCE(sqlc.arg(updated_at), NOW()), sqlc.arg(season), sqlc.arg(season_year))
 RETURNING
   *;
 
 -- name: InsertMultipleAnimes :copyfrom
-INSERT INTO animes(ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode)
-  VALUES (sqlc.arg(ename), sqlc.arg(jname), sqlc.arg(image_url), sqlc.arg(genre), sqlc.arg(hi_anime_id), sqlc.arg(mal_id), sqlc.arg(anilist_id), sqlc.arg(last_episode));
+INSERT INTO animes(ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, season, season_year)
+  VALUES (sqlc.arg(ename), sqlc.arg(jname), sqlc.arg(image_url), sqlc.arg(genre), sqlc.arg(hi_anime_id), sqlc.arg(mal_id), sqlc.arg(anilist_id), sqlc.arg(last_episode), sqlc.arg(season), sqlc.arg(season_year));
 
 -- name: UpdateAnime :exec
 UPDATE
@@ -209,7 +181,9 @@ SET
   mal_id = sqlc.arg(mal_id),
   anilist_id = sqlc.arg(anilist_id),
   last_episode = sqlc.arg(last_episode),
-  updated_at = COALESCE(sqlc.arg(updated_at), NOW())
+  updated_at = COALESCE(sqlc.arg(updated_at), NOW()),
+  season = sqlc.arg(season),
+  season_year = sqlc.arg(season_year)
 WHERE
   id = sqlc.arg(id)
 RETURNING
@@ -241,10 +215,6 @@ ON CONFLICT (mal_id)
     updated_at = NOW()
   RETURNING
     *;
-
--- name: InsertMultipleAnimeMetadatas :copyfrom
-INSERT INTO anime_metadata(mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringUsers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season)
-  VALUES (sqlc.arg(mal_id), sqlc.arg(description), sqlc.arg(main_picture_url), sqlc.arg(media_type), sqlc.arg(rating), sqlc.arg(airing_status), sqlc.arg(avg_episode_duration), sqlc.arg(total_episodes), sqlc.arg(studio), sqlc.arg(rank), sqlc.arg(mean), sqlc.arg(scoringUsers), sqlc.arg(popularity), sqlc.arg(airing_start_date), sqlc.arg(airing_end_date), sqlc.arg(source), sqlc.arg(trailer_embed_url), sqlc.arg(season_year), sqlc.arg(season));
 
 -- name: UpdateAnimeMetadataTrailer :exec
 UPDATE

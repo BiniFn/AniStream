@@ -9,56 +9,6 @@ import (
 	"context"
 )
 
-// iteratorForInsertMultipleAnimeMetadatas implements pgx.CopyFromSource.
-type iteratorForInsertMultipleAnimeMetadatas struct {
-	rows                 []InsertMultipleAnimeMetadatasParams
-	skippedFirstNextCall bool
-}
-
-func (r *iteratorForInsertMultipleAnimeMetadatas) Next() bool {
-	if len(r.rows) == 0 {
-		return false
-	}
-	if !r.skippedFirstNextCall {
-		r.skippedFirstNextCall = true
-		return true
-	}
-	r.rows = r.rows[1:]
-	return len(r.rows) > 0
-}
-
-func (r iteratorForInsertMultipleAnimeMetadatas) Values() ([]interface{}, error) {
-	return []interface{}{
-		r.rows[0].MalID,
-		r.rows[0].Description,
-		r.rows[0].MainPictureUrl,
-		r.rows[0].MediaType,
-		r.rows[0].Rating,
-		r.rows[0].AiringStatus,
-		r.rows[0].AvgEpisodeDuration,
-		r.rows[0].TotalEpisodes,
-		r.rows[0].Studio,
-		r.rows[0].Rank,
-		r.rows[0].Mean,
-		r.rows[0].Scoringusers,
-		r.rows[0].Popularity,
-		r.rows[0].AiringStartDate,
-		r.rows[0].AiringEndDate,
-		r.rows[0].Source,
-		r.rows[0].TrailerEmbedUrl,
-		r.rows[0].SeasonYear,
-		r.rows[0].Season,
-	}, nil
-}
-
-func (r iteratorForInsertMultipleAnimeMetadatas) Err() error {
-	return nil
-}
-
-func (q *Queries) InsertMultipleAnimeMetadatas(ctx context.Context, arg []InsertMultipleAnimeMetadatasParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"anime_metadata"}, []string{"mal_id", "description", "main_picture_url", "media_type", "rating", "airing_status", "avg_episode_duration", "total_episodes", "studio", "rank", "mean", "scoringusers", "popularity", "airing_start_date", "airing_end_date", "source", "trailer_embed_url", "season_year", "season"}, &iteratorForInsertMultipleAnimeMetadatas{rows: arg})
-}
-
 // iteratorForInsertMultipleAnimes implements pgx.CopyFromSource.
 type iteratorForInsertMultipleAnimes struct {
 	rows                 []InsertMultipleAnimesParams
@@ -87,6 +37,8 @@ func (r iteratorForInsertMultipleAnimes) Values() ([]interface{}, error) {
 		r.rows[0].MalID,
 		r.rows[0].AnilistID,
 		r.rows[0].LastEpisode,
+		r.rows[0].Season,
+		r.rows[0].SeasonYear,
 	}, nil
 }
 
@@ -95,5 +47,5 @@ func (r iteratorForInsertMultipleAnimes) Err() error {
 }
 
 func (q *Queries) InsertMultipleAnimes(ctx context.Context, arg []InsertMultipleAnimesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"animes"}, []string{"ename", "jname", "image_url", "genre", "hi_anime_id", "mal_id", "anilist_id", "last_episode"}, &iteratorForInsertMultipleAnimes{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"animes"}, []string{"ename", "jname", "image_url", "genre", "hi_anime_id", "mal_id", "anilist_id", "last_episode", "season", "season_year"}, &iteratorForInsertMultipleAnimes{rows: arg})
 }
