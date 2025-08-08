@@ -63,23 +63,23 @@ tidy: ## Go mod tidy
 
 # ----- Docker Build ----- #
 docker-build-api: ## Build API Docker image
-	docker build --target=api -t aniways-api -f infra/Dockerfile .
+	docker build --target=api -t aniways-api -f docker/Dockerfile .
 
 docker-build-proxy: ## Build Proxy Docker image
-	docker build --target=proxy -t aniways-proxy -f infra/Dockerfile .
+	docker build --target=proxy -t aniways-proxy -f docker/Dockerfile .
 
 docker-build-worker: ## Build Worker Docker image
-	docker build --target=worker -t aniways-worker -f infra/Dockerfile .
+	docker build --target=worker -t aniways-worker -f docker/Dockerfile .
 
 # ----- Docker Compose (Dev) ----- #
 dev-up: ## Start dev containers
-	docker compose -p aniways -f infra/docker-compose.dev.yaml --env-file .env.local up -d
+	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local up -d
 
 dev-down: ## Stop dev containers
-	docker compose -p aniways -f infra/docker-compose.dev.yaml --env-file .env.local down
+	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local down
 
 dev-logs: ## View logs for all containers
-	docker compose -p aniways -f infra/docker-compose.dev.yaml --env-file .env.local logs -f
+	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local logs -f
 
 # ----- Help Menu ----- #
 help: ## Show help
