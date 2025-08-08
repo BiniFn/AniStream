@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /out/worker ./cmd/worker
 FROM alpine:3.20 AS api
 WORKDIR /app
 COPY --from=builder /out/api /app/api
-COPY --chmod=755 docker/api/entrypoint.sh /app/entrypoint.sh
+COPY --chmod=755 docker/entrypoint.sh /app/entrypoint.sh
 RUN adduser -D aniways
 USER aniways
 CMD ["/app/entrypoint.sh", "/app/api"]
@@ -31,7 +31,7 @@ CMD ["/app/proxy"]
 FROM alpine:3.20 AS worker
 WORKDIR /app
 COPY --from=builder /out/worker /app/worker
-COPY --chmod=755 docker/worker/entrypoint.sh /app/entrypoint.sh
+COPY --chmod=755 docker/entrypoint.sh /app/entrypoint.sh
 RUN adduser -D aniways
 USER aniways
 CMD ["/app/entrypoint.sh", "/app/worker"]
