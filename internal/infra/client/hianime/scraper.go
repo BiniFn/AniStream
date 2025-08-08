@@ -193,6 +193,10 @@ func (s *HianimeScraper) GetAnimeInfoByHiAnimeID(
 
 	seasonYearInt, _ := strconv.Atoi(seasonYear)
 
+	if seasonYearInt == 0 || season == "" {
+		season = "Unknown"
+	}
+
 	genre := "Unknown"
 	if len(genreSlice) > 0 {
 		genre = strings.Join(genreSlice, ", ")
