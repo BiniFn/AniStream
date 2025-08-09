@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/go-chi/chi/v5"
 )
@@ -11,6 +13,7 @@ func (h *Handler) AnimeListingRoutes() {
 	h.r.Route("/anime/listings", func(r chi.Router) {
 		r.Get("/recently-updated", h.listRecentlyUpdated)
 		r.Get("/seasonal", h.seasonalAnimes)
+		r.Get("/seasons", h.getBySeason)
 		r.Get("/random", h.randomAnime)
 		r.Get("/genres", h.listGenres)
 		r.Get("/genres/{genre}", h.animeByGenre)
@@ -45,6 +48,47 @@ func (h *Handler) seasonalAnimes(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("failed to fetch seasonal animes", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch seasonal animes")
+		return
+	}
+	h.jsonOK(w, resp)
+}
+
+func (h *Handler) getBySeason(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	page, size, err := h.parsePagination(r, 1, 30)
+	if err != nil {
+		h.jsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	season := r.URL.Query().Get("season")
+	year := r.URL.Query().Get("year")
+
+	if season == "" && year == "" {
+		h.jsonError(w, http.StatusBadRequest, "season and year are required")
+		return
+	}
+
+	seasonYear, err := strconv.Atoi(year)
+	if err != nil && year != "" {
+		h.jsonError(w, http.StatusBadRequest, "invalid year")
+		return
+	}
+
+	var resp models.Pagination[anime.AnimeDto]
+
+	if season != "" && year != "" {
+		resp, err = h.animeService.GetAnimeBySeasonAndYear(r.Context(), season, int32(seasonYear), page, size)
+	} else if season != "" {
+		resp, err = h.animeService.GetAnimeBySeason(r.Context(), season, page, size)
+	} else if year != "" {
+		resp, err = h.animeService.GetAnimeByYear(r.Context(), int32(seasonYear), page, size)
+	}
+
+	if err != nil {
+		log.Error("failed to fetch anime by season", "season", season, "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to fetch anime by season")
 		return
 	}
 	h.jsonOK(w, resp)

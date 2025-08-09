@@ -203,6 +203,226 @@ func (q *Queries) GetAnimeByMalId(ctx context.Context, malID pgtype.Int4) (Anime
 	return i, err
 }
 
+const getAnimeBySeason = `-- name: GetAnimeBySeason :many
+SELECT
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+FROM
+  animes
+WHERE
+  season = $3::season
+ORDER BY
+  season_year DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetAnimeBySeasonParams struct {
+	Limit  int32
+	Offset int32
+	Season Season
+}
+
+func (q *Queries) GetAnimeBySeason(ctx context.Context, arg GetAnimeBySeasonParams) ([]Anime, error) {
+	rows, err := q.db.Query(ctx, getAnimeBySeason, arg.Limit, arg.Offset, arg.Season)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Anime
+	for rows.Next() {
+		var i Anime
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ename,
+			&i.Jname,
+			&i.ImageUrl,
+			&i.Genre,
+			&i.HiAnimeID,
+			&i.MalID,
+			&i.AnilistID,
+			&i.LastEpisode,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SearchVector,
+			&i.Season,
+			&i.SeasonYear,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAnimeBySeasonAndYear = `-- name: GetAnimeBySeasonAndYear :many
+SELECT
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+FROM
+  animes
+WHERE
+  season = $3::season
+  AND season_year = $4::int
+ORDER BY
+  updated_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetAnimeBySeasonAndYearParams struct {
+	Limit      int32
+	Offset     int32
+	Season     Season
+	SeasonYear int32
+}
+
+func (q *Queries) GetAnimeBySeasonAndYear(ctx context.Context, arg GetAnimeBySeasonAndYearParams) ([]Anime, error) {
+	rows, err := q.db.Query(ctx, getAnimeBySeasonAndYear,
+		arg.Limit,
+		arg.Offset,
+		arg.Season,
+		arg.SeasonYear,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Anime
+	for rows.Next() {
+		var i Anime
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ename,
+			&i.Jname,
+			&i.ImageUrl,
+			&i.Genre,
+			&i.HiAnimeID,
+			&i.MalID,
+			&i.AnilistID,
+			&i.LastEpisode,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SearchVector,
+			&i.Season,
+			&i.SeasonYear,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAnimeBySeasonAndYearCount = `-- name: GetAnimeBySeasonAndYearCount :one
+SELECT
+  COUNT(*)
+FROM
+  animes
+WHERE
+  season = $1::season
+  AND season_year = $2::int
+`
+
+type GetAnimeBySeasonAndYearCountParams struct {
+	Season     Season
+	SeasonYear int32
+}
+
+func (q *Queries) GetAnimeBySeasonAndYearCount(ctx context.Context, arg GetAnimeBySeasonAndYearCountParams) (int64, error) {
+	row := q.db.QueryRow(ctx, getAnimeBySeasonAndYearCount, arg.Season, arg.SeasonYear)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getAnimeBySeasonCount = `-- name: GetAnimeBySeasonCount :one
+SELECT
+  COUNT(*)
+FROM
+  animes
+WHERE
+  season = $1::season
+`
+
+func (q *Queries) GetAnimeBySeasonCount(ctx context.Context, season Season) (int64, error) {
+	row := q.db.QueryRow(ctx, getAnimeBySeasonCount, season)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getAnimeByYear = `-- name: GetAnimeByYear :many
+SELECT
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+FROM
+  animes
+WHERE
+  season_year = $3::int
+ORDER BY
+  updated_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetAnimeByYearParams struct {
+	Limit      int32
+	Offset     int32
+	SeasonYear int32
+}
+
+func (q *Queries) GetAnimeByYear(ctx context.Context, arg GetAnimeByYearParams) ([]Anime, error) {
+	rows, err := q.db.Query(ctx, getAnimeByYear, arg.Limit, arg.Offset, arg.SeasonYear)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Anime
+	for rows.Next() {
+		var i Anime
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ename,
+			&i.Jname,
+			&i.ImageUrl,
+			&i.Genre,
+			&i.HiAnimeID,
+			&i.MalID,
+			&i.AnilistID,
+			&i.LastEpisode,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SearchVector,
+			&i.Season,
+			&i.SeasonYear,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAnimeByYearCount = `-- name: GetAnimeByYearCount :one
+SELECT
+  COUNT(*)
+FROM
+  animes
+WHERE
+  season_year = $1::int
+`
+
+func (q *Queries) GetAnimeByYearCount(ctx context.Context, seasonYear int32) (int64, error) {
+	row := q.db.QueryRow(ctx, getAnimeByYearCount, seasonYear)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getAnimeMetadataByMalId = `-- name: GetAnimeMetadataByMalId :one
 SELECT
   mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringusers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season, created_at, updated_at

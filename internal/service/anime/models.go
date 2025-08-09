@@ -14,6 +14,8 @@ type AnimeDto struct {
 	JName       *string `json:"jname"`
 	ImageURL    string  `json:"imageUrl"`
 	Genre       string  `json:"genre"`
+	Season      string  `json:"season"`
+	SeasonYear  *int32  `json:"seasonYear"`
 	MalID       *int32  `json:"malId"`
 	AnilistID   *int32  `json:"anilistId"`
 	LastEpisode *int32  `json:"lastEpisode"`
@@ -34,6 +36,8 @@ func (a AnimeDto) FromRepository(anime repository.Anime) AnimeDto {
 		JName:       nilIfEmpty(anime.Jname),
 		ImageURL:    anime.ImageUrl,
 		Genre:       anime.Genre,
+		Season:      string(anime.Season),
+		SeasonYear:  nilIfEmpty(anime.SeasonYear),
 		MalID:       nilIfEmpty(anime.MalID.Int32),
 		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
 		LastEpisode: nilIfEmpty(anime.LastEpisode),
@@ -47,6 +51,8 @@ func (a AnimeDto) FromSearch(anime repository.SearchAnimesRow) AnimeDto {
 		JName:       nilIfEmpty(anime.Jname),
 		ImageURL:    anime.ImageUrl,
 		Genre:       anime.Genre,
+		Season:      string(anime.Season),
+		SeasonYear:  nilIfEmpty(anime.SeasonYear),
 		MalID:       nilIfEmpty(anime.MalID.Int32),
 		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
 		LastEpisode: nilIfEmpty(anime.LastEpisode),
@@ -105,6 +111,8 @@ type AnimeWithMetadataDto struct {
 	JName       *string           `json:"jname"`
 	ImageURL    string            `json:"imageUrl"`
 	Genre       string            `json:"genre"`
+	Season      string            `json:"season"`
+	SeasonYear  *int32            `json:"seasonYear"`
 	MalID       *int32            `json:"malId"`
 	AnilistID   *int32            `json:"anilistId"`
 	LastEpisode *int32            `json:"lastEpisode"`
@@ -125,6 +133,8 @@ func (a AnimeWithMetadataDto) FromRepository(anime repository.Anime, metadata re
 		JName:       nilIfEmpty(anime.Jname),
 		ImageURL:    anime.ImageUrl,
 		Genre:       anime.Genre,
+		Season:      string(anime.Season),
+		SeasonYear:  nilIfEmpty(anime.SeasonYear),
 		MalID:       nilIfEmpty(anime.MalID.Int32),
 		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
 		LastEpisode: nilIfEmpty(anime.LastEpisode),

@@ -98,6 +98,149 @@ func (s *AnimeService) SearchAnimes(ctx context.Context, query, genre string, pa
 	}, nil
 }
 
+func (s *AnimeService) convertStringToSeason(season string) repository.Season {
+	switch season {
+	case "winter":
+		return repository.SeasonWinter
+	case "spring":
+		return repository.SeasonSpring
+	case "summer":
+		return repository.SeasonSummer
+	case "fall":
+		return repository.SeasonFall
+	default:
+		return repository.SeasonUnknown
+	}
+}
+
+func (s *AnimeService) GetAnimeBySeasonAndYear(
+	ctx context.Context,
+	season string,
+	year int32,
+	page, size int,
+) (models.Pagination[AnimeDto], error) {
+	limit, offset, err := utils.ValidatePaginationParams(page, size)
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	rows, err := s.repo.GetAnimeBySeasonAndYear(ctx, repository.GetAnimeBySeasonAndYearParams{
+		Season:     s.convertStringToSeason(season),
+		SeasonYear: year,
+		Limit:      limit,
+		Offset:     offset,
+	})
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	total, err := s.repo.GetAnimeBySeasonAndYearCount(ctx, repository.GetAnimeBySeasonAndYearCountParams{
+		Season:     s.convertStringToSeason(season),
+		SeasonYear: year,
+	})
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	for _, r := range rows {
+		s.refresher.Enqueue(r.MalID.Int32)
+	}
+
+	items := make([]AnimeDto, len(rows))
+	for i, a := range rows {
+		items[i] = AnimeDto{}.FromRepository(a)
+	}
+
+	pageSize := int64(limit)
+	pageInfo := utils.PageInfo(page, pageSize, total)
+	return models.Pagination[AnimeDto]{
+		PageInfo: pageInfo,
+		Items:    items,
+	}, nil
+}
+
+func (s *AnimeService) GetAnimeByYear(
+	ctx context.Context,
+	year int32,
+	page, size int,
+) (models.Pagination[AnimeDto], error) {
+	limit, offset, err := utils.ValidatePaginationParams(page, size)
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	rows, err := s.repo.GetAnimeByYear(ctx, repository.GetAnimeByYearParams{
+		SeasonYear: year,
+		Limit:      limit,
+		Offset:     offset,
+	})
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	total, err := s.repo.GetAnimeByYearCount(ctx, year)
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	for _, r := range rows {
+		s.refresher.Enqueue(r.MalID.Int32)
+	}
+
+	items := make([]AnimeDto, len(rows))
+	for i, a := range rows {
+		items[i] = AnimeDto{}.FromRepository(a)
+	}
+
+	pageSize := int64(limit)
+	pageInfo := utils.PageInfo(page, pageSize, total)
+	return models.Pagination[AnimeDto]{
+		PageInfo: pageInfo,
+		Items:    items,
+	}, nil
+}
+
+func (s *AnimeService) GetAnimeBySeason(
+	ctx context.Context,
+	season string,
+	page, size int,
+) (models.Pagination[AnimeDto], error) {
+	limit, offset, err := utils.ValidatePaginationParams(page, size)
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	rows, err := s.repo.GetAnimeBySeason(ctx, repository.GetAnimeBySeasonParams{
+		Season: s.convertStringToSeason(season),
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	total, err := s.repo.GetAnimeBySeasonCount(ctx, s.convertStringToSeason(season))
+	if err != nil {
+		return models.Pagination[AnimeDto]{}, err
+	}
+
+	for _, r := range rows {
+		s.refresher.Enqueue(r.MalID.Int32)
+	}
+
+	items := make([]AnimeDto, len(rows))
+	for i, a := range rows {
+		items[i] = AnimeDto{}.FromRepository(a)
+	}
+
+	pageSize := int64(limit)
+	pageInfo := utils.PageInfo(page, pageSize, total)
+	return models.Pagination[AnimeDto]{
+		PageInfo: pageInfo,
+		Items:    items,
+	}, nil
+}
+
 func (s *AnimeService) GetRandomAnime(ctx context.Context) (AnimeDto, error) {
 	data, err := s.repo.GetRandomAnime(ctx)
 	if err != nil {

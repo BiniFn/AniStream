@@ -227,3 +227,62 @@ WHERE
 RETURNING
   *;
 
+-- name: GetAnimeBySeasonAndYear :many
+SELECT
+  *
+FROM
+  animes
+WHERE
+  season = @season::season
+  AND season_year = @season_year::int
+ORDER BY
+  updated_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: GetAnimeBySeasonAndYearCount :one
+SELECT
+  COUNT(*)
+FROM
+  animes
+WHERE
+  season = @season::season
+  AND season_year = @season_year::int;
+
+-- name: GetAnimeByYear :many
+SELECT
+  *
+FROM
+  animes
+WHERE
+  season_year = @season_year::int
+ORDER BY
+  updated_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: GetAnimeByYearCount :one
+SELECT
+  COUNT(*)
+FROM
+  animes
+WHERE
+  season_year = @season_year::int;
+
+-- name: GetAnimeBySeason :many
+SELECT
+  *
+FROM
+  animes
+WHERE
+  season = @season::season
+ORDER BY
+  season_year DESC
+LIMIT $1 OFFSET $2;
+
+-- name: GetAnimeBySeasonCount :one
+SELECT
+  COUNT(*)
+FROM
+  animes
+WHERE
+  season = @season::season;
+
