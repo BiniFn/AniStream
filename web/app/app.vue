@@ -7,8 +7,12 @@ useHead({
 </script>
 
 <template>
-    <div>
-        <NuxtRouteAnnouncer />
-        <NuxtPage />
-    </div>
+    <SidebarProvider>
+        <MainSidebar />
+        <main>
+            <SidebarTrigger />
+            <NuxtRouteAnnouncer />
+            <NuxtPage />
+        </main>
+    </SidebarProvider>
 </template>
