@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import "vue-sonner/style.css";
+import 'vue-sonner/style.css';
 useHead({
     bodyAttrs: {
-        class: "dark",
+        class: 'dark',
     },
     link: [
         {
-            rel: "preconnect",
-            href: "https://fonts.gstatic.com",
+            rel: 'preconnect',
+            href: 'https://fonts.gstatic.com',
         },
         {
-            rel: "preconnect",
-            href: "https://fonts.googleapis.com",
+            rel: 'preconnect',
+            href: 'https://fonts.googleapis.com',
         },
     ],
 });
 </script>
 
 <template>
-    <main class="p-4">
+    <NuxtLayout>
         <NuxtRouteAnnouncer />
         <NuxtPage />
-    </main>
+    </NuxtLayout>
     <Toaster rich-colors theme="dark" />
 </template>
