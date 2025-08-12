@@ -22,6 +22,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.0
 	golang.org/x/crypto v0.37.0
 	golang.org/x/net v0.39.0
+	golang.org/x/sync v0.15.0
 	golang.org/x/time v0.12.0
 )
 
@@ -39,6 +40,5 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.30 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 )
