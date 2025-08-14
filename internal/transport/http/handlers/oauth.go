@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/go-chi/chi/v5"
@@ -34,6 +35,18 @@ func (h *Handler) beginAuthHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Info("redirecting to oauth url", "provider", provider.Name(), "url", url)
 
+	redirect := r.URL.Query().Get("redirect")
+	if redirect == "" {
+		redirect = "/"
+	}
+
+	cookie := &http.Cookie{
+		Name:  "redirect",
+		Value: redirect,
+	}
+
+	http.SetCookie(w, cookie)
+
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
@@ -57,5 +70,13 @@ func (h *Handler) callbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	redirect, err := r.Cookie("redirect")
+	if redirect == nil || err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{Name: "redirect", Value: "", Expires: time.Now().Add(-1 * time.Hour)})
+
+	http.Redirect(w, r, redirect.Value, http.StatusFound)
 }
