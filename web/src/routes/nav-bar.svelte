@@ -31,7 +31,7 @@
 		<div class="flex items-center justify-between">
 			<div class="flex items-center space-x-8">
 				<h1 class="tracking-light font-serif text-3xl font-extrabold text-primary uppercase">
-					Aniways
+					<a href="/">Aniways</a>
 				</h1>
 
 				<nav class="hidden space-x-6 lg:flex">
