@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import * as Sheet from '$lib/components/ui/sheet';
 	import { cn } from '$lib/utils';
 	import { Menu, Search } from 'lucide-svelte';
 
@@ -22,6 +23,8 @@
 			link: '/my-list'
 		}
 	];
+
+	let isSheetOpen = $state(false);
 </script>
 
 <header
@@ -50,7 +53,7 @@
 			</div>
 
 			<div class="flex items-center gap-4">
-				<Button variant="outline" class="lg:hidden">
+				<Button variant="outline" class="lg:hidden" onclick={() => (isSheetOpen = true)}>
 					<Menu class="h-5 w-5" />
 					<span class="sr-only">Menu</span>
 				</Button>
@@ -73,3 +76,32 @@
 		</div>
 	</div>
 </header>
+
+<Sheet.Root bind:open={isSheetOpen}>
+	<Sheet.Content side="right">
+		<Sheet.Header>
+			<Sheet.Title>Menu</Sheet.Title>
+		</Sheet.Header>
+		<div class="flex flex-col gap-2 px-4">
+			{#each links as link (link.link)}
+				<a
+					href={link.link}
+					class={cn(
+						'font-medium text-muted-foreground transition-colors hover:text-primary',
+						page.url.pathname === link.link && 'text-foreground'
+					)}
+				>
+					{link.label}
+				</a>
+			{/each}
+		</div>
+		<div class="flex flex-col gap-2 px-4">
+			<Button variant="outline" class="w-full">
+				<Search class="h-4 w-4" />
+				<span>Search anime...</span>
+			</Button>
+			<Button href="/login" variant="outline" class="w-full">Sign In</Button>
+			<Button href="/register" class="w-full">Register</Button>
+		</div>
+	</Sheet.Content>
+</Sheet.Root>
