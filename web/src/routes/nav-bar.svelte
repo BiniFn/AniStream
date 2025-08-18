@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { cn } from '$lib/utils';
 	import { Menu, Search } from 'lucide-svelte';
@@ -25,7 +26,18 @@
 	];
 
 	let isSheetOpen = $state(false);
+	let isSearchOpen = $state(false);
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
+			event.preventDefault();
+			isSearchOpen = !isSearchOpen;
+			isSheetOpen = false;
+		}
+	}
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <header
 	class="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
@@ -60,6 +72,7 @@
 				<Button
 					variant="outline"
 					class="hidden w-64 items-center justify-start space-x-2 border-muted-foreground/20 bg-transparent text-muted-foreground hover:border-primary/50 lg:flex"
+					onclick={() => (isSearchOpen = true)}
 				>
 					<Search class="h-4 w-4" />
 					<span>Search anime...</span>
@@ -96,7 +109,14 @@
 			{/each}
 		</div>
 		<div class="flex flex-col gap-2 px-4">
-			<Button variant="outline" class="w-full">
+			<Button
+				variant="outline"
+				class="w-full"
+				onclick={() => {
+					isSearchOpen = true;
+					isSheetOpen = false;
+				}}
+			>
 				<Search class="h-4 w-4" />
 				<span>Search anime...</span>
 			</Button>
@@ -105,3 +125,15 @@
 		</div>
 	</Sheet.Content>
 </Sheet.Root>
+
+<Command.Dialog bind:open={isSearchOpen}>
+	<Command.Input />
+	<Command.List>
+		<Command.Empty>No results found.</Command.Empty>
+		<Command.Group heading="Suggestions">
+			<Command.Item>Calendar</Command.Item>
+			<Command.Item>Search Emoji</Command.Item>
+			<Command.Item>Calculator</Command.Item>
+		</Command.Group>
+	</Command.List>
+</Command.Dialog>
