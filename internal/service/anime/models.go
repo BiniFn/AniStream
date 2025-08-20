@@ -162,6 +162,20 @@ func (e EpisodeDto) FromScraper(episode hianime.ScrapedEpisodeDto) EpisodeDto {
 	}
 }
 
+type EpisodeServerDto struct {
+	Type       string `json:"type"`
+	ServerName string `json:"serverName"`
+	ServerID   string `json:"serverId"`
+}
+
+func (e EpisodeServerDto) FromScraper(server hianime.ScrapedEpisodeServerDto) EpisodeServerDto {
+	return EpisodeServerDto{
+		Type:       server.Type,
+		ServerName: server.ServerName,
+		ServerID:   server.ServerID,
+	}
+}
+
 type EpisodeSourceDto struct {
 	URL    string `json:"url"`
 	RawURL string `json:"rawUrl"`

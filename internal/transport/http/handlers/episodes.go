@@ -10,12 +10,11 @@ import (
 func (h *Handler) AnimeEpisodeRoutes() {
 	h.r.Route("/anime/{id}/episodes", func(r chi.Router) {
 		r.Get("/", h.getAnimeEpisodes)
-		r.Get("/{episodeID}/langs", h.getEpisodeLangs)
+		r.Get("/{episodeID}/servers", h.getEpisodeServers)
 		r.Get("/{episodeID}/stream/{type}", h.getEpisodeStream)
 		r.Get("/{episodeID}/stream/{type}/metadata", h.getEpisodeStreamMetadata)
 	})
 }
-
 func (h *Handler) getAnimeEpisodes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -41,7 +40,7 @@ func (h *Handler) getAnimeEpisodes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) getEpisodeLangs(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getEpisodeServers(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
 	id, err := h.pathParam(r, "id")
@@ -49,14 +48,13 @@ func (h *Handler) getEpisodeLangs(w http.ResponseWriter, r *http.Request) {
 		h.jsonError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
 	episodeID := chi.URLParam(r, "episodeID")
 	if episodeID == "" {
 		h.jsonError(w, http.StatusBadRequest, "episode ID is required")
 		return
 	}
 
-	resp, err := h.animeService.GetEpisodeLangs(r.Context(), id, episodeID)
+	resp, err := h.animeService.GetEpisodeServers(r.Context(), id, episodeID)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)

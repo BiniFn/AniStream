@@ -1,6 +1,6 @@
 MIGRATION_NAME := $(filter-out migrate,$(MAKECMDGOALS))
 
-.PHONY: migrate dev-all dev-api dev-proxy dev-worker sqlc genqlient build tidy docker-build-api docker-build-proxy docker-build-worker dev-up dev-down dev-logs help
+.PHONY: migrate dev-all dev-api dev-proxy dev-worker sqlc genqlient build tidy docker-build-api docker-build-proxy docker-build-worker dev-up dev-down dev-logs tmux help
 
 # ----- Migration ----- #
 migrate: ## Generate migration files
@@ -80,6 +80,10 @@ dev-down: ## Stop dev containers
 
 dev-logs: ## View logs for all containers
 	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local logs -f
+
+# ----- Tmux Commands ----- #
+tmux:
+	./scripts/aniways-tmux.sh
 
 # ----- Help Menu ----- #
 help: ## Show help

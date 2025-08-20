@@ -39,21 +39,27 @@ func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]Episo
 	})
 }
 
-func (s *AnimeService) GetEpisodeLangs(ctx context.Context, id, episodeID string) ([]string, error) {
-	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("episode_langs:%s:%s", id, episodeID), 24*time.Hour, func(ctx context.Context) ([]string, error) {
+func (s *AnimeService) GetEpisodeServers(ctx context.Context, id, episodeID string) ([]EpisodeServerDto, error) {
+	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("episode_servers:%s:%s", id, episodeID), 24*time.Hour, func(ctx context.Context) ([]EpisodeServerDto, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
-		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrAnimeNotFound
 		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch anime by ID %s: %v", id, err)
 		}
 
-		langs, err := s.scraper.GetEpisodeLangs(ctx, a.HiAnimeID, episodeID)
+		servers, err := s.scraper.GetEpisodeServers(ctx, a.HiAnimeID, episodeID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch episode langs for anime ID %s episode %s: %v", id, episodeID, err)
+			return nil, fmt.Errorf("failed to fetch episode servers for anime ID %s episode %s: %v", id, episodeID, err)
 		}
-		return langs, nil
+
+		serverDtos := make([]EpisodeServerDto, len(servers))
+		for i, server := range servers {
+			serverDtos[i] = EpisodeServerDto{}.FromScraper(server)
+		}
+
+		return serverDtos, nil
 	})
 }
 

@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -338,39 +337,6 @@ func (s *HianimeScraper) GetEpisodeServers(
 	}
 
 	return out, nil
-}
-
-func (s *HianimeScraper) GetEpisodeLangs(
-	ctx context.Context,
-	hiAnimeID, episodeID string,
-) ([]string, error) {
-	servers, err := s.GetEpisodeServers(ctx, hiAnimeID, episodeID)
-	if err != nil {
-		return nil, err
-	}
-
-	var langs []string
-	for _, server := range servers {
-		switch server.Type {
-		case "sub", "raw":
-			if exists := slices.Contains(langs, "sub"); exists {
-				continue
-			}
-			langs = append(langs, "sub")
-		case "dub":
-			if exists := slices.Contains(langs, "dub"); exists {
-				continue
-			}
-			langs = append(langs, "dub")
-		default:
-			if exists := slices.Contains(langs, "unknown"); exists {
-				continue
-			}
-			langs = append(langs, "unknown")
-		}
-	}
-
-	return langs, nil
 }
 
 func (s *HianimeScraper) GetEpisodeStream(
