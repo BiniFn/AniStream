@@ -2,7 +2,6 @@ package settings
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/coeeter/aniways/internal/repository"
@@ -24,7 +23,7 @@ func (s *SettingsService) GetSettings(ctx context.Context, userID string) (Setti
 	switch {
 	case err == nil:
 		return Settings{}.FromRepository(setting), nil
-	case errors.Is(err, pgx.ErrNoRows) || errors.Is(err, sql.ErrNoRows):
+	case errors.Is(err, pgx.ErrNoRows):
 		setting, err := s.repo.SaveSettings(ctx, repository.SaveSettingsParams{
 			UserID:            userID,
 			AutoNextEpisode:   true,

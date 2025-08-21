@@ -2,7 +2,6 @@ package anime
 
 import (
 	"context"
-	"database/sql"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -15,7 +14,7 @@ import (
 func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]EpisodeDto, error) {
 	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("anime_episodes:%s", id), 7*24*time.Hour, func(ctx context.Context) ([]EpisodeDto, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
-		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrAnimeNotFound
 		}
 		if err != nil {
@@ -67,7 +66,7 @@ func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, stre
 	key := fmt.Sprintf("source:%s:%s:%s", id, episodeID, streamType)
 	return cache.GetOrFill(ctx, s.redis, key, 24*time.Hour, func(ctx context.Context) (EpisodeSourceDto, error) {
 		_, err := s.repo.GetAnimeById(ctx, id)
-		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return EpisodeSourceDto{}, ErrAnimeNotFound
 		}
 		if err != nil {
@@ -93,7 +92,7 @@ func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, episodeID, stre
 func (s *AnimeService) GetStreamMetadata(ctx context.Context, id, episodeID, streamType string) (StreamingMetadataDto, error) {
 	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("stream-metadata:%s:%s:%s", id, episodeID, streamType), 24*time.Hour, func(ctx context.Context) (StreamingMetadataDto, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
-		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return StreamingMetadataDto{}, ErrAnimeNotFound
 		}
 		if err != nil {

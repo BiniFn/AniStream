@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"database/sql"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -42,7 +41,7 @@ func (s *AuthService) buildSendEmailParams(to, token string) email.SendSimpleEma
 
 func (s *AuthService) SendForgetPasswordEmail(ctx context.Context, email string) error {
 	user, err := s.repo.GetUserByEmail(ctx, email)
-	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil
 	}
 	if err != nil {
@@ -64,7 +63,7 @@ func (s *AuthService) SendForgetPasswordEmail(ctx context.Context, email string)
 
 func (s *AuthService) GetUserByForgetPasswordToken(ctx context.Context, token string) (users.User, error) {
 	user, err := s.repo.GetUserByResetPasswordToken(ctx, token)
-	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return users.User{}, users.ErrUserDoesNotExist
 	}
 	if err != nil {

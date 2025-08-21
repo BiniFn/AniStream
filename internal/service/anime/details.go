@@ -2,7 +2,6 @@ package anime
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"slices"
@@ -21,7 +20,7 @@ func (s *AnimeService) GetAnimeByID(
 	id string,
 ) (*AnimeWithMetadataDto, error) {
 	a, err := s.repo.GetAnimeById(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrAnimeNotFound
 	}
 	if err != nil {
@@ -34,7 +33,7 @@ func (s *AnimeService) GetAnimeByID(
 		dto := AnimeWithMetadataDto{}.FromRepository(a, m)
 		return &dto, nil
 
-	case err != nil && !errors.Is(err, sql.ErrNoRows) && !errors.Is(err, pgx.ErrNoRows):
+	case err != nil && !errors.Is(err, pgx.ErrNoRows):
 		return nil, err
 	}
 
@@ -88,7 +87,7 @@ func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*Trailer
 func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (BannerDto, error) {
 	banner, err := cache.GetOrFill(ctx, s.redis, fmt.Sprintf("anime_banner:%s", id), 30*24*time.Hour, func(ctx context.Context) (string, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
-		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return "", ErrAnimeNotFound
 		}
 		if err != nil {
@@ -115,7 +114,7 @@ func (s *AnimeService) GetAnimeRelations(ctx context.Context, id string) (Relati
 
 	return cache.GetOrFill(ctx, s.redis, key, 7*24*time.Hour, func(ctx context.Context) (RelationsDto, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
-		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return RelationsDto{}, ErrAnimeNotFound
 		}
 		if err != nil {

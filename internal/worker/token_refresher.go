@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log/slog"
 
@@ -32,7 +31,7 @@ func refreshAccessTokens(
 	log *slog.Logger,
 ) error {
 	tokens, err := repo.GetTokensNearToExpiry(ctx)
-	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		log.Info("No tokens near to expiry")
 		return nil
 	}
