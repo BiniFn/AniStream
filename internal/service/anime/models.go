@@ -176,15 +176,17 @@ func (e EpisodeServerDto) FromScraper(server hianime.ScrapedEpisodeServerDto) Ep
 	}
 }
 
-type EpisodeSourceDto struct {
-	URL    string `json:"url"`
-	RawURL string `json:"rawUrl"`
+type StreamingSourceDto struct {
+	Hls      *string `json:"hls,omitempty"`
+	ProxyHls *string `json:"proxyHls,omitempty"`
+	Iframe   string  `json:"iframe"`
 }
 
-type StreamingMetadataDto struct {
-	Intro  SegmentDto `json:"intro"`
-	Outro  SegmentDto `json:"outro"`
-	Tracks []TrackDto `json:"tracks"`
+type StreamingDataDto struct {
+	Source StreamingSourceDto `json:"source"`
+	Intro  SegmentDto         `json:"intro"`
+	Outro  SegmentDto         `json:"outro"`
+	Tracks []TrackDto         `json:"tracks"`
 }
 
 type SegmentDto struct {
@@ -200,8 +202,19 @@ type TrackDto struct {
 	Default bool   `json:"default,omitempty"`
 }
 
-func (s StreamingMetadataDto) FromScraper(data hianime.ScrapedStreamMetadata) StreamingMetadataDto {
-	return StreamingMetadataDto{
+func (s StreamingDataDto) FromScraper(data hianime.ScrapedStreamData) StreamingDataDto {
+	source := StreamingSourceDto{
+		Iframe: data.Source.Iframe,
+	}
+	if data.Source.Hls != nil {
+		source.Hls = data.Source.Hls
+		p := base64.StdEncoding.EncodeToString([]byte(*data.Source.Hls))
+		proxy := fmt.Sprintf("/proxy?p=%s&s=hd", p)
+		source.ProxyHls = &proxy
+	}
+
+	return StreamingDataDto{
+		Source: source,
 		Intro: SegmentDto{
 			Start: data.Intro.Start,
 			End:   data.Intro.End,

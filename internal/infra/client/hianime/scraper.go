@@ -2,12 +2,16 @@ package hianime
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
+	"math/big"
 	"net/http"
 	"net/url"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -339,76 +343,65 @@ func (s *HianimeScraper) GetEpisodeServers(
 	return out, nil
 }
 
-func (s *HianimeScraper) GetEpisodeStream(
+func (s *HianimeScraper) GetStreamData(
 	ctx context.Context,
-	episodeID, streamType string,
-) (string, error) {
-	url := fmt.Sprintf("https://megaplay.buzz/stream/s-2/%s/%s", episodeID, streamType)
-	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
-	req.Header.Set("Referer", "https://megaplay.buzz")
-	resp, err := s.fetcher.Client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	mediaID, exists := doc.Find("#megaplay-player").Attr("data-id")
-	if mediaID == "" || !exists {
-		return "", fmt.Errorf("no media ID found in Megaplay streaming data")
-	}
-
-	ajax := fmt.Sprintf("https://megaplay.buzz/stream/getSources?id=%s", mediaID)
-	ajaxReq, _ := http.NewRequestWithContext(ctx, "GET", ajax, nil)
-	ajaxReq.Header.Set("Referer", "https://megaplay.buzz")
-	ajaxReq.Header.Set("Origin", url)
-	ajaxReq.Header.Set("X-Requested-With", "XMLHttpRequest")
-	ajaxResp, err := s.fetcher.Client.Do(ajaxReq)
-	if err != nil {
-		return "", err
-	}
-	defer ajaxResp.Body.Close()
-
-	var meta struct {
-		Sources struct {
-			File string `json:"file"`
-		} `json:"sources"`
-	}
-	if err := json.NewDecoder(ajaxResp.Body).Decode(&meta); err != nil {
-		return "", err
-	}
-	if meta.Sources.File == "" {
-		return "", fmt.Errorf("no sources in Megaplay response")
-	}
-
-	return meta.Sources.File, nil
-}
-
-func (s *HianimeScraper) GetStreamMetadata(
-	ctx context.Context,
-	hianimeID, episodeID, streamType string,
-) (ScrapedStreamMetadata, error) {
-	servers, err := s.GetEpisodeServers(ctx, hianimeID, episodeID)
-	if err != nil {
-		return ScrapedStreamMetadata{}, err
-	}
-
-	var serverID string
-	for _, server := range servers {
-		if server.Type == streamType {
-			serverID = server.ServerID
-			break
-		} else if streamType == "sub" && server.Type == "raw" {
-			serverID = server.ServerID
-			break
+	serverID, streamType, serverName string,
+) (ScrapedStreamData, error) {
+	if strings.ToLower(serverName) == "megaplay" {
+		url := fmt.Sprintf("https://megaplay.buzz/stream/s-2/%s/%s", serverID, streamType)
+		req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
+		req.Header.Set("Referer", "https://megaplay.buzz")
+		resp, err := s.fetcher.Client.Do(req)
+		if err != nil {
+			return ScrapedStreamData{}, err
 		}
+		defer resp.Body.Close()
+
+		doc, err := goquery.NewDocumentFromReader(resp.Body)
+		if err != nil {
+			return ScrapedStreamData{}, err
+		}
+		mediaID, exists := doc.Find("#megaplay-player").Attr("data-id")
+		if mediaID == "" || !exists {
+			return ScrapedStreamData{}, fmt.Errorf("no media ID found in Megaplay streaming data")
+		}
+
+		ajax := fmt.Sprintf("https://megaplay.buzz/stream/getSources?id=%s", mediaID)
+		ajaxReq, _ := http.NewRequestWithContext(ctx, "GET", ajax, nil)
+		ajaxReq.Header.Set("Referer", "https://megaplay.buzz")
+		ajaxReq.Header.Set("Origin", url)
+		ajaxReq.Header.Set("X-Requested-With", "XMLHttpRequest")
+		ajaxResp, err := s.fetcher.Client.Do(ajaxReq)
+		if err != nil {
+			return ScrapedStreamData{}, err
+		}
+		defer ajaxResp.Body.Close()
+
+		var meta struct {
+			Sources struct {
+				File string `json:"file"`
+			} `json:"sources"`
+			Tracks []ScrapedTrack `json:"tracks"`
+			Intro  ScrapedSegment `json:"intro"`
+			Outro  ScrapedSegment `json:"outro"`
+		}
+		if err := json.NewDecoder(ajaxResp.Body).Decode(&meta); err != nil {
+			return ScrapedStreamData{}, err
+		}
+
+		return ScrapedStreamData{
+			Source: ScrapedEpisodeSourceDto{
+				Iframe: url,
+				Hls:    &meta.Sources.File,
+			},
+			Intro:  meta.Intro,
+			Outro:  meta.Outro,
+			Tracks: meta.Tracks,
+		}, nil
 	}
 
-	if serverID == "" {
-		return ScrapedStreamMetadata{}, fmt.Errorf("no sources in Megaplay response")
+	if !strings.HasPrefix(strings.ToLower(serverName), "hd") {
+		return ScrapedStreamData{}, fmt.Errorf("unsupported server: %s", serverName)
 	}
 
 	headers := map[string]string{
@@ -421,15 +414,16 @@ func (s *HianimeScraper) GetStreamMetadata(
 	}
 	ok, err := s.fetcher.GetAjax(ctx, "/ajax/v2/episode/sources?id="+serverID, headers, &data)
 	if err != nil {
-		return ScrapedStreamMetadata{}, err
+		return ScrapedStreamData{}, err
 	}
 	if !ok {
-		return ScrapedStreamMetadata{}, fmt.Errorf("failed to fetch sources")
+		return ScrapedStreamData{}, fmt.Errorf("failed to fetch sources")
 	}
 
-	parsedURL, err := url.Parse(data.Link)
+	iframeURL := data.Link
+	parsedURL, err := url.Parse(iframeURL)
 	if err != nil {
-		return ScrapedStreamMetadata{}, err
+		return ScrapedStreamData{}, err
 	}
 
 	parts := strings.Split(parsedURL.Path, "/")
@@ -440,7 +434,7 @@ func (s *HianimeScraper) GetStreamMetadata(
 
 	token, err := s.extractToken(ctx, data.Link)
 	if err != nil {
-		return ScrapedStreamMetadata{}, fmt.Errorf("failed to extract token: %w", err)
+		return ScrapedStreamData{}, fmt.Errorf("failed to extract token: %w", err)
 	}
 
 	ajaxURL := fmt.Sprintf("%s/getSources?id=%s&_k=%s", origin, xrax, token)
@@ -448,16 +442,337 @@ func (s *HianimeScraper) GetStreamMetadata(
 	ajaxReq, _ := http.NewRequestWithContext(ctx, "GET", ajaxURL, nil)
 	ajaxResp, err := s.fetcher.Client.Do(ajaxReq)
 	if err != nil {
-		return ScrapedStreamMetadata{}, err
+		return ScrapedStreamData{}, err
 	}
 	defer ajaxResp.Body.Close()
 
-	var enc ScrapedStreamMetadata
-	if err := json.NewDecoder(ajaxResp.Body).Decode(&enc); err != nil {
-		return ScrapedStreamMetadata{}, err
+	var encMetadata struct {
+		Sources   json.RawMessage `json:"sources"` // Use RawMessage to handle different structures
+		Tracks    []ScrapedTrack  `json:"tracks"`
+		Intro     ScrapedSegment  `json:"intro"`
+		Outro     ScrapedSegment  `json:"outro"`
+		Encrypted bool            `json:"encrypted"`
+	}
+	if err := json.NewDecoder(ajaxResp.Body).Decode(&encMetadata); err != nil {
+		return ScrapedStreamData{}, err
 	}
 
-	return enc, nil
+	if !encMetadata.Encrypted {
+		var sources []struct {
+			File string `json:"file"`
+		}
+		if err := json.Unmarshal(encMetadata.Sources, &sources); err != nil {
+			return ScrapedStreamData{}, err
+		}
+		return ScrapedStreamData{
+			Source: ScrapedEpisodeSourceDto{
+				Iframe: iframeURL,
+				Hls:    &sources[0].File,
+			},
+			Intro:  encMetadata.Intro,
+			Outro:  encMetadata.Outro,
+			Tracks: encMetadata.Tracks,
+			Server: serverName,
+		}, nil
+	}
+
+	encryptedData := string(encMetadata.Sources)
+	if encryptedData == "" {
+		return ScrapedStreamData{}, fmt.Errorf("no sources in encrypted hianime response")
+	}
+
+	keyReq, _ := http.NewRequestWithContext(ctx, "GET", "https://raw.githubusercontent.com/yogesh-hacker/MegacloudKeys/refs/heads/main/keys.json", nil)
+	keyResp, err := s.fetcher.Client.Do(keyReq)
+	if err != nil {
+		return ScrapedStreamData{}, fmt.Errorf("failed to fetch decryption keys: %w", err)
+	}
+	defer keyResp.Body.Close()
+	var keys map[string]string
+	if err := json.NewDecoder(keyResp.Body).Decode(&keys); err != nil {
+		return ScrapedStreamData{}, fmt.Errorf("failed to decode decryption keys: %w", err)
+	}
+	megacloudKey, ok := keys["mega"]
+	if !ok {
+		return ScrapedStreamData{}, fmt.Errorf("no decryption key found for 'mega'")
+	}
+
+	decryptedSource, err := s.decryptStreamSource(encryptedData, megacloudKey, token)
+	if err != nil {
+		return ScrapedStreamData{}, fmt.Errorf("failed to decrypt stream source: %w", err)
+	}
+
+	return ScrapedStreamData{
+		Source: ScrapedEpisodeSourceDto{
+			Iframe: iframeURL,
+			Hls:    &decryptedSource,
+		},
+		Intro:  encMetadata.Intro,
+		Outro:  encMetadata.Outro,
+		Tracks: encMetadata.Tracks,
+		Server: serverName,
+	}, nil
+}
+
+func (s *HianimeScraper) decryptStreamSource(encryptedData, megaKey, clientToken string) (string, error) {
+	es := strings.TrimSpace(encryptedData)
+	if len(es) >= 2 && ((es[0] == '"' && es[len(es)-1] == '"') || (es[0] == '\'' && es[len(es)-1] == '\'')) {
+		if unq, err := strconv.Unquote(es); err == nil {
+			es = unq
+		} else {
+			es = es[1 : len(es)-1]
+		}
+	}
+
+	out, err := decryptMegacloudSrc(es, clientToken, megaKey)
+	if err != nil {
+		return "", err
+	}
+	return out, nil
+}
+
+const (
+	_mask31 = uint64(0x7FFFFFFF)
+	_mask32 = uint64(0xFFFFFFFF)
+)
+
+var (
+	_printable [95]byte // ASCII 32..126
+	_idxMap    [256]int
+	_big31     = big.NewInt(31)
+	_mod63     = new(big.Int).SetUint64(0x7FFFFFFFFFFFFFFF)
+)
+
+func init() {
+	for i := range _idxMap {
+		_idxMap[i] = -1
+	}
+	for i := range 95 {
+		b := byte(32 + i)
+		_printable[i] = b
+		_idxMap[int(b)] = i
+	}
+}
+
+// decryptMegacloudSrc mirrors the TS decryptSrc2(src, clientKey, megacloudKey)
+func decryptMegacloudSrc(src, clientKey, megacloudKey string) (string, error) {
+	const layers = 3
+
+	genKey := keygen2Mega(megacloudKey, clientKey)
+
+	decoded, err := base64.StdEncoding.DecodeString(src)
+	if err != nil {
+		return "", err
+	}
+	dec := string(decoded)
+
+	for i := layers; i > 0; i-- {
+		dec = reverseLayerMega(dec, genKey+strconv.Itoa(i))
+	}
+
+	if len(dec) < 4 {
+		return "", fmt.Errorf("decrypt: data too short")
+	}
+	n, err := strconv.Atoi(dec[:4])
+	if err != nil {
+		return "", err
+	}
+	if n < 0 || 4+n > len(dec) {
+		return "", fmt.Errorf("decrypt: invalid length prefix")
+	}
+	return dec[4 : 4+n], nil
+}
+
+func reverseLayerMega(decSrc, layerKey string) string {
+	// 32-bit rolling hash
+	var h uint64
+	for i := 0; i < len(layerKey); i++ {
+		h = (h*31 + uint64(layerKey[i])) & _mask32
+	}
+	rng := lcg(h)
+
+	// seeded shift over printable set
+	var b1 strings.Builder
+	b1.Grow(len(decSrc))
+	for i := 0; i < len(decSrc); i++ {
+		c := decSrc[i]
+		idx := -1
+		if int(c) < len(_idxMap) {
+			idx = _idxMap[int(c)]
+		}
+		if idx == -1 {
+			b1.WriteByte(c)
+			continue
+		}
+		newIdx := (idx - rng.next(95) + 95) % 95
+		b1.WriteByte(_printable[newIdx])
+	}
+	decSrc = b1.String()
+
+	// columnar transpose
+	decSrc = columnarCipherMega(decSrc, layerKey)
+
+	// reverse substitution (seeded shuffle)
+	sub := seedShuffleMega(layerKey)
+	var rev [256]byte
+	var has [256]bool
+	for i := range 95 {
+		from := sub[i]
+		to := _printable[i]
+		rev[int(from)] = to
+		has[int(from)] = true
+	}
+
+	var b2 strings.Builder
+	b2.Grow(len(decSrc))
+	for i := 0; i < len(decSrc); i++ {
+		c := decSrc[i]
+		if int(c) < len(has) && has[int(c)] {
+			b2.WriteByte(rev[int(c)])
+		} else {
+			b2.WriteByte(c)
+		}
+	}
+	return b2.String()
+}
+
+// keygen2Mega is the TS keygen2 with big.Int hash and ASCII normalization.
+func keygen2Mega(megacloudKey, clientKey string) string {
+	temp := megacloudKey + clientKey
+
+	// hashVal = ch + hash*31 + (hash<<7) - hash
+	var h, t1, t2 big.Int
+	for i := 0; i < len(temp); i++ {
+		t1.Mul(&h, _big31)
+		t2.Lsh(&h, 7)
+		t1.Add(&t1, &t2)
+		t1.Sub(&t1, &h)
+		t1.Add(&t1, big.NewInt(int64(temp[i])))
+		h.Set(&t1)
+	}
+	h.Abs(&h)
+	lHash := new(big.Int).Mod(&h, _mod63).Uint64()
+
+	// XOR 247
+	xb := make([]byte, len(temp))
+	for i := range xb {
+		xb[i] = temp[i] ^ 247
+	}
+	temp = string(xb)
+
+	// circular shift by (lHash%len + 5), clamp like JS slice()
+	if len(temp) > 0 {
+		pivot := min(int(lHash%uint64(len(temp)))+5, len(temp))
+		temp = temp[pivot:] + temp[:pivot]
+	}
+
+	// interleave with reverse(clientKey)
+	rck := reverseBytes(clientKey)
+	var rk strings.Builder
+	rk.Grow(len(temp) + len(rck))
+	maxLen := int(math.Max(float64(len(temp)), float64(len(rck))))
+	for i := range maxLen {
+		if i < len(temp) {
+			rk.WriteByte(temp[i])
+		}
+		if i < len(rck) {
+			rk.WriteByte(rck[i])
+		}
+	}
+	out := rk.String()
+
+	// trim to (96 + lHash%33)
+	max2 := 96 + int(lHash%33)
+	if len(out) > max2 {
+		out = out[:max2]
+	}
+
+	// normalize to printable [32..126]
+	b := make([]byte, len(out))
+	for i := range b {
+		b[i] = (out[i]%95 + 32)
+	}
+	return string(b)
+}
+
+func reverseBytes(s string) []byte {
+	b := []byte(s)
+	for i, j := 0, len(b)-1; i < j; i, j = i+1, j-1 {
+		b[i], b[j] = b[j], b[i]
+	}
+	return b
+}
+
+type lcg uint64
+
+func (s *lcg) next(n int) int {
+	*s = (lcg(uint64(*s)*1103515245 + 12345)) & lcg(_mask31)
+	if n <= 0 {
+		return 0
+	}
+	return int(uint64(*s) % uint64(n))
+}
+
+// seedShuffleMega: Fisher–Yates with seeded LCG over printable set.
+func seedShuffleMega(iKey string) []byte {
+	var h uint64
+	for i := 0; i < len(iKey); i++ {
+		h = (h*31 + uint64(iKey[i])) & _mask32
+	}
+	rng := lcg(h)
+
+	ret := make([]byte, 95)
+	copy(ret, _printable[:])
+	for i := len(ret) - 1; i > 0; i-- {
+		j := rng.next(i + 1)
+		ret[i], ret[j] = ret[j], ret[i]
+	}
+	return ret
+}
+
+func columnarCipherMega(src, iKey string) string {
+	if len(src) == 0 || len(iKey) == 0 {
+		return src
+	}
+	cols := len(iKey)
+	rows := int(math.Ceil(float64(len(src)) / float64(cols)))
+
+	// matrix prefilled with spaces
+	mat := make([][]byte, rows)
+	for r := range mat {
+		row := make([]byte, cols)
+		for c := range row {
+			row[c] = ' '
+		}
+		mat[r] = row
+	}
+
+	type pair struct {
+		ch  byte
+		idx int
+	}
+	keys := make([]pair, cols)
+	for i := range cols {
+		keys[i] = pair{iKey[i], i}
+	}
+	// JS sort is stable
+	sort.SliceStable(keys, func(i, j int) bool { return keys[i].ch < keys[j].ch })
+
+	sb := []byte(src)
+	k := 0
+	for _, p := range keys {
+		col := p.idx
+		for r := 0; r < rows && k < len(sb); r++ {
+			mat[r][col] = sb[k]
+			k++
+		}
+	}
+
+	var out strings.Builder
+	out.Grow(rows * cols)
+	for r := range rows {
+		out.Write(mat[r])
+	}
+	return out.String()
 }
 
 var (
@@ -539,8 +854,8 @@ func (s *HianimeScraper) extractToken(ctx context.Context, url string) (string, 
 			return "", nil
 		case html.CommentToken:
 			data := strings.TrimSpace(string(tokenizer.Text()))
-			if strings.HasPrefix(data, key) {
-				return strings.TrimPrefix(data, key), nil
+			if after, ok := strings.CutPrefix(data, key); ok {
+				return after, nil
 			}
 		}
 	}

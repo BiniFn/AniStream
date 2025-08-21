@@ -38,15 +38,6 @@ type ScrapedEpisodeServerDto struct {
 	ServerID   string `json:"serverId"`
 }
 
-type ScrapedSources struct {
-	Sources   string         `json:"sources"`
-	Server    int            `json:"server"`
-	Intro     ScrapedSegment `json:"intro"`
-	Outro     ScrapedSegment `json:"outro"`
-	Tracks    []ScrapedTrack `json:"tracks"`
-	Encrypted bool           `json:"encrypted"`
-}
-
 type ScrapedSegment struct {
 	Start int `json:"start"`
 	End   int `json:"end"`
@@ -59,8 +50,15 @@ type ScrapedTrack struct {
 	Default bool   `json:"default,omitempty"`
 }
 
-type ScrapedStreamMetadata struct {
-	Intro  ScrapedSegment `json:"intro"`
-	Outro  ScrapedSegment `json:"outro"`
-	Tracks []ScrapedTrack `json:"tracks"`
+type ScrapedEpisodeSourceDto struct {
+	Hls    *string `json:"hls"`
+	Iframe string  `json:"iframe"`
+}
+
+type ScrapedStreamData struct {
+	Source ScrapedEpisodeSourceDto `json:"source"`
+	Intro  ScrapedSegment          `json:"intro"`
+	Outro  ScrapedSegment          `json:"outro"`
+	Tracks []ScrapedTrack          `json:"tracks"`
+	Server string                  `json:"server"`
 }
