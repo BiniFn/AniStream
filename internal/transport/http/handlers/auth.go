@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/service/auth"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
@@ -32,17 +33,13 @@ func (h *Handler) AuthRoutes() {
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	var body struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var req models.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
-	user, err := h.userService.AuthenticateUser(r.Context(), body.Email, body.Password)
+	user, err := h.userService.AuthenticateUser(r.Context(), req.Email, req.Password)
 	if err != nil {
 		log.Warn("Failed to authenticate user", "err", err)
 		h.jsonError(w, http.StatusUnauthorized, "Invalid credentials")
@@ -123,16 +120,13 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	var input struct {
-		Email string `json:"email"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	var req models.ForgetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "Invalid request")
 		return
 	}
 
-	if err := h.authService.SendForgetPasswordEmail(r.Context(), input.Email); err != nil {
+	if err := h.authService.SendForgetPasswordEmail(r.Context(), req.Email); err != nil {
 		log.Error("Failed to send reset password email", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "Failed to send reset password email")
 		return
@@ -169,16 +163,13 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var input struct {
-		Password string `json:"password"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	var req models.ResetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "Invalid request")
 		return
 	}
 
-	err = h.authService.ResetPassword(r.Context(), h.userService, token, input.Password)
+	err = h.authService.ResetPassword(r.Context(), h.userService, token, req.Password)
 	switch err {
 	case nil:
 		w.WriteHeader(http.StatusOK)

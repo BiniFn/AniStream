@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/service/library"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/go-chi/chi/v5"
@@ -149,10 +150,6 @@ func (h *Handler) deleteAnimeFromLib(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-type LibraryBody struct {
-	Status         string `json:"status"`
-	WatchedEpisode int32  `json:"watchedEpisodes"`
-}
 
 func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
@@ -164,13 +161,13 @@ func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body LibraryBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var req models.LibraryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	lib, err := h.libraryService.CreateLibrary(r.Context(), user.ID, animeID, body.Status, body.WatchedEpisode)
+	lib, err := h.libraryService.CreateLibrary(r.Context(), user.ID, animeID, req.Status, req.WatchedEpisodes)
 	switch err {
 	case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
 		h.jsonError(w, http.StatusBadRequest, err.Error())
@@ -192,13 +189,13 @@ func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body LibraryBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var req models.LibraryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	lib, err := h.libraryService.UpdateLibrary(r.Context(), user.ID, animeID, body.Status, body.WatchedEpisode)
+	lib, err := h.libraryService.UpdateLibrary(r.Context(), user.ID, animeID, req.Status, req.WatchedEpisodes)
 	switch err {
 	case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
 		h.jsonError(w, http.StatusBadRequest, err.Error())
@@ -225,9 +222,7 @@ func (h *Handler) importLibrary(w http.ResponseWriter, r *http.Request) {
 	case library.ErrInvalidProvider:
 		h.jsonError(w, http.StatusBadRequest, err.Error())
 	case nil:
-		h.jsonOK(w, map[string]string{
-			"id": id,
-		})
+		h.jsonOK(w, models.ImportJobResponse{ID: id})
 	default:
 		log.Error("failed to import library", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to import library")

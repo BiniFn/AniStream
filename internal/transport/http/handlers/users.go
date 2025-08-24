@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/go-chi/chi/v5"
@@ -51,16 +52,13 @@ func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
 
-	var updatePasswordBody struct {
-		OldPassword string `json:"oldPassword"`
-		NewPassword string `json:"newPassword"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&updatePasswordBody); err != nil {
+	var req models.UpdatePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "Bad request")
 		return
 	}
 
-	err := h.userService.UpdatePassword(r.Context(), user.ID, updatePasswordBody.OldPassword, updatePasswordBody.NewPassword)
+	err := h.userService.UpdatePassword(r.Context(), user.ID, req.OldPassword, req.NewPassword)
 	switch err {
 	case nil:
 		w.WriteHeader(http.StatusOK)
@@ -80,21 +78,18 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
 
-	var updateUserBody struct {
-		Username string `json:"username"`
-		Email    string `json:"email"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&updateUserBody); err != nil {
+	var req models.UpdateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "Bad request")
 		return
 	}
 
-	u, err := h.userService.UpdateUser(r.Context(), user.ID, updateUserBody.Username, updateUserBody.Email)
+	u, err := h.userService.UpdateUser(r.Context(), user.ID, req.Username, req.Email)
 	switch err {
 	case nil:
 		h.jsonOK(w, u)
 	case users.ErrEmailTaken, users.ErrUsernameTaken:
-		log.Warn("username or email already taken", "username", updateUserBody.Username, "email", updateUserBody.Email)
+		log.Warn("username or email already taken", "username", req.Username, "email", req.Email)
 		h.jsonError(w, http.StatusConflict, err.Error())
 	default:
 		log.Error("user update failed", "err", err)
@@ -106,15 +101,13 @@ func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
 
-	var body struct {
-		Password string `json:"password"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var req models.DeleteUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "Bad request")
 		return
 	}
 
-	err := h.userService.DeleteUser(r.Context(), user.ID, body.Password)
+	err := h.userService.DeleteUser(r.Context(), user.ID, req.Password)
 	switch err {
 	case nil:
 		http.SetCookie(w, &http.Cookie{

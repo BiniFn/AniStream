@@ -14,6 +14,7 @@ func (h *Handler) AnimeEpisodeRoutes() {
 		r.Get("/servers/{serverID}", h.getEpisodeStreamData)
 	})
 }
+
 func (h *Handler) getAnimeEpisodes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -47,9 +48,9 @@ func (h *Handler) getEpisodeServers(w http.ResponseWriter, r *http.Request) {
 		h.jsonError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	episodeID := chi.URLParam(r, "episodeID")
-	if episodeID == "" {
-		h.jsonError(w, http.StatusBadRequest, "episode ID is required")
+	episodeID, err := h.pathParam(r, "episodeID")
+	if err != nil {
+		h.jsonError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -77,17 +78,18 @@ func (h *Handler) getEpisodeStreamData(w http.ResponseWriter, r *http.Request) {
 		h.jsonError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	serverID := chi.URLParam(r, "serverID")
-	if serverID == "" {
-		h.jsonError(w, http.StatusBadRequest, "server ID is required")
+	serverID, err := h.pathParam(r, "serverID")
+	if err != nil {
+		h.jsonError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	serverName := r.URL.Query().Get("serverName")
+
+	serverName := r.URL.Query().Get("server")
 	if serverName == "" {
 		h.jsonError(w, http.StatusBadRequest, "server name is required")
 		return
 	}
-	streamType := r.URL.Query().Get("streamType")
+	streamType := r.URL.Query().Get("type")
 	if streamType == "" {
 		h.jsonError(w, http.StatusBadRequest, "stream type is required")
 		return

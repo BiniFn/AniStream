@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/coeeter/aniways/internal/app"
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/coeeter/aniways/internal/service/auth"
 	"github.com/coeeter/aniways/internal/service/auth/oauth"
@@ -121,7 +122,7 @@ func (h *Handler) pathParam(r *http.Request, key string) (string, error) {
 func (h *Handler) jsonError(w http.ResponseWriter, status int, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(map[string]string{"error": msg})
+	_ = json.NewEncoder(w).Encode(models.ErrorResponse{Error: msg})
 }
 
 func (h *Handler) jsonOK(w http.ResponseWriter, v interface{}) {

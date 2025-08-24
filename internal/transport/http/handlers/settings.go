@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/service/settings"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/go-chi/chi/v5"
@@ -36,23 +37,18 @@ func (h *Handler) saveSettings(w http.ResponseWriter, r *http.Request) {
 
 	user := middleware.GetUser(r)
 
-	var body struct {
-		AutoNextEpisode   bool `json:"autoNextEpisode"`
-		AutoPlayEpisode   bool `json:"autoPlayEpisode"`
-		AutoResumeEpisode bool `json:"autoResumeEpisode"`
-		IncognitoMode     bool `json:"incognitoMode"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var req models.SettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	settings, err := h.settingsService.SaveSettings(r.Context(), settings.SaveSettingsParams{
 		UserID:            user.ID,
-		AutoNextEpisode:   body.AutoNextEpisode,
-		AutoPlayEpisode:   body.AutoPlayEpisode,
-		AutoResumeEpisode: body.AutoResumeEpisode,
-		IncognitoMode:     body.IncognitoMode,
+		AutoNextEpisode:   req.AutoNextEpisode,
+		AutoPlayEpisode:   req.AutoPlayEpisode,
+		AutoResumeEpisode: req.AutoResumeEpisode,
+		IncognitoMode:     req.IncognitoMode,
 	})
 	if err != nil {
 		log.Error("failed to save settings", "err", err)
