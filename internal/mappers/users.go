@@ -5,8 +5,6 @@ import (
 	"github.com/coeeter/aniways/internal/repository"
 )
 
-// Repository → HTTP Models
-
 func UserFromRepository(user repository.User) models.UserResponse {
 	return models.UserResponse{
 		ID:             user.ID,
@@ -17,3 +15,4 @@ func UserFromRepository(user repository.User) models.UserResponse {
 		UpdatedAt:      user.UpdatedAt.Time,
 	}
 }
+

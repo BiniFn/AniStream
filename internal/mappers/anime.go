@@ -9,8 +9,6 @@ import (
 	"github.com/coeeter/aniways/internal/repository"
 )
 
-// Repository → HTTP Models
-
 func AnimeFromRepository(anime repository.Anime) models.AnimeResponse {
 	return models.AnimeResponse{
 		ID:          anime.ID,
@@ -88,8 +86,6 @@ func AnimeWithMetadataFromRepository(anime repository.Anime, metadata repository
 	}
 }
 
-// Scraper → HTTP Models
-
 func EpisodeFromScraper(episode hianime.ScrapedEpisodeDto) models.EpisodeResponse {
 	return models.EpisodeResponse{
 		ID:       episode.EpisodeID,
@@ -147,7 +143,6 @@ func StreamingDataFromScraper(data hianime.ScrapedStreamData) models.StreamingDa
 	}
 }
 
-// Helper function
 func nilIfEmpty[T comparable](value T) *T {
 	var zero T
 	if value == zero {
@@ -155,3 +150,4 @@ func nilIfEmpty[T comparable](value T) *T {
 	}
 	return &value
 }
+

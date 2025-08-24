@@ -5,8 +5,6 @@ import (
 	"github.com/coeeter/aniways/internal/repository"
 )
 
-// Repository → HTTP Models
-
 func LibraryFromRepository(l repository.Library, a repository.Anime) models.LibraryResponse {
 	return models.LibraryResponse{
 		ID:              l.ID,
@@ -30,3 +28,4 @@ func LibraryImportJobFromRepository(j repository.LibraryImportJob) models.Librar
 		CompletedAt: j.CompletedAt.Time,
 	}
 }
+

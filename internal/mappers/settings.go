@@ -5,8 +5,6 @@ import (
 	"github.com/coeeter/aniways/internal/repository"
 )
 
-// Repository → HTTP Models
-
 func SettingsFromRepository(r repository.Setting) models.SettingsResponse {
 	return models.SettingsResponse{
 		UserID:            r.UserID,
@@ -16,3 +14,4 @@ func SettingsFromRepository(r repository.Setting) models.SettingsResponse {
 		IncognitoMode:     r.IncognitoMode,
 	}
 }
+

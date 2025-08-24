@@ -141,36 +141,30 @@ func (h *Handler) logger(r *http.Request) *slog.Logger {
 	return logger.With("layer", "controller")
 }
 
-// parseAndValidate parses JSON request body and validates it in one step
 func (h *Handler) parseAndValidate(w http.ResponseWriter, r *http.Request, req interface{}) bool {
-	// Parse JSON
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "Invalid JSON")
 		return false
 	}
-	
-	// Validate struct
+
 	if err := h.validator.Struct(req); err != nil {
 		h.jsonValidationError(w, err)
 		return false
 	}
-	
+
 	return true
 }
 
-// jsonValidationError sends a detailed validation error response
 func (h *Handler) jsonValidationError(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
-	
+
 	validationErrors, ok := err.(validator.ValidationErrors)
 	if !ok {
-		// Fallback for non-validation errors
 		_ = json.NewEncoder(w).Encode(models.ErrorResponse{Error: "Validation failed"})
 		return
 	}
-	
-	// Convert validation errors to field-specific messages
+
 	details := make(map[string]string)
 	for _, fieldErr := range validationErrors {
 		field := fieldErr.Field()
@@ -189,7 +183,7 @@ func (h *Handler) jsonValidationError(w http.ResponseWriter, err error) {
 			details[field] = field + " is invalid"
 		}
 	}
-	
+
 	_ = json.NewEncoder(w).Encode(models.ValidationErrorResponse{
 		Error:   "Validation failed",
 		Details: details,

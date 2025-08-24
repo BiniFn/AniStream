@@ -1,6 +1,5 @@
 package models
 
-// LibraryStatus represents the status of an anime in a user's library
 type LibraryStatus string
 
 const (
@@ -11,7 +10,6 @@ const (
 	LibraryStatusPlanToWatch LibraryStatus = "plan_to_watch"
 )
 
-// IsValid checks if the library status is valid
 func (s LibraryStatus) IsValid() bool {
 	switch s {
 	case LibraryStatusWatching, LibraryStatusCompleted, LibraryStatusOnHold, LibraryStatusDropped, LibraryStatusPlanToWatch:
@@ -21,7 +19,6 @@ func (s LibraryStatus) IsValid() bool {
 	}
 }
 
-// OAuthProvider represents supported OAuth providers
 type OAuthProvider string
 
 const (
@@ -29,7 +26,6 @@ const (
 	OAuthProviderMAL     OAuthProvider = "mal"
 )
 
-// IsValid checks if the OAuth provider is valid
 func (p OAuthProvider) IsValid() bool {
 	switch p {
 	case OAuthProviderAnilist, OAuthProviderMAL:
@@ -38,3 +34,4 @@ func (p OAuthProvider) IsValid() bool {
 		return false
 	}
 }
+
