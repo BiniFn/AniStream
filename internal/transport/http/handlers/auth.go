@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -34,8 +33,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
 	var req models.LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, "Invalid JSON")
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 
@@ -73,7 +71,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
-	user, ok := utils.CtxValue[users.User](r.Context())
+	user, ok := utils.CtxValue[models.UserResponse](r.Context())
 	if !ok {
 		h.jsonError(w, http.StatusUnauthorized, "Invalid session")
 		return
@@ -121,8 +119,7 @@ func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
 	var req models.ForgetPasswordRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, "Invalid request")
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 
@@ -164,8 +161,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req models.ResetPasswordRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, "Invalid request")
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 

@@ -8,6 +8,8 @@ import (
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
+	"github.com/coeeter/aniways/internal/mappers"
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
@@ -33,32 +35,32 @@ func NewUserService(repo *repository.Queries, cld *cloudinary.Cloudinary) *UserS
 	}
 }
 
-func (s *UserService) GetUserByID(ctx context.Context, id string) (User, error) {
+func (s *UserService) GetUserByID(ctx context.Context, id string) (models.UserResponse, error) {
 	user, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
-		return User{}, err
+		return models.UserResponse{}, err
 	}
-	return User{}.FromRepository(user), nil
+	return mappers.UserFromRepository(user), nil
 }
 
-func (s *UserService) GetUserByEmail(ctx context.Context, email string) (User, error) {
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (models.UserResponse, error) {
 	user, err := s.repo.GetUserByEmail(ctx, email)
 	if err != nil {
-		return User{}, err
+		return models.UserResponse{}, err
 	}
-	return User{}.FromRepository(user), nil
+	return mappers.UserFromRepository(user), nil
 }
 
-func (s *UserService) CreateUser(ctx context.Context, username, email, password string) (User, error) {
+func (s *UserService) CreateUser(ctx context.Context, username, email, password string) (models.UserResponse, error) {
 	passwordsBytes := []byte(password)
 
 	if len(passwordsBytes) > 72 {
-		return User{}, ErrPasswordTooLong
+		return models.UserResponse{}, ErrPasswordTooLong
 	}
 
 	hash, err := bcrypt.GenerateFromPassword(passwordsBytes, bcrypt.DefaultCost)
 	if err != nil {
-		return User{}, err
+		return models.UserResponse{}, err
 	}
 
 	user, err := s.repo.CreateUser(ctx, repository.CreateUserParams{
@@ -70,18 +72,18 @@ func (s *UserService) CreateUser(ctx context.Context, username, email, password 
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			if strings.Contains(err.Error(), "users_username_key") {
-				return User{}, ErrUsernameTaken
+				return models.UserResponse{}, ErrUsernameTaken
 			}
 			if strings.Contains(err.Error(), "users_email_key") {
-				return User{}, ErrEmailTaken
+				return models.UserResponse{}, ErrEmailTaken
 			}
 		}
-		return User{}, err
+		return models.UserResponse{}, err
 	}
-	return User{}.FromRepository(user), nil
+	return mappers.UserFromRepository(user), nil
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, id, username, email string) (User, error) {
+func (s *UserService) UpdateUser(ctx context.Context, id, username, email string) (models.UserResponse, error) {
 	user, err := s.repo.UpdateUser(ctx, repository.UpdateUserParams{
 		ID:       id,
 		Username: username,
@@ -90,15 +92,15 @@ func (s *UserService) UpdateUser(ctx context.Context, id, username, email string
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			if strings.Contains(err.Error(), "users_username_key") {
-				return User{}, ErrUsernameTaken
+				return models.UserResponse{}, ErrUsernameTaken
 			}
 			if strings.Contains(err.Error(), "users_email_key") {
-				return User{}, ErrEmailTaken
+				return models.UserResponse{}, ErrEmailTaken
 			}
 		}
-		return User{}, err
+		return models.UserResponse{}, err
 	}
-	return User{}.FromRepository(user), nil
+	return mappers.UserFromRepository(user), nil
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, id, password string) error {
@@ -118,17 +120,17 @@ func (s *UserService) DeleteUser(ctx context.Context, id, password string) error
 	return nil
 }
 
-func (s *UserService) AuthenticateUser(ctx context.Context, email, password string) (User, error) {
+func (s *UserService) AuthenticateUser(ctx context.Context, email, password string) (models.UserResponse, error) {
 	user, err := s.repo.GetUserByEmail(ctx, email)
 	if err != nil {
-		return User{}, ErrInvalidAuth
+		return models.UserResponse{}, ErrInvalidAuth
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return User{}, ErrInvalidAuth
+		return models.UserResponse{}, ErrInvalidAuth
 	}
 
-	return User{}.FromRepository(user), nil
+	return mappers.UserFromRepository(user), nil
 }
 
 func (s *UserService) CreateSession(ctx context.Context, userID string) (repository.Session, error) {
@@ -147,12 +149,12 @@ func (s *UserService) DeleteSession(ctx context.Context, sessionID string) error
 	return nil
 }
 
-func (s *UserService) GetUserBySessionID(ctx context.Context, sessionID string) (User, error) {
+func (s *UserService) GetUserBySessionID(ctx context.Context, sessionID string) (models.UserResponse, error) {
 	user, err := s.repo.GetUserBySessionID(ctx, sessionID)
 	if err != nil {
-		return User{}, err
+		return models.UserResponse{}, err
 	}
-	return User{}.FromRepository(user), nil
+	return mappers.UserFromRepository(user), nil
 }
 
 func (s *UserService) UpdatePassword(ctx context.Context, id, oldPassword, newPassword string) error {

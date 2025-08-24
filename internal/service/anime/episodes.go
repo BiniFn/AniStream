@@ -7,11 +7,13 @@ import (
 	"time"
 
 	"github.com/coeeter/aniways/internal/infra/cache"
+	"github.com/coeeter/aniways/internal/mappers"
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/jackc/pgx/v5"
 )
 
-func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]EpisodeDto, error) {
-	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("anime_episodes:%s", id), 7*24*time.Hour, func(ctx context.Context) ([]EpisodeDto, error) {
+func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) (models.EpisodeListResponse, error) {
+	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("anime_episodes:%s", id), 7*24*time.Hour, func(ctx context.Context) (models.EpisodeListResponse, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrAnimeNotFound
@@ -29,17 +31,17 @@ func (s *AnimeService) GetAnimeEpisodes(ctx context.Context, id string) ([]Episo
 			return nil, fmt.Errorf("no episodes found for anime ID %s", id)
 		}
 
-		episodeDtos := make([]EpisodeDto, len(episodes))
+		episodeResponses := make([]models.EpisodeResponse, len(episodes))
 		for i, ep := range episodes {
-			episodeDtos[i] = EpisodeDto{}.FromScraper(ep)
+			episodeResponses[i] = mappers.EpisodeFromScraper(ep)
 		}
-		return episodeDtos, nil
+		return episodeResponses, nil
 	})
 }
 
-func (s *AnimeService) GetEpisodeServers(ctx context.Context, id, episodeID string) ([]EpisodeServerDto, error) {
+func (s *AnimeService) GetEpisodeServers(ctx context.Context, id, episodeID string) (models.EpisodeServerListResponse, error) {
 	key := fmt.Sprintf("episode_servers:%s:%s", id, episodeID)
-	return cache.GetOrFill(ctx, s.redis, key, 24*time.Hour, func(ctx context.Context) ([]EpisodeServerDto, error) {
+	return cache.GetOrFill(ctx, s.redis, key, 24*time.Hour, func(ctx context.Context) (models.EpisodeServerListResponse, error) {
 		a, err := s.repo.GetAnimeById(ctx, id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrAnimeNotFound
@@ -53,31 +55,31 @@ func (s *AnimeService) GetEpisodeServers(ctx context.Context, id, episodeID stri
 			return nil, fmt.Errorf("failed to fetch episode servers for anime ID %s episode %s: %v", id, episodeID, err)
 		}
 
-		serverDtos := make([]EpisodeServerDto, len(servers))
+		serverResponses := make([]models.EpisodeServerResponse, len(servers))
 		for i, server := range servers {
-			serverDtos[i] = EpisodeServerDto{}.FromScraper(server)
+			serverResponses[i] = mappers.EpisodeServerFromScraper(server)
 		}
 
-		return serverDtos, nil
+		return serverResponses, nil
 	})
 }
 
-func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, serverID, serverName, streamType string) (StreamingDataDto, error) {
+func (s *AnimeService) GetEpisodeStream(ctx context.Context, id, serverID, serverName, streamType string) (models.StreamingDataResponse, error) {
 	key := fmt.Sprintf("episode_stream:%s:%s:%s:%s", id, serverID, serverName, streamType)
-	return cache.GetOrFill(ctx, s.redis, key, 24*time.Hour, func(ctx context.Context) (StreamingDataDto, error) {
+	return cache.GetOrFill(ctx, s.redis, key, 24*time.Hour, func(ctx context.Context) (models.StreamingDataResponse, error) {
 		_, err := s.repo.GetAnimeById(ctx, id)
 		if errors.Is(err, pgx.ErrNoRows) {
-			return StreamingDataDto{}, ErrAnimeNotFound
+			return models.StreamingDataResponse{}, ErrAnimeNotFound
 		}
 		if err != nil {
-			return StreamingDataDto{}, fmt.Errorf("failed to fetch anime by ID %s: %v", id, err)
+			return models.StreamingDataResponse{}, fmt.Errorf("failed to fetch anime by ID %s: %v", id, err)
 		}
 
 		streamData, err := s.scraper.GetStreamData(ctx, serverID, streamType, serverName)
 		if err != nil {
-			return StreamingDataDto{}, fmt.Errorf("failed to fetch episode stream for anime ID %s server %s: %v", id, serverID, err)
+			return models.StreamingDataResponse{}, fmt.Errorf("failed to fetch episode stream for anime ID %s server %s: %v", id, serverID, err)
 		}
 
-		return StreamingDataDto{}.FromScraper(streamData), nil
+		return mappers.StreamingDataFromScraper(streamData), nil
 	})
 }

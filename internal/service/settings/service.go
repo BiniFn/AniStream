@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/coeeter/aniways/internal/mappers"
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/jackc/pgx/v5"
 )
@@ -18,11 +20,11 @@ func NewSettingsService(repo *repository.Queries) *SettingsService {
 	}
 }
 
-func (s *SettingsService) GetSettings(ctx context.Context, userID string) (Settings, error) {
+func (s *SettingsService) GetSettings(ctx context.Context, userID string) (models.SettingsResponse, error) {
 	setting, err := s.repo.GetSettingsOfUser(ctx, userID)
 	switch {
 	case err == nil:
-		return Settings{}.FromRepository(setting), nil
+		return mappers.SettingsFromRepository(setting), nil
 	case errors.Is(err, pgx.ErrNoRows):
 		setting, err := s.repo.SaveSettings(ctx, repository.SaveSettingsParams{
 			UserID:            userID,
@@ -32,11 +34,11 @@ func (s *SettingsService) GetSettings(ctx context.Context, userID string) (Setti
 			IncognitoMode:     false,
 		})
 		if err != nil {
-			return Settings{}, err
+			return models.SettingsResponse{}, err
 		}
-		return Settings{}.FromRepository(setting), nil
+		return mappers.SettingsFromRepository(setting), nil
 	default:
-		return Settings{}, err
+		return models.SettingsResponse{}, err
 	}
 }
 
@@ -48,7 +50,7 @@ type SaveSettingsParams struct {
 	IncognitoMode     bool
 }
 
-func (s *SettingsService) SaveSettings(ctx context.Context, params SaveSettingsParams) (Settings, error) {
+func (s *SettingsService) SaveSettings(ctx context.Context, params SaveSettingsParams) (models.SettingsResponse, error) {
 	settings, err := s.repo.SaveSettings(ctx, repository.SaveSettingsParams{
 		UserID:            params.UserID,
 		AutoNextEpisode:   params.AutoNextEpisode,
@@ -58,8 +60,8 @@ func (s *SettingsService) SaveSettings(ctx context.Context, params SaveSettingsP
 	})
 
 	if err != nil {
-		return Settings{}, err
+		return models.SettingsResponse{}, err
 	}
 
-	return Settings{}.FromRepository(settings), nil
+	return mappers.SettingsFromRepository(settings), nil
 }

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/models"
@@ -162,12 +161,11 @@ func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req models.LibraryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, err.Error())
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 
-	lib, err := h.libraryService.CreateLibrary(r.Context(), user.ID, animeID, req.Status, req.WatchedEpisodes)
+	lib, err := h.libraryService.CreateLibrary(r.Context(), user.ID, animeID, string(req.Status), req.WatchedEpisodes)
 	switch err {
 	case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
 		h.jsonError(w, http.StatusBadRequest, err.Error())
@@ -190,12 +188,11 @@ func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req models.LibraryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, err.Error())
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 
-	lib, err := h.libraryService.UpdateLibrary(r.Context(), user.ID, animeID, req.Status, req.WatchedEpisodes)
+	lib, err := h.libraryService.UpdateLibrary(r.Context(), user.ID, animeID, string(req.Status), req.WatchedEpisodes)
 	switch err {
 	case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
 		h.jsonError(w, http.StatusBadRequest, err.Error())

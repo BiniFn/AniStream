@@ -17,11 +17,13 @@ import (
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/utils"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 )
 
 type Handler struct {
 	r               *chi.Mux
 	deps            *app.Deps
+	validator       *validator.Validate
 	refresher       *anime.MetadataRefresher
 	animeService    *anime.AnimeService
 	userService     *users.UserService
@@ -47,6 +49,7 @@ func New(deps *app.Deps, r *chi.Mux) *Handler {
 	return &Handler{
 		r:               r,
 		deps:            deps,
+		validator:       validator.New(),
 		refresher:       refresher,
 		animeService:    animeService,
 		userService:     userService,
@@ -136,4 +139,59 @@ func (h *Handler) logger(r *http.Request) *slog.Logger {
 		return slog.Default()
 	}
 	return logger.With("layer", "controller")
+}
+
+// parseAndValidate parses JSON request body and validates it in one step
+func (h *Handler) parseAndValidate(w http.ResponseWriter, r *http.Request, req interface{}) bool {
+	// Parse JSON
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		h.jsonError(w, http.StatusBadRequest, "Invalid JSON")
+		return false
+	}
+	
+	// Validate struct
+	if err := h.validator.Struct(req); err != nil {
+		h.jsonValidationError(w, err)
+		return false
+	}
+	
+	return true
+}
+
+// jsonValidationError sends a detailed validation error response
+func (h *Handler) jsonValidationError(w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+	
+	validationErrors, ok := err.(validator.ValidationErrors)
+	if !ok {
+		// Fallback for non-validation errors
+		_ = json.NewEncoder(w).Encode(models.ErrorResponse{Error: "Validation failed"})
+		return
+	}
+	
+	// Convert validation errors to field-specific messages
+	details := make(map[string]string)
+	for _, fieldErr := range validationErrors {
+		field := fieldErr.Field()
+		switch fieldErr.Tag() {
+		case "required":
+			details[field] = field + " is required"
+		case "email":
+			details[field] = "Invalid email format"
+		case "min":
+			details[field] = field + " must be at least " + fieldErr.Param() + " characters"
+		case "max":
+			details[field] = field + " must be at most " + fieldErr.Param() + " characters"
+		case "oneof":
+			details[field] = field + " must be one of: " + fieldErr.Param()
+		default:
+			details[field] = field + " is invalid"
+		}
+	}
+	
+	_ = json.NewEncoder(w).Encode(models.ValidationErrorResponse{
+		Error:   "Validation failed",
+		Details: details,
+	})
 }

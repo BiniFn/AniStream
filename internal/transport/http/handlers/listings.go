@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/coeeter/aniways/internal/models"
-	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -76,7 +75,7 @@ func (h *Handler) getBySeason(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var resp models.Pagination[anime.AnimeDto]
+	var resp models.AnimeListResponse
 
 	if season != "" && year != "" {
 		resp, err = h.animeService.GetAnimeBySeasonAndYear(r.Context(), season, int32(seasonYear), page, size)
@@ -100,7 +99,7 @@ func (h *Handler) randomAnime(w http.ResponseWriter, r *http.Request) {
 	genre := r.URL.Query().Get("genre")
 
 	var (
-		resp anime.AnimeDto
+		resp models.AnimeResponse
 		err  error
 	)
 

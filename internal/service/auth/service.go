@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"github.com/coeeter/aniways/internal/infra/email"
+	"github.com/coeeter/aniways/internal/mappers"
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/template"
@@ -61,16 +63,16 @@ func (s *AuthService) SendForgetPasswordEmail(ctx context.Context, email string)
 	return nil
 }
 
-func (s *AuthService) GetUserByForgetPasswordToken(ctx context.Context, token string) (users.User, error) {
+func (s *AuthService) GetUserByForgetPasswordToken(ctx context.Context, token string) (models.UserResponse, error) {
 	user, err := s.repo.GetUserByResetPasswordToken(ctx, token)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return users.User{}, users.ErrUserDoesNotExist
+		return models.UserResponse{}, users.ErrUserDoesNotExist
 	}
 	if err != nil {
-		return users.User{}, err
+		return models.UserResponse{}, err
 	}
 
-	return users.User{}.FromRepository(user), nil
+	return mappers.UserFromRepository(user), nil
 }
 
 var ErrInvalidToken = errors.New("invalid token")

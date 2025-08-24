@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/models"
@@ -38,8 +37,7 @@ func (h *Handler) saveSettings(w http.ResponseWriter, r *http.Request) {
 	user := middleware.GetUser(r)
 
 	var req models.SettingsRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, "invalid request body")
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -26,21 +25,20 @@ func (h *Handler) UserRoutes() {
 func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	user := &users.CreateUser{}
-	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		h.jsonError(w, http.StatusBadRequest, "Bad request")
+	var req models.CreateUserRequest
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 
-	u, err := h.userService.CreateUser(r.Context(), user.Username, user.Email, user.Password)
+	u, err := h.userService.CreateUser(r.Context(), req.Username, req.Email, req.Password)
 	switch err {
 	case nil:
 		h.jsonOK(w, u)
 	case users.ErrEmailTaken, users.ErrUsernameTaken:
-		log.Warn("username or email already taken", "username", user.Username, "email", user.Email)
+		log.Warn("username or email already taken", "username", req.Username, "email", req.Email)
 		h.jsonError(w, http.StatusConflict, err.Error())
 	case users.ErrPasswordTooLong:
-		log.Warn("password too long", "username", user.Username)
+		log.Warn("password too long", "username", req.Username)
 		h.jsonError(w, http.StatusBadRequest, err.Error())
 	default:
 		log.Error("user creation failed", "err", err)
@@ -53,8 +51,7 @@ func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
 	user := middleware.GetUser(r)
 
 	var req models.UpdatePasswordRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, "Bad request")
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 
@@ -79,8 +76,7 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	user := middleware.GetUser(r)
 
 	var req models.UpdateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, "Bad request")
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 
@@ -102,8 +98,7 @@ func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	user := middleware.GetUser(r)
 
 	var req models.DeleteUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.jsonError(w, http.StatusBadRequest, "Bad request")
+	if !h.parseAndValidate(w, r, &req) {
 		return
 	}
 

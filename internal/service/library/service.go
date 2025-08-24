@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/coeeter/aniways/internal/mappers"
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/anime"
@@ -46,14 +47,14 @@ func isValidStatus(status string) bool {
 
 var ErrInvalidStatus = errors.New("invalid status")
 
-func (s *LibraryService) GetLibrary(ctx context.Context, params GetLibraryParams) (models.Pagination[LibraryDto], error) {
+func (s *LibraryService) GetLibrary(ctx context.Context, params GetLibraryParams) (models.LibraryListResponse, error) {
 	limit, offset, err := utils.ValidatePaginationParams(params.Page, params.ItemsPerPage)
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
 	if !isValidStatus(params.Status) {
-		return models.Pagination[LibraryDto]{}, ErrInvalidStatus
+		return models.LibraryListResponse{}, ErrInvalidStatus
 	}
 
 	rows, err := s.repo.GetLibrary(ctx, repository.GetLibraryParams{
@@ -63,7 +64,7 @@ func (s *LibraryService) GetLibrary(ctx context.Context, params GetLibraryParams
 		Offset: int32(offset),
 	})
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
 	for _, r := range rows {
@@ -75,17 +76,17 @@ func (s *LibraryService) GetLibrary(ctx context.Context, params GetLibraryParams
 		Status: repository.LibraryStatus(params.Status),
 	})
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
-	out := make([]LibraryDto, 0, len(rows))
+	out := make([]models.LibraryResponse, 0, len(rows))
 	for _, item := range rows {
-		out = append(out, LibraryDto{}.FromRepository(item.Library, item.Anime))
+		out = append(out, mappers.LibraryFromRepository(item.Library, item.Anime))
 	}
 
 	pageSize := int64(limit)
 	pageInfo := utils.PageInfo(params.Page, pageSize, total)
-	return models.Pagination[LibraryDto]{
+	return models.LibraryListResponse{
 		Items:    out,
 		PageInfo: pageInfo,
 	}, nil
@@ -93,30 +94,30 @@ func (s *LibraryService) GetLibrary(ctx context.Context, params GetLibraryParams
 
 var ErrLibraryNotFound = errors.New("library not found")
 
-func (s *LibraryService) GetLibraryByAnimeID(ctx context.Context, userID, animeID string) (LibraryDto, error) {
+func (s *LibraryService) GetLibraryByAnimeID(ctx context.Context, userID, animeID string) (models.LibraryResponse, error) {
 	row, err := s.repo.GetLibraryOfUserByAnimeID(ctx, repository.GetLibraryOfUserByAnimeIDParams{
 		UserID:  userID,
 		AnimeID: animeID,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return LibraryDto{}, ErrLibraryNotFound
+		return models.LibraryResponse{}, ErrLibraryNotFound
 	}
 	if err != nil {
-		return LibraryDto{}, err
+		return models.LibraryResponse{}, err
 	}
 
-	return LibraryDto{}.FromRepository(row.Library, row.Anime), nil
+	return mappers.LibraryFromRepository(row.Library, row.Anime), nil
 }
 
 var ErrInvalidWatchedEpisodes = errors.New("invalid watched episodes")
 
-func (s *LibraryService) CreateLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) (LibraryDto, error) {
+func (s *LibraryService) CreateLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) (models.LibraryResponse, error) {
 	if !isValidStatus(status) {
-		return LibraryDto{}, ErrInvalidStatus
+		return models.LibraryResponse{}, ErrInvalidStatus
 	}
 
 	if watchedEpisodes < 0 {
-		return LibraryDto{}, ErrInvalidWatchedEpisodes
+		return models.LibraryResponse{}, ErrInvalidWatchedEpisodes
 	}
 
 	err := s.repo.InsertLibrary(ctx, repository.InsertLibraryParams{
@@ -126,7 +127,7 @@ func (s *LibraryService) CreateLibrary(ctx context.Context, userID, animeID, sta
 		WatchedEpisodes: watchedEpisodes,
 	})
 	if err != nil {
-		return LibraryDto{}, err
+		return models.LibraryResponse{}, err
 	}
 
 	s.queueSync(ctx, userID, animeID, repository.LibraryActionsAddEntry, SyncPayload{
@@ -136,24 +137,24 @@ func (s *LibraryService) CreateLibrary(ctx context.Context, userID, animeID, sta
 
 	lib, err := s.GetLibraryByAnimeID(ctx, userID, animeID)
 	if err != nil {
-		return LibraryDto{}, err
+		return models.LibraryResponse{}, err
 	}
 
 	return lib, nil
 }
 
-func (s *LibraryService) UpdateLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) (LibraryDto, error) {
+func (s *LibraryService) UpdateLibrary(ctx context.Context, userID, animeID, status string, watchedEpisodes int32) (models.LibraryResponse, error) {
 	if !isValidStatus(status) {
-		return LibraryDto{}, ErrInvalidStatus
+		return models.LibraryResponse{}, ErrInvalidStatus
 	}
 
 	if watchedEpisodes < 0 {
-		return LibraryDto{}, ErrInvalidWatchedEpisodes
+		return models.LibraryResponse{}, ErrInvalidWatchedEpisodes
 	}
 
 	old, err := s.GetLibraryByAnimeID(ctx, userID, animeID)
 	if err != nil {
-		return LibraryDto{}, err
+		return models.LibraryResponse{}, err
 	}
 
 	err = s.repo.UpdateLibrary(ctx, repository.UpdateLibraryParams{
@@ -163,12 +164,12 @@ func (s *LibraryService) UpdateLibrary(ctx context.Context, userID, animeID, sta
 		WatchedEpisodes: watchedEpisodes,
 	})
 	if err != nil {
-		return LibraryDto{}, err
+		return models.LibraryResponse{}, err
 	}
 
 	lib, err := s.GetLibraryByAnimeID(ctx, userID, animeID)
 	if err != nil {
-		return LibraryDto{}, err
+		return models.LibraryResponse{}, err
 	}
 
 	if old.Status != status {
@@ -200,10 +201,10 @@ type GetContinueWatchingAnimeParams struct {
 	Page, ItemsPerPage int
 }
 
-func (s *LibraryService) GetContinueWatching(ctx context.Context, params GetContinueWatchingAnimeParams) (models.Pagination[LibraryDto], error) {
+func (s *LibraryService) GetContinueWatching(ctx context.Context, params GetContinueWatchingAnimeParams) (models.LibraryListResponse, error) {
 	limit, offset, err := utils.ValidatePaginationParams(params.Page, params.ItemsPerPage)
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
 	rows, err := s.repo.GetContinueWatchingAnime(ctx, repository.GetContinueWatchingAnimeParams{
@@ -212,22 +213,22 @@ func (s *LibraryService) GetContinueWatching(ctx context.Context, params GetCont
 		Offset: offset,
 	})
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
 	total, err := s.repo.GetContinueWatchingAnimeCount(ctx, params.UserID)
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
-	out := make([]LibraryDto, 0, len(rows))
+	out := make([]models.LibraryResponse, 0, len(rows))
 	for _, item := range rows {
-		out = append(out, LibraryDto{}.FromRepository(item.Library, item.Anime))
+		out = append(out, mappers.LibraryFromRepository(item.Library, item.Anime))
 	}
 
 	pageSize := int64(limit)
 	pageInfo := utils.PageInfo(params.Page, pageSize, total)
-	return models.Pagination[LibraryDto]{
+	return models.LibraryListResponse{
 		Items:    out,
 		PageInfo: pageInfo,
 	}, nil
@@ -238,10 +239,10 @@ type GetPlanToWatchAnimeParams struct {
 	Page, ItemsPerPage int
 }
 
-func (s *LibraryService) GetPlanToWatch(ctx context.Context, params GetPlanToWatchAnimeParams) (models.Pagination[LibraryDto], error) {
+func (s *LibraryService) GetPlanToWatch(ctx context.Context, params GetPlanToWatchAnimeParams) (models.LibraryListResponse, error) {
 	limit, offset, err := utils.ValidatePaginationParams(params.Page, params.ItemsPerPage)
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
 	rows, err := s.repo.GetPlanToWatchAnime(ctx, repository.GetPlanToWatchAnimeParams{
@@ -250,22 +251,22 @@ func (s *LibraryService) GetPlanToWatch(ctx context.Context, params GetPlanToWat
 		Offset: offset,
 	})
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
 	total, err := s.repo.GetPlanToWatchAnimeCount(ctx, params.UserID)
 	if err != nil {
-		return models.Pagination[LibraryDto]{}, err
+		return models.LibraryListResponse{}, err
 	}
 
-	out := make([]LibraryDto, 0, len(rows))
+	out := make([]models.LibraryResponse, 0, len(rows))
 	for _, item := range rows {
-		out = append(out, LibraryDto{}.FromRepository(item.Library, item.Anime))
+		out = append(out, mappers.LibraryFromRepository(item.Library, item.Anime))
 	}
 
 	pageSize := int64(limit)
 	pageInfo := utils.PageInfo(params.Page, pageSize, total)
-	return models.Pagination[LibraryDto]{
+	return models.LibraryListResponse{
 		Items:    out,
 		PageInfo: pageInfo,
 	}, nil
@@ -313,14 +314,14 @@ func (s *LibraryService) ImportLibrary(ctx context.Context, userID, provider str
 
 var ErrJobNotFound = errors.New("job not found")
 
-func (s *LibraryService) GetImportLibraryStatus(ctx context.Context, jobID string) (LibraryImportJobDto, error) {
+func (s *LibraryService) GetImportLibraryStatus(ctx context.Context, jobID string) (models.LibraryImportJobResponse, error) {
 	status, err := s.repo.GetLibraryImportJob(ctx, jobID)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return LibraryImportJobDto{}, ErrJobNotFound
+		return models.LibraryImportJobResponse{}, ErrJobNotFound
 	}
 	if err != nil {
-		return LibraryImportJobDto{}, err
+		return models.LibraryImportJobResponse{}, err
 	}
 
-	return LibraryImportJobDto{}.FromRepository(status), nil
+	return mappers.LibraryImportJobFromRepository(status), nil
 }

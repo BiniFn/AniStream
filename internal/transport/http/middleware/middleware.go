@@ -8,6 +8,7 @@ import (
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/coeeter/aniways/internal/repository"
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/utils"
 	"github.com/go-chi/chi/v5"
@@ -59,7 +60,7 @@ func injectLogger(logger *slog.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			reqLogger := logger.With("request_id", middleware.GetReqID(r.Context()))
 
-			if user, ok := utils.CtxValue[users.User](r.Context()); ok {
+			if user, ok := utils.CtxValue[models.UserResponse](r.Context()); ok {
 				reqLogger = reqLogger.With("user_id", user.ID)
 			}
 

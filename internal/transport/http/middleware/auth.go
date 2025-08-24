@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/coeeter/aniways/internal/service/users"
+	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/utils"
 )
 
@@ -19,13 +19,13 @@ func RequireUser(next http.Handler) http.Handler {
 }
 
 // GetUser retrieves the authenticated user from the request context.
-func GetUser(r *http.Request) *users.User {
-	user, _ := utils.CtxValue[users.User](r.Context())
+func GetUser(r *http.Request) *models.UserResponse {
+	user, _ := utils.CtxValue[models.UserResponse](r.Context())
 	return &user
 }
 
 func isUserAuthenticated(r *http.Request) bool {
-	user, ok := utils.CtxValue[users.User](r.Context())
+	user, ok := utils.CtxValue[models.UserResponse](r.Context())
 	if !ok {
 		return false
 	}
