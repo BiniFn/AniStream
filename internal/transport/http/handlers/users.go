@@ -22,6 +22,17 @@ func (h *Handler) UserRoutes() {
 	})
 }
 
+// @Summary Create new user
+// @Description Create new user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body models.CreateUserRequest true "User object"
+// @Success 200 {object} models.UserResponse
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 409 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users [post]
 func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -46,6 +57,18 @@ func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Update user password
+// @Description Update user password
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param password body models.UpdatePasswordRequest true "Password object"
+// @Success 200
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users/password [put]
 func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -71,6 +94,18 @@ func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Update user information
+// @Description Update user information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param user body models.UpdateUserRequest true "User object"
+// @Success 200 {object} models.UserResponse
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 409 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users [put]
 func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -93,6 +128,18 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Delete user account
+// @Description Delete user account
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param password body models.DeleteUserRequest true "Password object"
+// @Success 204
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users [delete]
 func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -124,6 +171,17 @@ func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// @Summary Update user profile picture
+// @Description Update user profile picture
+// @Tags Users
+// @Accept multipart/form-data
+// @Produce json
+// @Security cookieAuth
+// @Param image formData file true "Image file"
+// @Success 200
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users/image [put]
 func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)

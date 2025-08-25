@@ -24,6 +24,19 @@ func (h *Handler) LibraryRoutes() {
 	})
 }
 
+// @Summary Get user's anime library
+// @Description Get user's anime library
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param status query string true "Library status filter"
+// @Param page query int false "Page number"
+// @Param itemsPerPage query int false "Number of items per page"
+// @Success 200 {object} models.LibraryListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library [get]
 func (h *Handler) getLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -58,6 +71,18 @@ func (h *Handler) getLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get anime status in library
+// @Description Get anime status in library
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param animeID path string true "Anime ID"
+// @Success 200 {object} models.LibraryResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/{animeID} [get]
 func (h *Handler) getAnimeStatus(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -81,6 +106,18 @@ func (h *Handler) getAnimeStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get continue watching list
+// @Description Get continue watching list
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param page query int false "Page number"
+// @Param itemsPerPage query int false "Number of items per page"
+// @Success 200 {object} models.LibraryListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/continue-watching [get]
 func (h *Handler) getContinueWatching(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -105,6 +142,18 @@ func (h *Handler) getContinueWatching(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, library)
 }
 
+// @Summary Get plan to watch list
+// @Description Get plan to watch list
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param page query int false "Page number"
+// @Param itemsPerPage query int false "Number of items per page"
+// @Success 200 {object} models.LibraryListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/planning [get]
 func (h *Handler) getPlanning(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -129,6 +178,17 @@ func (h *Handler) getPlanning(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, library)
 }
 
+// @Summary Remove anime from library
+// @Description Remove anime from library
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param animeID path string true "Anime ID"
+// @Success 200
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/{animeID} [delete]
 func (h *Handler) deleteAnimeFromLib(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -149,7 +209,18 @@ func (h *Handler) deleteAnimeFromLib(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-
+// @Summary Add anime to library
+// @Description Add anime to library
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param animeID path string true "Anime ID"
+// @Param library body models.LibraryRequest true "Library object"
+// @Success 200 {object} models.LibraryResponse
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/{animeID} [post]
 func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -177,6 +248,18 @@ func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Update anime in library
+// @Description Update anime in library
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param animeID path string true "Anime ID"
+// @Param library body models.LibraryRequest true "Library object"
+// @Success 200 {object} models.LibraryResponse
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/{animeID} [put]
 func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -204,6 +287,17 @@ func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Import library from external provider
+// @Description Import library from external provider
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param provider query string true "External provider to import from"
+// @Success 200 {object} models.ImportJobResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/import [post]
 func (h *Handler) importLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
@@ -226,6 +320,18 @@ func (h *Handler) importLibrary(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get library import status
+// @Description Get library import status
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param id path string true "Import job ID"
+// @Success 200 {object} models.LibraryImportJobResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/import/{id} [get]
 func (h *Handler) getLibraryImportStatus(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

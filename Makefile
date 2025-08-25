@@ -1,6 +1,6 @@
 MIGRATION_NAME := $(filter-out migrate,$(MAKECMDGOALS))
 
-.PHONY: migrate dev-all dev-api dev-proxy dev-worker sqlc genqlient build tidy docker-build-api docker-build-proxy docker-build-worker dev-up dev-down dev-logs tmux help
+.PHONY: migrate dev-api dev-proxy dev-worker sqlc genqlient openapi build tidy docker-build-api docker-build-proxy docker-build-worker dev-docker-up dev-docker-down dev-docker-logs tmux help
 
 # ----- Migration ----- #
 migrate: ## Generate migration files
@@ -14,16 +14,6 @@ migrate: ## Generate migration files
 	@:
 
 # ----- Local Dev ----- #
-dev-all: ## Run API, Proxy, and Worker together with tmux
-	tmux new-session -s aniways -n dev \; \
-		send-keys "make dev-api" C-m \; \
-		split-window -h \; \
-		send-keys "make dev-proxy" C-m \; \
-		split-window -v \; \
-		send-keys "make dev-worker" C-m \; \
-		select-pane -t 0 \; \
-		attach
-
 dev-api: ## Run API with Air
 	air -c .air.toml \
 		-build.cmd "go build -o ./tmp/api ./cmd/api" \
@@ -53,6 +43,12 @@ genqlient: ## Generate GraphQL client code
 	fi
 	genqlient genqlient.yaml
 
+# ----- OpenAPI ----- #
+openapi: ## Generate openapi docs
+	swag init -g ./cmd/api/main.go -o ./docs/swagger
+	swagger2openapi --patch ./docs/swagger/swagger.yaml -o ./docs/openapi.yaml
+	rm -rf ./docs/swagger
+
 # ----- Go Build & Tidy ----- #
 build: ## Build API and Proxy binaries
 	go build -o bin/api ./cmd/api
@@ -72,13 +68,13 @@ docker-build-worker: ## Build Worker Docker image
 	docker build --target=worker -t aniways-worker -f docker/Dockerfile .
 
 # ----- Docker Compose (Dev) ----- #
-dev-up: ## Start dev containers
+dev-docker-up: ## Start dev containers
 	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local up -d
 
-dev-down: ## Stop dev containers
+dev-docker-down: ## Stop dev containers
 	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local down
 
-dev-logs: ## View logs for all containers
+dev-docker-logs: ## View logs for all containers
 	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local logs -f
 
 # ----- Tmux Commands ----- #

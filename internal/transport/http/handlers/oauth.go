@@ -16,6 +16,18 @@ func (h *Handler) OauthRoutes() {
 	})
 }
 
+// @Summary Start OAuth authentication
+// @Description Start OAuth authentication
+// @Tags OAuth
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param provider path string true "OAuth provider"
+// @Param redirect query string false "Redirect URL after authentication"
+// @Success 302
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/oauth/{provider} [get]
 func (h *Handler) beginAuthHandler(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	state := uuid.NewString()
@@ -50,6 +62,19 @@ func (h *Handler) beginAuthHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
+// @Summary OAuth callback endpoint
+// @Description OAuth callback endpoint
+// @Tags OAuth
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param provider path string true "OAuth provider"
+// @Param code query string true "OAuth authorization code"
+// @Param state query string true "OAuth state parameter"
+// @Success 302
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/oauth/{provider}/callback [get]
 func (h *Handler) callbackHandler(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)

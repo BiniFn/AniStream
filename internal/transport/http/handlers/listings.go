@@ -22,6 +22,17 @@ func (h *Handler) AnimeListingRoutes() {
 	})
 }
 
+// @Summary Get recently updated anime
+// @Description Get recently updated anime
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number"
+// @Param itemsPerPage query int false "Number of items per page"
+// @Success 200 {object} models.AnimeListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/recently-updated [get]
 func (h *Handler) listRecentlyUpdated(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -40,6 +51,14 @@ func (h *Handler) listRecentlyUpdated(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
+// @Summary Get seasonal anime
+// @Description Get seasonal anime
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.SeasonalAnimeListResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/seasonal [get]
 func (h *Handler) seasonalAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -52,6 +71,19 @@ func (h *Handler) seasonalAnimes(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
+// @Summary Get anime by season and/or year
+// @Description Get anime by season and/or year
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Param season query string false "Season filter"
+// @Param year query int false "Year filter"
+// @Param page query int false "Page number"
+// @Param itemsPerPage query int false "Number of items per page"
+// @Success 200 {object} models.AnimeListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/seasons [get]
 func (h *Handler) getBySeason(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -93,6 +125,15 @@ func (h *Handler) getBySeason(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
+// @Summary Get random anime
+// @Description Get random anime
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Param genre query string false "Optional genre filter"
+// @Success 200 {object} models.AnimeResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/random [get]
 func (h *Handler) randomAnime(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -122,6 +163,14 @@ func (h *Handler) randomAnime(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
+// @Summary Get list of anime genres
+// @Description Get list of anime genres
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Success 200 {array} string
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/genres [get]
 func (h *Handler) listGenres(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	resp, err := h.animeService.GetAnimeGenres(r.Context())
@@ -133,6 +182,19 @@ func (h *Handler) listGenres(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
+// @Summary Search anime
+// @Description Search anime
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Param q query string true "Search query (minimum 3 characters)"
+// @Param genre query string false "Optional genre filter (minimum 3 characters)"
+// @Param page query int false "Page number"
+// @Param itemsPerPage query int false "Number of items per page"
+// @Success 200 {object} models.AnimeListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/search [get]
 func (h *Handler) searchAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -167,6 +229,18 @@ func (h *Handler) searchAnimes(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
+// @Summary Get anime by genre
+// @Description Get anime by genre
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Param genre path string true "Genre name"
+// @Param page query int false "Page number"
+// @Param itemsPerPage query int false "Number of items per page"
+// @Success 200 {object} models.AnimeListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/genres/{genre} [get]
 func (h *Handler) animeByGenre(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -191,6 +265,14 @@ func (h *Handler) animeByGenre(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
+// @Summary Get trending anime
+// @Description Get trending anime
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.TrendingAnimeListResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/trending [get]
 func (h *Handler) trendingAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -203,6 +285,14 @@ func (h *Handler) trendingAnimes(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, resp)
 }
 
+// @Summary Get popular anime
+// @Description Get popular anime
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.PopularAnimeListResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/popular [get]
 func (h *Handler) popularAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

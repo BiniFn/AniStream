@@ -16,6 +16,15 @@ func (h *Handler) SettingsRoutes() {
 	})
 }
 
+// @Summary Get user settings
+// @Description Get user settings
+// @Tags Settings
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Success 200 {object} models.SettingsResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /settings [get]
 func (h *Handler) getSettings(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -31,6 +40,17 @@ func (h *Handler) getSettings(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, settings)
 }
 
+// @Summary Save user settings
+// @Description Save user settings
+// @Tags Settings
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param settings body models.SettingsRequest true "Settings object"
+// @Success 200 {object} models.SettingsResponse
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /settings [post]
 func (h *Handler) saveSettings(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

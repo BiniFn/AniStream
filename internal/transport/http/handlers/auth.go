@@ -29,6 +29,18 @@ func (h *Handler) AuthRoutes() {
 	})
 }
 
+// @Summary User login
+// @Description User login
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param credentials body models.LoginRequest true "User credentials"
+// @Success 200 {object} models.UserResponse
+// @Header 200 {string} Set-Cookie "Session cookie"
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/login [post]
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -70,6 +82,15 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, user)
 }
 
+// @Summary Get current user information
+// @Description Get current user information
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Success 200 {object} models.UserResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Router /auth/me [get]
 func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
 	user, ok := utils.CtxValue[models.UserResponse](r.Context())
 	if !ok {
@@ -80,6 +101,16 @@ func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, user)
 }
 
+// @Summary User logout
+// @Description User logout
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Success 200
+// @Failure 401 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/logout [post]
 func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -115,6 +146,16 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary Request password reset
+// @Description Request password reset
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param email body models.ForgetPasswordRequest true "User email"
+// @Success 200
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/forget-password [post]
 func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -132,6 +173,17 @@ func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary Get user by password reset token
+// @Description Get user by password reset token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param token path string true "Password reset token"
+// @Success 200 {object} models.UserResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/u/{token} [get]
 func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -151,6 +203,18 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, user)
 }
 
+// @Summary Reset password
+// @Description Reset password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param token path string true "Password reset token"
+// @Param password body models.ResetPasswordRequest true "New password"
+// @Success 200
+// @Failure 400 {object} models.ValidationErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/reset-password/{token} [put]
 func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -179,6 +243,15 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get connected OAuth providers
+// @Description Get connected OAuth providers
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Success 200 {array} string
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/providers [get]
 func (h *Handler) getProviders(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -194,6 +267,17 @@ func (h *Handler) getProviders(w http.ResponseWriter, r *http.Request) {
 	h.jsonOK(w, providers)
 }
 
+// @Summary Disconnect OAuth provider
+// @Description Disconnect OAuth provider
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param provider path string true "Provider name"
+// @Success 200
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /auth/providers/{provider} [delete]
 func (h *Handler) deleteProvider(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)

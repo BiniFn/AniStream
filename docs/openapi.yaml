@@ -1,0 +1,2021 @@
+openapi: 3.0.0
+info:
+  contact:
+    name: Coeeter
+    url: https://github.com/coeeter/aniways
+  description: An anime tracking and streaming platform API
+  title: AniWays API
+  version: 1.0.0
+paths:
+  "/anime/{id}":
+    get:
+      description: Get anime by ID
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.AnimeWithMetadataResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime by ID
+      tags:
+        - Anime
+  "/anime/{id}/banner":
+    get:
+      description: Get anime banner
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.BannerResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime banner
+      tags:
+        - Anime
+  "/anime/{id}/episodes":
+    get:
+      description: Get anime episodes
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.EpisodeResponse"
+                type: array
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime episodes
+      tags:
+        - Episodes
+  "/anime/{id}/episodes/{episodeID}/servers":
+    get:
+      description: Get episode servers
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - description: Episode ID
+          in: path
+          name: episodeID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.EpisodeServerResponse"
+                type: array
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get episode servers
+      tags:
+        - Episodes
+  "/anime/{id}/episodes/servers/{serverID}":
+    get:
+      description: Get episode stream data
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - description: Server ID
+          in: path
+          name: serverID
+          required: true
+          schema:
+            type: string
+        - description: Server name
+          in: query
+          name: server
+          required: true
+          schema:
+            type: string
+        - description: Stream type
+          in: query
+          name: type
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.StreamingDataResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get episode stream data
+      tags:
+        - Episodes
+  "/anime/{id}/franchise":
+    get:
+      description: Get anime franchise relations
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.RelationsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime franchise relations
+      tags:
+        - Anime
+  "/anime/{id}/trailer":
+    get:
+      description: Get anime trailer
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.TrailerResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime trailer
+      tags:
+        - Anime
+  /anime/listings/genres:
+    get:
+      description: Get list of anime genres
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  type: string
+                type: array
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get list of anime genres
+      tags:
+        - Anime Listings
+  "/anime/listings/genres/{genre}":
+    get:
+      description: Get anime by genre
+      parameters:
+        - description: Genre name
+          in: path
+          name: genre
+          required: true
+          schema:
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            type: integer
+        - description: Number of items per page
+          in: query
+          name: itemsPerPage
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.AnimeListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime by genre
+      tags:
+        - Anime Listings
+  /anime/listings/popular:
+    get:
+      description: Get popular anime
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.AnimeResponse"
+                type: array
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get popular anime
+      tags:
+        - Anime Listings
+  /anime/listings/random:
+    get:
+      description: Get random anime
+      parameters:
+        - description: Optional genre filter
+          in: query
+          name: genre
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.AnimeResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get random anime
+      tags:
+        - Anime Listings
+  /anime/listings/recently-updated:
+    get:
+      description: Get recently updated anime
+      parameters:
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            type: integer
+        - description: Number of items per page
+          in: query
+          name: itemsPerPage
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.AnimeListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get recently updated anime
+      tags:
+        - Anime Listings
+  /anime/listings/search:
+    get:
+      description: Search anime
+      parameters:
+        - description: Search query (minimum 3 characters)
+          in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - description: Optional genre filter (minimum 3 characters)
+          in: query
+          name: genre
+          schema:
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            type: integer
+        - description: Number of items per page
+          in: query
+          name: itemsPerPage
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.AnimeListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Search anime
+      tags:
+        - Anime Listings
+  /anime/listings/seasonal:
+    get:
+      description: Get seasonal anime
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.SeasonalAnimeResponse"
+                type: array
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get seasonal anime
+      tags:
+        - Anime Listings
+  /anime/listings/seasons:
+    get:
+      description: Get anime by season and/or year
+      parameters:
+        - description: Season filter
+          in: query
+          name: season
+          schema:
+            type: string
+        - description: Year filter
+          in: query
+          name: year
+          schema:
+            type: integer
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            type: integer
+        - description: Number of items per page
+          in: query
+          name: itemsPerPage
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.AnimeListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime by season and/or year
+      tags:
+        - Anime Listings
+  /anime/listings/trending:
+    get:
+      description: Get trending anime
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.AnimeResponse"
+                type: array
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get trending anime
+      tags:
+        - Anime Listings
+  /auth/forget-password:
+    post:
+      description: Request password reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/models.ForgetPasswordRequest"
+        description: User email
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Request password reset
+      tags:
+        - Authentication
+  /auth/login:
+    post:
+      description: User login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/models.LoginRequest"
+        description: User credentials
+        required: true
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: Session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.UserResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: User login
+      tags:
+        - Authentication
+  /auth/logout:
+    post:
+      description: User logout
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: User logout
+      tags:
+        - Authentication
+  /auth/me:
+    get:
+      description: Get current user information
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.UserResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get current user information
+      tags:
+        - Authentication
+  "/auth/oauth/{provider}":
+    get:
+      description: Start OAuth authentication
+      parameters:
+        - description: OAuth provider
+          in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+        - description: Redirect URL after authentication
+          in: query
+          name: redirect
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Found
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Start OAuth authentication
+      tags:
+        - OAuth
+  "/auth/oauth/{provider}/callback":
+    get:
+      description: OAuth callback endpoint
+      parameters:
+        - description: OAuth provider
+          in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+        - description: OAuth authorization code
+          in: query
+          name: code
+          required: true
+          schema:
+            type: string
+        - description: OAuth state parameter
+          in: query
+          name: state
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Found
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: OAuth callback endpoint
+      tags:
+        - OAuth
+  /auth/providers:
+    get:
+      description: Get connected OAuth providers
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  type: string
+                type: array
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get connected OAuth providers
+      tags:
+        - Authentication
+  "/auth/providers/{provider}":
+    delete:
+      description: Disconnect OAuth provider
+      parameters:
+        - description: Provider name
+          in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Disconnect OAuth provider
+      tags:
+        - Authentication
+  "/auth/reset-password/{token}":
+    put:
+      description: Reset password
+      parameters:
+        - description: Password reset token
+          in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/models.ResetPasswordRequest"
+        description: New password
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Reset password
+      tags:
+        - Authentication
+  "/auth/u/{token}":
+    get:
+      description: Get user by password reset token
+      parameters:
+        - description: Password reset token
+          in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.UserResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get user by password reset token
+      tags:
+        - Authentication
+  /library:
+    get:
+      description: Get user's anime library
+      parameters:
+        - description: Library status filter
+          in: query
+          name: status
+          required: true
+          schema:
+            type: string
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            type: integer
+        - description: Number of items per page
+          in: query
+          name: itemsPerPage
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get user's anime library
+      tags:
+        - Library
+  "/library/{animeID}":
+    delete:
+      description: Remove anime from library
+      parameters:
+        - description: Anime ID
+          in: path
+          name: animeID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Remove anime from library
+      tags:
+        - Library
+    get:
+      description: Get anime status in library
+      parameters:
+        - description: Anime ID
+          in: path
+          name: animeID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get anime status in library
+      tags:
+        - Library
+    post:
+      description: Add anime to library
+      parameters:
+        - description: Anime ID
+          in: path
+          name: animeID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: "#/components/requestBodies/models.LibraryRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Add anime to library
+      tags:
+        - Library
+    put:
+      description: Update anime in library
+      parameters:
+        - description: Anime ID
+          in: path
+          name: animeID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: "#/components/requestBodies/models.LibraryRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Update anime in library
+      tags:
+        - Library
+  /library/continue-watching:
+    get:
+      description: Get continue watching list
+      parameters:
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            type: integer
+        - description: Number of items per page
+          in: query
+          name: itemsPerPage
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get continue watching list
+      tags:
+        - Library
+  /library/import:
+    post:
+      description: Import library from external provider
+      parameters:
+        - description: External provider to import from
+          in: query
+          name: provider
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ImportJobResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Import library from external provider
+      tags:
+        - Library
+  "/library/import/{id}":
+    get:
+      description: Get library import status
+      parameters:
+        - description: Import job ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryImportJobResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get library import status
+      tags:
+        - Library
+  /library/planning:
+    get:
+      description: Get plan to watch list
+      parameters:
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            type: integer
+        - description: Number of items per page
+          in: query
+          name: itemsPerPage
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get plan to watch list
+      tags:
+        - Library
+  /settings:
+    get:
+      description: Get user settings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.SettingsResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get user settings
+      tags:
+        - Settings
+    post:
+      description: Save user settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/models.SettingsRequest"
+        description: Settings object
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.SettingsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Save user settings
+      tags:
+        - Settings
+  /users:
+    delete:
+      description: Delete user account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/models.DeleteUserRequest"
+        description: Password object
+        required: true
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Delete user account
+      tags:
+        - Users
+    post:
+      description: Create new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/models.CreateUserRequest"
+        description: User object
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.UserResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Create new user
+      tags:
+        - Users
+    put:
+      description: Update user information
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/models.UpdateUserRequest"
+        description: User object
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.UserResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Update user information
+      tags:
+        - Users
+  /users/image:
+    put:
+      description: Update user profile picture
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: Image file
+                  type: string
+                  format: binary
+              required:
+                - image
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Update user profile picture
+      tags:
+        - Users
+  /users/password:
+    put:
+      description: Update user password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/models.UpdatePasswordRequest"
+        description: Password object
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Update user password
+      tags:
+        - Users
+servers:
+  - url: http://localhost:8080
+components:
+  requestBodies:
+    models.LibraryRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/models.LibraryRequest"
+      description: Library object
+      required: true
+  securitySchemes:
+    cookieAuth:
+      in: cookie
+      name: aniways_session
+      type: apiKey
+  schemas:
+    models.AnimeListResponse:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/models.AnimeResponse"
+          type: array
+        pageInfo:
+          $ref: "#/components/schemas/models.PageInfo"
+      type: object
+    models.AnimeMetadataResponse:
+      properties:
+        airingEndDate:
+          example: 2023-09-30
+          type: string
+        airingStartDate:
+          example: 2023-04-01
+          type: string
+        airingStatus:
+          example: finished_airing
+          type: string
+        avgEpisodeDuration:
+          example: 24
+          type: integer
+        description:
+          example: Humanity fights for survival against giant humanoid Titans.
+          type: string
+        mainPictureUrl:
+          example: https://example.com/main.jpg
+          type: string
+        malId:
+          example: 12345
+          type: integer
+        mean:
+          example: 9
+          type: number
+        mediaType:
+          example: TV
+          type: string
+        popularity:
+          example: 1
+          type: integer
+        rank:
+          example: 5
+          type: integer
+        rating:
+          example: R - 17+ (violence & profanity)
+          type: string
+        scoringUsers:
+          example: 500000
+          type: integer
+        season:
+          example: spring
+          type: string
+        seasonYear:
+          example: 2023
+          type: integer
+        source:
+          example: Manga
+          type: string
+        studio:
+          example: Studio Pierrot
+          type: string
+        totalEpisodes:
+          example: 25
+          type: integer
+        trailerEmbedUrl:
+          example: https://www.youtube.com/embed/abc123
+          type: string
+      type: object
+    models.AnimeResponse:
+      properties:
+        anilistId:
+          example: 67890
+          type: integer
+        ename:
+          example: Attack on Titan
+          type: string
+        genre:
+          example: Action, Drama
+          type: string
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        imageUrl:
+          example: https://example.com/anime/image.jpg
+          type: string
+        jname:
+          example: 進撃の巨人
+          type: string
+        lastEpisode:
+          example: 25
+          type: integer
+        malId:
+          example: 12345
+          type: integer
+        season:
+          example: spring
+          type: string
+        seasonYear:
+          example: 2023
+          type: integer
+      type: object
+    models.AnimeWithMetadataResponse:
+      properties:
+        anilistId:
+          example: 67890
+          type: integer
+        ename:
+          example: Attack on Titan
+          type: string
+        genre:
+          example: Action, Drama
+          type: string
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        imageUrl:
+          example: https://example.com/anime/image.jpg
+          type: string
+        jname:
+          example: 進撃の巨人
+          type: string
+        lastEpisode:
+          example: 25
+          type: integer
+        malId:
+          example: 12345
+          type: integer
+        metadata:
+          $ref: "#/components/schemas/models.AnimeMetadataResponse"
+        season:
+          example: spring
+          type: string
+        seasonYear:
+          example: 2023
+          type: integer
+      type: object
+    models.BannerResponse:
+      properties:
+        url:
+          example: https://example.com/banner.jpg
+          type: string
+      type: object
+    models.CreateUserRequest:
+      properties:
+        email:
+          example: john@example.com
+          type: string
+        password:
+          example: password123
+          maxLength: 128
+          minLength: 6
+          type: string
+        username:
+          example: johndoe
+          maxLength: 30
+          minLength: 3
+          type: string
+      required:
+        - email
+        - password
+        - username
+      type: object
+    models.DeleteUserRequest:
+      properties:
+        password:
+          example: password123
+          type: string
+      required:
+        - password
+      type: object
+    models.EpisodeResponse:
+      properties:
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        isFiller:
+          example: false
+          type: boolean
+        number:
+          example: 1
+          type: integer
+        title:
+          example: The Attack Titan
+          type: string
+      type: object
+    models.EpisodeServerResponse:
+      properties:
+        serverId:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        serverName:
+          example: vidstreaming
+          type: string
+        type:
+          example: sub
+          type: string
+      type: object
+    models.ErrorResponse:
+      properties:
+        error:
+          example: Invalid request
+          type: string
+      type: object
+    models.ForgetPasswordRequest:
+      properties:
+        email:
+          example: user@example.com
+          type: string
+      required:
+        - email
+      type: object
+    models.ImportJobResponse:
+      properties:
+        id:
+          example: V1StGXR8Z5jdHi6BmyT23
+          type: string
+      type: object
+    models.LibraryImportJobResponse:
+      properties:
+        completedAt:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        createdAt:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        status:
+          example: pending
+          type: string
+        updatedAt:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        userId:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+      type: object
+    models.LibraryListResponse:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/models.LibraryResponse"
+          type: array
+        pageInfo:
+          $ref: "#/components/schemas/models.PageInfo"
+      type: object
+    models.LibraryRequest:
+      properties:
+        status:
+          allOf:
+            - $ref: "#/components/schemas/models.LibraryStatus"
+          enum:
+            - watching
+            - completed
+            - on_hold
+            - dropped
+            - plan_to_watch
+          example: watching
+        watchedEpisodes:
+          example: 12
+          minimum: 0
+          type: integer
+      required:
+        - status
+      type: object
+    models.LibraryResponse:
+      properties:
+        anime:
+          $ref: "#/components/schemas/models.AnimeResponse"
+        animeId:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        createdAt:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        status:
+          example: watching
+          type: string
+        updatedAt:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        userId:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        watchedEpisodes:
+          example: 12
+          type: integer
+      type: object
+    models.LibraryStatus:
+      enum:
+        - watching
+        - completed
+        - on_hold
+        - dropped
+        - plan_to_watch
+      type: string
+      x-enum-varnames:
+        - LibraryStatusWatching
+        - LibraryStatusCompleted
+        - LibraryStatusOnHold
+        - LibraryStatusDropped
+        - LibraryStatusPlanToWatch
+    models.LoginRequest:
+      properties:
+        email:
+          example: user@example.com
+          type: string
+        password:
+          example: password123
+          minLength: 6
+          type: string
+      required:
+        - email
+        - password
+      type: object
+    models.PageInfo:
+      properties:
+        currentPage:
+          type: integer
+        hasNextPage:
+          type: boolean
+        hasPrevPage:
+          type: boolean
+        totalPages:
+          type: integer
+      type: object
+    models.RelationsResponse:
+      properties:
+        related:
+          items:
+            $ref: "#/components/schemas/models.AnimeResponse"
+          type: array
+        watchOrder:
+          items:
+            $ref: "#/components/schemas/models.AnimeResponse"
+          type: array
+      type: object
+    models.ResetPasswordRequest:
+      properties:
+        password:
+          example: newpassword123
+          minLength: 6
+          type: string
+      required:
+        - password
+      type: object
+    models.SeasonalAnimeResponse:
+      properties:
+        anime:
+          $ref: "#/components/schemas/models.AnimeResponse"
+        bannerImageUrl:
+          example: https://example.com/banner.jpg
+          type: string
+        description:
+          example: New seasonal anime description
+          type: string
+        episodes:
+          example: 12
+          type: integer
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        startDate:
+          example: 1672531200
+          type: integer
+        type:
+          example: TV
+          type: string
+      type: object
+    models.SegmentResponse:
+      properties:
+        end:
+          example: 180
+          type: integer
+        start:
+          example: 90
+          type: integer
+      type: object
+    models.SettingsRequest:
+      properties:
+        autoNextEpisode:
+          example: true
+          type: boolean
+        autoPlayEpisode:
+          example: false
+          type: boolean
+        autoResumeEpisode:
+          example: true
+          type: boolean
+        incognitoMode:
+          example: false
+          type: boolean
+      type: object
+    models.SettingsResponse:
+      properties:
+        autoNextEpisode:
+          example: true
+          type: boolean
+        autoPlayEpisode:
+          example: false
+          type: boolean
+        autoResumeEpisode:
+          example: true
+          type: boolean
+        incognitoMode:
+          example: false
+          type: boolean
+        userId:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+      type: object
+    models.StreamingDataResponse:
+      properties:
+        intro:
+          $ref: "#/components/schemas/models.SegmentResponse"
+        outro:
+          $ref: "#/components/schemas/models.SegmentResponse"
+        source:
+          $ref: "#/components/schemas/models.StreamingSourceResponse"
+        tracks:
+          items:
+            $ref: "#/components/schemas/models.TrackResponse"
+          type: array
+      type: object
+    models.StreamingSourceResponse:
+      properties:
+        hls:
+          example: https://example.com/stream.m3u8
+          type: string
+        iframe:
+          example: https://example.com/embed/abc123
+          type: string
+        proxyHls:
+          example: /proxy?p=encodedurl&s=hd
+          type: string
+      type: object
+    models.TrackResponse:
+      properties:
+        default:
+          example: true
+          type: boolean
+        kind:
+          example: captions
+          type: string
+        label:
+          example: English
+          type: string
+        raw:
+          example: https://example.com/subtitles.vtt
+          type: string
+        url:
+          example: /proxy?p=encodedurl&s=hd
+          type: string
+      type: object
+    models.TrailerResponse:
+      properties:
+        trailer:
+          example: https://www.youtube.com/embed/abc123
+          type: string
+      type: object
+    models.UpdatePasswordRequest:
+      properties:
+        newPassword:
+          example: newpassword123
+          maxLength: 128
+          minLength: 6
+          type: string
+        oldPassword:
+          example: oldpassword123
+          type: string
+      required:
+        - newPassword
+        - oldPassword
+      type: object
+    models.UpdateUserRequest:
+      properties:
+        email:
+          example: john@example.com
+          type: string
+        username:
+          example: johndoe
+          maxLength: 30
+          minLength: 3
+          type: string
+      required:
+        - email
+        - username
+      type: object
+    models.UserResponse:
+      properties:
+        createdAt:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        email:
+          example: john@example.com
+          type: string
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        profilePicture:
+          example: https://res.cloudinary.com/example/avatar.jpg
+          type: string
+        updatedAt:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        username:
+          example: johndoe
+          type: string
+      type: object
+    models.ValidationErrorResponse:
+      properties:
+        details:
+          additionalProperties:
+            type: string
+          example:
+            email: invalid email format
+          type: object
+        error:
+          example: Validation failed
+          type: string
+      type: object

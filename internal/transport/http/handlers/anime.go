@@ -16,6 +16,17 @@ func (h *Handler) AnimeDetailsRoutes() {
 	})
 }
 
+// @Summary Get anime by ID
+// @Description Get anime by ID
+// @Tags Anime
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Success 200 {object} models.AnimeWithMetadataResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id} [get]
 func (h *Handler) getAnimeByID(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -41,6 +52,17 @@ func (h *Handler) getAnimeByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get anime trailer
+// @Description Get anime trailer
+// @Tags Anime
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Success 200 {object} models.TrailerResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id}/trailer [get]
 func (h *Handler) getAnimeTrailer(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -66,6 +88,17 @@ func (h *Handler) getAnimeTrailer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get anime banner
+// @Description Get anime banner
+// @Tags Anime
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Success 200 {object} models.BannerResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id}/banner [get]
 func (h *Handler) getAnimeBanner(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -91,6 +124,17 @@ func (h *Handler) getAnimeBanner(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get anime franchise relations
+// @Description Get anime franchise relations
+// @Tags Anime
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Success 200 {object} models.RelationsResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id}/franchise [get]
 func (h *Handler) getAnimeFranchise(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 

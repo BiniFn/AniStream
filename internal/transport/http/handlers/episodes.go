@@ -15,6 +15,17 @@ func (h *Handler) AnimeEpisodeRoutes() {
 	})
 }
 
+// @Summary Get anime episodes
+// @Description Get anime episodes
+// @Tags Episodes
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Success 200 {object} models.EpisodeListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id}/episodes [get]
 func (h *Handler) getAnimeEpisodes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -40,6 +51,18 @@ func (h *Handler) getAnimeEpisodes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get episode servers
+// @Description Get episode servers
+// @Tags Episodes
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Param episodeID path string true "Episode ID"
+// @Success 200 {object} models.EpisodeServerListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id}/episodes/{episodeID}/servers [get]
 func (h *Handler) getEpisodeServers(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
@@ -70,6 +93,20 @@ func (h *Handler) getEpisodeServers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get episode stream data
+// @Description Get episode stream data
+// @Tags Episodes
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Param serverID path string true "Server ID"
+// @Param server query string true "Server name"
+// @Param type query string true "Stream type"
+// @Success 200 {object} models.StreamingDataResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id}/episodes/servers/{serverID} [get]
 func (h *Handler) getEpisodeStreamData(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
