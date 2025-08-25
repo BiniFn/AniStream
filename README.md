@@ -30,6 +30,7 @@ AniWays follows a clean architecture pattern with separate concerns:
 ### Tech Stack
 
 **Backend:**
+
 - Go 1.24+ with Chi router
 - PostgreSQL database with SQLC for type-safe queries
 - Redis for caching and session storage
@@ -37,12 +38,14 @@ AniWays follows a clean architecture pattern with separate concerns:
 - JWT authentication with OAuth2 flows
 
 **Frontend:**
+
 - SvelteKit with TypeScript
 - TailwindCSS for styling
 - Shadcn-Svelte component library
 - Vite for development and building
 
 **Infrastructure:**
+
 - Docker & Docker Compose for containerization
 - Database migrations with golang-migrate
 - Background job processing with cron scheduler
@@ -94,11 +97,12 @@ cd ..
 ### Step 4: Start Development Servers
 
 **Option A: Individual Terminals**
+
 ```bash
 # Terminal 1: API Server
 make dev-api
 
-# Terminal 2: Background Worker  
+# Terminal 2: Background Worker
 make dev-worker
 
 # Terminal 3: HLS Streaming Proxy
@@ -109,6 +113,7 @@ cd web && bun run dev
 ```
 
 **Option B: Tmux Session (Easier Setup)**
+
 ```bash
 make tmux
 ```
@@ -159,6 +164,7 @@ API_URL=http://localhost:8080
 ## 📋 Available Commands
 
 ### Development
+
 ```bash
 make dev-api          # Run API server with hot reload
 make dev-worker       # Run background worker
@@ -167,6 +173,7 @@ make tmux             # Start all services in tmux session
 ```
 
 ### Code Generation
+
 ```bash
 make sqlc             # Generate type-safe database code
 make genqlient        # Generate GraphQL client from schema
@@ -174,11 +181,13 @@ make openapi          # Generate OpenAPI documentation
 ```
 
 ### Database
+
 ```bash
 make migrate <name>   # Create new migration files
 ```
 
 ### Docker
+
 ```bash
 make dev-docker-up    # Start development containers
 make dev-docker-down  # Stop development containers
@@ -186,6 +195,7 @@ make dev-docker-logs  # View container logs
 ```
 
 ### Building
+
 ```bash
 make build            # Build API and proxy binaries
 make docker-build-api # Build API Docker image
@@ -195,7 +205,7 @@ make docker-build-api # Build API Docker image
 
 Once the API server is running, you can access:
 
-- **Swagger UI**: `http://localhost:8080/swagger/` 
+- **Swagger UI**: `http://localhost:8080/swagger/`
 - **API Specification**: `/docs/openapi.yaml`
 
 The frontend runs on `http://localhost:3000` by default.
@@ -207,10 +217,12 @@ The frontend runs on `http://localhost:3000` by default.
 The project includes production-ready Docker Swarm configuration with Traefik reverse proxy and Let's Encrypt SSL certificates.
 
 #### Prerequisites
+
 - Docker Swarm initialized on your VPS
 - Domain names pointing to your VPS
 
 #### Environment Setup
+
 Create the following secrets in your swarm:
 
 ```bash
@@ -242,6 +254,7 @@ rm aniways.env
 ```
 
 #### Deploy to Swarm
+
 ```bash
 # Set environment variables
 export POSTGRES_USER=postgres
@@ -279,13 +292,7 @@ For easier deployment, you can use [Dokploy](https://dokploy.com/) which provide
 - Update documentation when needed
 - Use conventional commit messages
 
-## 🙏 Acknowledgments
-
-- [AniList](https://anilist.co) for anime metadata API
-- [MyAnimeList](https://myanimelist.net) for additional anime data
-- [Shikimori](https://shikimori.one) for anime information
-- [HiAnime](https://hianime.to) for episode streaming data
-
 ---
 
 **Made with ❤️ by [Coeeter](https://github.com/coeeter)**
+
