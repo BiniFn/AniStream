@@ -9,20 +9,20 @@
 	const links = [
 		{
 			label: 'Home',
-			link: '/'
+			link: '/',
 		},
 		{
 			label: 'Catalog',
-			link: '/catalog'
+			link: '/catalog',
 		},
 		{
 			label: 'Genres',
-			link: '/genres'
+			link: '/genres',
 		},
 		{
 			label: 'My List',
-			link: '/my-list'
-		}
+			link: '/my-list',
+		},
 	];
 
 	let isSheetOpen = $state(false);
@@ -55,7 +55,7 @@
 							href={link.link}
 							class={cn(
 								'font-medium text-muted-foreground transition-colors hover:text-primary',
-								page.url.pathname === link.link && 'text-foreground'
+								page.url.pathname === link.link && 'text-foreground',
 							)}
 						>
 							{link.label}
@@ -101,7 +101,7 @@
 					href={link.link}
 					class={cn(
 						'font-medium text-muted-foreground transition-colors hover:text-primary',
-						page.url.pathname === link.link && 'text-foreground'
+						page.url.pathname === link.link && 'text-foreground',
 					)}
 				>
 					{link.label}

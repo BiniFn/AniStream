@@ -19,10 +19,10 @@ export default ts.config(
 	...svelte.configs.prettier,
 	{
 		plugins: {
-			'unused-imports': unusedImports
+			'unused-imports': unusedImports,
 		},
 		languageOptions: {
-			globals: { ...globals.browser, ...globals.node }
+			globals: { ...globals.browser, ...globals.node },
 		},
 		rules: {
 			'no-undef': 'off',
@@ -35,10 +35,10 @@ export default ts.config(
 					vars: 'all',
 					varsIgnorePattern: '^_', // allow _var
 					args: 'after-used',
-					argsIgnorePattern: '^_' // allow _arg
-				}
-			]
-		}
+					argsIgnorePattern: '^_', // allow _arg
+				},
+			],
+		},
 	},
 	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
@@ -47,8 +47,8 @@ export default ts.config(
 				projectService: true,
 				extraFileExtensions: ['.svelte'],
 				parser: ts.parser,
-				svelteConfig
-			}
-		}
-	}
+				svelteConfig,
+			},
+		},
+	},
 );

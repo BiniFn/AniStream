@@ -13,7 +13,9 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"ui:add": "bun x shadcn-svelte@latest add",
-		"postui:add": "bun format"
+		"postui:add": "bun format",
+		"openapi": "openapi-typescript ../docs/openapi.yaml -o ./src/lib/api/openapi.ts",
+		"postopenapi": "bun format"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -32,6 +34,7 @@
 		"eslint-plugin-unused-imports": "^4.1.4",
 		"globals": "^16.0.0",
 		"mode-watcher": "^1.0.8",
+		"openapi-typescript": "^7.9.1",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
@@ -47,6 +50,7 @@
 		"vite": "^7.0.4"
 	},
 	"dependencies": {
-		"lucide-svelte": "^0.539.0"
+		"lucide-svelte": "^0.539.0",
+		"openapi-fetch": "^0.14.0"
 	}
 }
