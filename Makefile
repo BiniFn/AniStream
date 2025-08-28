@@ -1,8 +1,7 @@
 MIGRATION_NAME := $(filter-out migrate,$(MAKECMDGOALS))
 
-.PHONY: migrate dev-api dev-proxy dev-worker sqlc genqlient openapi build tidy docker-build-api docker-build-proxy docker-build-worker dev-docker-up dev-docker-down dev-docker-logs tmux help
-
 # ----- Migration ----- #
+.PHONY: migrate
 migrate: ## Generate migration files
 	@if [ -z "$(MIGRATION_NAME)" ]; then \
 	  echo "Usage: make migrate <migration_name>"; \
@@ -14,6 +13,7 @@ migrate: ## Generate migration files
 	@:
 
 # ----- Local Dev ----- #
+.PHONY: dev-api dev-proxy dev-worker
 dev-api: ## Run API with Air
 	air -c .air.toml \
 		-build.cmd "go build -o ./tmp/api ./cmd/api" \
@@ -30,6 +30,7 @@ dev-worker: ## Run worker locally
 		-build.bin "./tmp/worker"
 
 # ----- SQLC & GraphQL ----- #
+.PHONY: sqlc genqlient
 sqlc: ## Generate SQLC code
 	sqlc generate
 
@@ -44,12 +45,14 @@ genqlient: ## Generate GraphQL client code
 	genqlient genqlient.yaml
 
 # ----- OpenAPI ----- #
+.PHONY: openapi
 openapi: ## Generate openapi docs
 	swag init -g ./cmd/api/main.go -o ./docs/swagger
 	swagger2openapi --patch ./docs/swagger/swagger.yaml -o ./docs/openapi.yaml
 	rm -rf ./docs/swagger
 
 # ----- Go Build & Tidy ----- #
+.PHONY: build tidy
 build: ## Build API and Proxy binaries
 	go build -o bin/api ./cmd/api
 	go build -o bin/proxy ./cmd/proxy
@@ -58,6 +61,7 @@ tidy: ## Go mod tidy
 	go mod tidy
 
 # ----- Docker Build ----- #
+.PHONY: docker-build-api docker-build-proxy docker-build-worker
 docker-build-api: ## Build API Docker image
 	docker build --target=api -t aniways-api -f docker/Dockerfile .
 
@@ -68,6 +72,7 @@ docker-build-worker: ## Build Worker Docker image
 	docker build --target=worker -t aniways-worker -f docker/Dockerfile .
 
 # ----- Docker Compose (Dev) ----- #
+.PHONY: dev-docker-up dev-docker-down dev-docker-logs
 dev-docker-up: ## Start dev containers
 	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local up -d
 
@@ -78,10 +83,12 @@ dev-docker-logs: ## View logs for all containers
 	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local logs -f
 
 # ----- Tmux Commands ----- #
+.PHONY: tmux
 tmux:
 	./scripts/aniways-tmux.sh
 
 # ----- Help Menu ----- #
+.PHONY: help
 help: ## Show help
 	@grep -E '^[a-zA-Z_\-]+:.*?## ' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN {FS=":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
