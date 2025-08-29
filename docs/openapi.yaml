@@ -706,6 +706,9 @@ paths:
           required: true
           schema:
             type: string
+            enum:
+              - anilist
+              - mal
         - description: Redirect URL after authentication
           in: query
           name: redirect
@@ -741,6 +744,9 @@ paths:
           required: true
           schema:
             type: string
+            enum:
+              - anilist
+              - mal
         - description: OAuth authorization code
           in: query
           name: code
@@ -915,6 +921,12 @@ paths:
           required: true
           schema:
             type: string
+            enum:
+              - watching
+              - completed
+              - on_hold
+              - dropped
+              - plan_to_watch
         - description: Page number
           in: query
           name: page
@@ -1723,8 +1735,9 @@ components:
           example: V1StGXR8Z5jdHi6B
           type: string
         status:
+          allOf:
+            - $ref: "#/components/schemas/models.LibraryStatus"
           example: pending
-          type: string
         updatedAt:
           example: 2023-01-01T00:00:00Z
           type: string
@@ -1774,8 +1787,9 @@ components:
           example: V1StGXR8Z5jdHi6B
           type: string
         status:
+          allOf:
+            - $ref: "#/components/schemas/models.LibraryStatus"
           example: watching
-          type: string
         updatedAt:
           example: 2023-01-01T00:00:00Z
           type: string

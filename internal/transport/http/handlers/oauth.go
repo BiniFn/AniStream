@@ -22,7 +22,7 @@ func (h *Handler) OauthRoutes() {
 // @Accept json
 // @Produce json
 // @Security cookieAuth
-// @Param provider path string true "OAuth provider"
+// @Param provider path models.OAuthProvider true "OAuth provider"
 // @Param redirect query string false "Redirect URL after authentication"
 // @Success 302
 // @Failure 404 {object} models.ErrorResponse
@@ -68,7 +68,7 @@ func (h *Handler) beginAuthHandler(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Security cookieAuth
-// @Param provider path string true "OAuth provider"
+// @Param provider path models.OAuthProvider true "OAuth provider"
 // @Param code query string true "OAuth authorization code"
 // @Param state query string true "OAuth state parameter"
 // @Success 302

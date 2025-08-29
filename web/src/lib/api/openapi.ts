@@ -1254,7 +1254,7 @@ export interface paths {
 				header?: never;
 				path: {
 					/** @description OAuth provider */
-					provider: string;
+					provider: 'anilist' | 'mal';
 				};
 				cookie?: never;
 			};
@@ -1317,7 +1317,7 @@ export interface paths {
 				header?: never;
 				path: {
 					/** @description OAuth provider */
-					provider: string;
+					provider: 'anilist' | 'mal';
 				};
 				cookie?: never;
 			};
@@ -1620,7 +1620,7 @@ export interface paths {
 			parameters: {
 				query: {
 					/** @description Library status filter */
-					status: string;
+					status: 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
 					/** @description Page number */
 					page?: number;
 					/** @description Number of items per page */
@@ -2675,7 +2675,7 @@ export interface components {
 			/** @example V1StGXR8Z5jdHi6B */
 			id?: string;
 			/** @example pending */
-			status?: string;
+			status?: components['schemas']['models.LibraryStatus'];
 			/** @example 2023-01-01T00:00:00Z */
 			updatedAt?: string;
 			/** @example V1StGXR8Z5jdHi6B */
@@ -2703,7 +2703,7 @@ export interface components {
 			/** @example V1StGXR8Z5jdHi6B */
 			id?: string;
 			/** @example watching */
-			status?: string;
+			status?: components['schemas']['models.LibraryStatus'];
 			/** @example 2023-01-01T00:00:00Z */
 			updatedAt?: string;
 			/** @example V1StGXR8Z5jdHi6B */

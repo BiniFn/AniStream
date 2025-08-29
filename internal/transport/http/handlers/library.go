@@ -30,7 +30,7 @@ func (h *Handler) LibraryRoutes() {
 // @Accept json
 // @Produce json
 // @Security cookieAuth
-// @Param status query string true "Library status filter"
+// @Param status query models.LibraryStatus true "Library status filter"
 // @Param page query int false "Page number"
 // @Param itemsPerPage query int false "Number of items per page"
 // @Success 200 {object} models.LibraryListResponse
