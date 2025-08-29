@@ -172,7 +172,7 @@ func (s *LibraryService) UpdateLibrary(ctx context.Context, userID, animeID, sta
 		return models.LibraryResponse{}, err
 	}
 
-	if old.Status != status {
+	if old.Status != models.LibraryStatus(status) {
 		s.queueSync(ctx, userID, animeID, repository.LibraryActionsUpdateStatus, SyncPayload{
 			Status: &status,
 		})

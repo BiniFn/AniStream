@@ -10,7 +10,7 @@ func LibraryFromRepository(l repository.Library, a repository.Anime) models.Libr
 		ID:              l.ID,
 		UserID:          l.UserID,
 		AnimeID:         l.AnimeID,
-		Status:          string(l.Status),
+		Status:          models.LibraryStatus(l.Status),
 		WatchedEpisodes: l.WatchedEpisodes,
 		CreatedAt:       l.CreatedAt.Time,
 		UpdatedAt:       l.UpdatedAt.Time,
@@ -22,10 +22,9 @@ func LibraryImportJobFromRepository(j repository.LibraryImportJob) models.Librar
 	return models.LibraryImportJobResponse{
 		ID:          j.ID,
 		UserID:      j.UserID,
-		Status:      string(j.Status),
+		Status:      models.LibraryStatus(j.Status),
 		CreatedAt:   j.CreatedAt.Time,
 		UpdatedAt:   j.UpdatedAt.Time,
 		CompletedAt: j.CompletedAt.Time,
 	}
 }
-
