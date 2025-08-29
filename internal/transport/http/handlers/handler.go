@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	_ "embed" // Required for go:embed (still needed for other embeds if any, or can be removed if not)
 
+	"github.com/coeeter/aniways/docs"
 	"github.com/coeeter/aniways/internal/app"
 	"github.com/coeeter/aniways/internal/models"
 	"github.com/coeeter/aniways/internal/service/anime"
@@ -17,14 +17,10 @@ import (
 	"github.com/coeeter/aniways/internal/service/settings"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/utils"
+	"github.com/flowchartsman/swaggerui"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
-	"github.com/flowchartsman/swaggerui" // Import the swaggerui library
-	"github.com/coeeter/aniways/docs" // Import the new docs package
 )
-
-// Removed: //go:embed ../../../../docs/openapi.yaml
-// Removed: var openAPISpec []byte
 
 type Handler struct {
 	r               *chi.Mux
@@ -86,17 +82,14 @@ func (h *Handler) RegisterRoutes() {
 	})
 }
 
-// New method to register OpenAPI routes
 func (h *Handler) RegisterOpenAPIRoutes() {
 	if h.deps.Env.AppEnv == "development" {
-		// Serve the raw openapi.yaml file
 		h.r.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/x-yaml")
-			w.Write(docs.OpenAPISpec) // Use docs.OpenAPISpec
+			w.Write(docs.OpenAPISpec)
 		})
 
-		// Serve Swagger UI
-		h.r.Handle("/swagger/*", http.StripPrefix("/swagger", swaggerui.Handler(docs.OpenAPISpec))) // Use docs.OpenAPISpec
+		h.r.Handle("/swagger/*", http.StripPrefix("/swagger", swaggerui.Handler(docs.OpenAPISpec)))
 	}
 }
 
@@ -211,3 +204,4 @@ func (h *Handler) jsonValidationError(w http.ResponseWriter, err error) {
 		Details: details,
 	})
 }
+
