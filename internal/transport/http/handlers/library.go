@@ -236,6 +236,11 @@ func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !req.Status.IsValid() {
+		h.jsonError(w, http.StatusBadRequest, "invalid status")
+		return
+	}
+
 	lib, err := h.libraryService.CreateLibrary(r.Context(), user.ID, animeID, string(req.Status), req.WatchedEpisodes)
 	switch err {
 	case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
@@ -272,6 +277,11 @@ func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 
 	var req models.LibraryRequest
 	if !h.parseAndValidate(w, r, &req) {
+		return
+	}
+
+	if !req.Status.IsValid() {
+		h.jsonError(w, http.StatusBadRequest, "invalid status")
 		return
 	}
 

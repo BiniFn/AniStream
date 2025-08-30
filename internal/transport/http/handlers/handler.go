@@ -204,4 +204,3 @@ func (h *Handler) jsonValidationError(w http.ResponseWriter, err error) {
 		Details: details,
 	})
 }
-

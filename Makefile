@@ -46,10 +46,8 @@ genqlient: ## Generate GraphQL client code
 
 # ----- OpenAPI ----- #
 .PHONY: openapi
-openapi: ## Generate openapi docs
-	swag init -g ./cmd/api/main.go -o ./docs/swagger
-	swagger2openapi --patch ./docs/swagger/swagger.yaml -o ./docs/openapi.yaml
-	rm -rf ./docs/swagger
+openapi: ## Generate full openapi docs + ts client
+	./scripts/create-openapi.sh
 
 # ----- Go Build & Tidy ----- #
 .PHONY: build tidy

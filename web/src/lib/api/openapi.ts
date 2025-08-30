@@ -2533,48 +2533,48 @@ export type webhooks = Record<string, never>;
 export interface components {
 	schemas: {
 		'models.AnimeListResponse': {
-			items?: components['schemas']['models.AnimeResponse'][];
-			pageInfo?: components['schemas']['models.PageInfo'];
+			items: components['schemas']['models.AnimeResponse'][];
+			pageInfo: components['schemas']['models.PageInfo'];
 		};
 		'models.AnimeMetadataResponse': {
 			/** @example 2023-09-30 */
-			airingEndDate?: string;
+			airingEndDate: string;
 			/** @example 2023-04-01 */
-			airingStartDate?: string;
+			airingStartDate: string;
 			/** @example finished_airing */
-			airingStatus?: string;
+			airingStatus: string;
 			/** @example 24 */
-			avgEpisodeDuration?: number;
+			avgEpisodeDuration: number;
 			/** @example Humanity fights for survival against giant humanoid Titans. */
-			description?: string;
+			description: string;
 			/** @example https://example.com/main.jpg */
-			mainPictureUrl?: string;
+			mainPictureUrl: string;
 			/** @example 12345 */
-			malId?: number;
+			malId: number;
 			/** @example 9 */
-			mean?: number;
+			mean: number;
 			/** @example TV */
-			mediaType?: string;
+			mediaType: string;
 			/** @example 1 */
-			popularity?: number;
+			popularity: number;
 			/** @example 5 */
-			rank?: number;
+			rank: number;
 			/** @example R - 17+ (violence & profanity) */
-			rating?: string;
+			rating: string;
 			/** @example 500000 */
-			scoringUsers?: number;
+			scoringUsers: number;
 			/** @example spring */
-			season?: string;
+			season: string;
 			/** @example 2023 */
-			seasonYear?: number;
+			seasonYear: number;
 			/** @example Manga */
-			source?: string;
+			source: string;
 			/** @example Studio Pierrot */
-			studio?: string;
+			studio: string;
 			/** @example 25 */
-			totalEpisodes?: number;
+			totalEpisodes: number;
 			/** @example https://www.youtube.com/embed/abc123 */
-			trailerEmbedUrl?: string;
+			trailerEmbedUrl: string;
 		};
 		'models.AnimeResponse': {
 			/** @example 67890 */
@@ -2582,11 +2582,11 @@ export interface components {
 			/** @example Attack on Titan */
 			ename?: string;
 			/** @example Action, Drama */
-			genre?: string;
+			genre: string;
 			/** @example V1StGXR8Z5jdHi6B */
-			id?: string;
+			id: string;
 			/** @example https://example.com/anime/image.jpg */
-			imageUrl?: string;
+			imageUrl: string;
 			/** @example 進撃の巨人 */
 			jname?: string;
 			/** @example 25 */
@@ -2594,7 +2594,7 @@ export interface components {
 			/** @example 12345 */
 			malId?: number;
 			/** @example spring */
-			season?: string;
+			season: string;
 			/** @example 2023 */
 			seasonYear?: number;
 		};
@@ -2604,11 +2604,11 @@ export interface components {
 			/** @example Attack on Titan */
 			ename?: string;
 			/** @example Action, Drama */
-			genre?: string;
+			genre: string;
 			/** @example V1StGXR8Z5jdHi6B */
-			id?: string;
+			id: string;
 			/** @example https://example.com/anime/image.jpg */
-			imageUrl?: string;
+			imageUrl: string;
 			/** @example 進撃の巨人 */
 			jname?: string;
 			/** @example 25 */
@@ -2617,13 +2617,13 @@ export interface components {
 			malId?: number;
 			metadata?: components['schemas']['models.AnimeMetadataResponse'];
 			/** @example spring */
-			season?: string;
+			season: string;
 			/** @example 2023 */
 			seasonYear?: number;
 		};
 		'models.BannerResponse': {
 			/** @example https://example.com/banner.jpg */
-			url?: string;
+			url: string;
 		};
 		'models.CreateUserRequest': {
 			/** @example john@example.com */
@@ -2639,25 +2639,25 @@ export interface components {
 		};
 		'models.EpisodeResponse': {
 			/** @example V1StGXR8Z5jdHi6B */
-			id?: string;
+			id: string;
 			/** @example false */
-			isFiller?: boolean;
+			isFiller: boolean;
 			/** @example 1 */
-			number?: number;
+			number: number;
 			/** @example The Attack Titan */
-			title?: string;
+			title: string;
 		};
 		'models.EpisodeServerResponse': {
 			/** @example V1StGXR8Z5jdHi6B */
-			serverId?: string;
+			serverId: string;
 			/** @example vidstreaming */
-			serverName?: string;
+			serverName: string;
 			/** @example sub */
-			type?: string;
+			type: string;
 		};
 		'models.ErrorResponse': {
 			/** @example Invalid request */
-			error?: string;
+			error: string;
 		};
 		'models.ForgetPasswordRequest': {
 			/** @example user@example.com */
@@ -2665,51 +2665,48 @@ export interface components {
 		};
 		'models.ImportJobResponse': {
 			/** @example V1StGXR8Z5jdHi6BmyT23 */
-			id?: string;
+			id: string;
 		};
 		'models.LibraryImportJobResponse': {
 			/** @example 2023-01-01T00:00:00Z */
-			completedAt?: string;
+			completedAt: string;
 			/** @example 2023-01-01T00:00:00Z */
-			createdAt?: string;
+			createdAt: string;
 			/** @example V1StGXR8Z5jdHi6B */
-			id?: string;
+			id: string;
 			/** @example pending */
-			status?: components['schemas']['models.LibraryStatus'];
+			status: components['schemas']['models.LibraryStatus'];
 			/** @example 2023-01-01T00:00:00Z */
-			updatedAt?: string;
+			updatedAt: string;
 			/** @example V1StGXR8Z5jdHi6B */
-			userId?: string;
+			userId: string;
 		};
 		'models.LibraryListResponse': {
-			items?: components['schemas']['models.LibraryResponse'][];
-			pageInfo?: components['schemas']['models.PageInfo'];
+			items: components['schemas']['models.LibraryResponse'][];
+			pageInfo: components['schemas']['models.PageInfo'];
 		};
 		'models.LibraryRequest': {
-			/**
-			 * @example watching
-			 * @enum {unknown}
-			 */
-			status: 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
+			/** @example watching */
+			status: components['schemas']['models.LibraryStatus'];
 			/** @example 12 */
 			watchedEpisodes?: number;
 		};
 		'models.LibraryResponse': {
-			anime?: components['schemas']['models.AnimeResponse'];
+			anime: components['schemas']['models.AnimeResponse'];
 			/** @example V1StGXR8Z5jdHi6B */
-			animeId?: string;
+			animeId: string;
 			/** @example 2023-01-01T00:00:00Z */
-			createdAt?: string;
+			createdAt: string;
 			/** @example V1StGXR8Z5jdHi6B */
-			id?: string;
+			id: string;
 			/** @example watching */
-			status?: components['schemas']['models.LibraryStatus'];
+			status: components['schemas']['models.LibraryStatus'];
 			/** @example 2023-01-01T00:00:00Z */
-			updatedAt?: string;
+			updatedAt: string;
 			/** @example V1StGXR8Z5jdHi6B */
-			userId?: string;
+			userId: string;
 			/** @example 12 */
-			watchedEpisodes?: number;
+			watchedEpisodes: number;
 		};
 		/** @enum {string} */
 		'models.LibraryStatus': 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
@@ -2720,39 +2717,39 @@ export interface components {
 			password: string;
 		};
 		'models.PageInfo': {
-			currentPage?: number;
-			hasNextPage?: boolean;
-			hasPrevPage?: boolean;
-			totalPages?: number;
+			currentPage: number;
+			hasNextPage: boolean;
+			hasPrevPage: boolean;
+			totalPages: number;
 		};
 		'models.RelationsResponse': {
-			related?: components['schemas']['models.AnimeResponse'][];
-			watchOrder?: components['schemas']['models.AnimeResponse'][];
+			related: components['schemas']['models.AnimeResponse'][];
+			watchOrder: components['schemas']['models.AnimeResponse'][];
 		};
 		'models.ResetPasswordRequest': {
 			/** @example newpassword123 */
 			password: string;
 		};
 		'models.SeasonalAnimeResponse': {
-			anime?: components['schemas']['models.AnimeResponse'];
+			anime: components['schemas']['models.AnimeResponse'];
 			/** @example https://example.com/banner.jpg */
-			bannerImageUrl?: string;
+			bannerImageUrl: string;
 			/** @example New seasonal anime description */
-			description?: string;
+			description: string;
 			/** @example 12 */
-			episodes?: number;
+			episodes: number;
 			/** @example V1StGXR8Z5jdHi6B */
-			id?: string;
+			id: string;
 			/** @example 1672531200 */
-			startDate?: number;
+			startDate: number;
 			/** @example TV */
-			type?: string;
+			type: string;
 		};
 		'models.SegmentResponse': {
 			/** @example 180 */
-			end?: number;
+			end: number;
 			/** @example 90 */
-			start?: number;
+			start: number;
 		};
 		'models.SettingsRequest': {
 			/** @example true */
@@ -2766,45 +2763,45 @@ export interface components {
 		};
 		'models.SettingsResponse': {
 			/** @example true */
-			autoNextEpisode?: boolean;
+			autoNextEpisode: boolean;
 			/** @example false */
-			autoPlayEpisode?: boolean;
+			autoPlayEpisode: boolean;
 			/** @example true */
-			autoResumeEpisode?: boolean;
+			autoResumeEpisode: boolean;
 			/** @example false */
-			incognitoMode?: boolean;
+			incognitoMode: boolean;
 			/** @example V1StGXR8Z5jdHi6B */
-			userId?: string;
+			userId: string;
 		};
 		'models.StreamingDataResponse': {
-			intro?: components['schemas']['models.SegmentResponse'];
-			outro?: components['schemas']['models.SegmentResponse'];
-			source?: components['schemas']['models.StreamingSourceResponse'];
-			tracks?: components['schemas']['models.TrackResponse'][];
+			intro: components['schemas']['models.SegmentResponse'];
+			outro: components['schemas']['models.SegmentResponse'];
+			source: components['schemas']['models.StreamingSourceResponse'];
+			tracks: components['schemas']['models.TrackResponse'][];
 		};
 		'models.StreamingSourceResponse': {
 			/** @example https://example.com/stream.m3u8 */
 			hls?: string;
 			/** @example https://example.com/embed/abc123 */
-			iframe?: string;
+			iframe: string;
 			/** @example /proxy?p=encodedurl&s=hd */
 			proxyHls?: string;
 		};
 		'models.TrackResponse': {
 			/** @example true */
-			default?: boolean;
+			default: boolean;
 			/** @example captions */
-			kind?: string;
+			kind: string;
 			/** @example English */
-			label?: string;
+			label: string;
 			/** @example https://example.com/subtitles.vtt */
-			raw?: string;
+			raw: string;
 			/** @example /proxy?p=encodedurl&s=hd */
-			url?: string;
+			url: string;
 		};
 		'models.TrailerResponse': {
 			/** @example https://www.youtube.com/embed/abc123 */
-			trailer?: string;
+			trailer: string;
 		};
 		'models.UpdatePasswordRequest': {
 			/** @example newpassword123 */
@@ -2820,17 +2817,17 @@ export interface components {
 		};
 		'models.UserResponse': {
 			/** @example 2023-01-01T00:00:00Z */
-			createdAt?: string;
+			createdAt: string;
 			/** @example john@example.com */
-			email?: string;
+			email: string;
 			/** @example V1StGXR8Z5jdHi6B */
-			id?: string;
+			id: string;
 			/** @example https://res.cloudinary.com/example/avatar.jpg */
 			profilePicture?: string;
 			/** @example 2023-01-01T00:00:00Z */
-			updatedAt?: string;
+			updatedAt: string;
 			/** @example johndoe */
-			username?: string;
+			username: string;
 		};
 		'models.ValidationErrorResponse': {
 			/** @example {
@@ -2840,7 +2837,7 @@ export interface components {
 				[key: string]: string;
 			};
 			/** @example Validation failed */
-			error?: string;
+			error: string;
 		};
 	};
 	responses: never;

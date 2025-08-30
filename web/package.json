@@ -15,7 +15,7 @@
 		"ui:add": "bun x shadcn-svelte@latest add",
 		"postui:add": "bun format",
 		"openapi": "openapi-typescript ../docs/openapi.yaml -o ./src/lib/api/openapi.ts",
-		"postopenapi": "bun format"
+		"postopenapi": "prettier --write ./src/lib/api/"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",

@@ -23,10 +23,10 @@ type DeleteUserRequest struct {
 }
 
 type UserResponse struct {
-	ID             string    `json:"id" example:"V1StGXR8Z5jdHi6B"`
-	Username       string    `json:"username" example:"johndoe"`
-	Email          string    `json:"email" example:"john@example.com"`
+	ID             string    `json:"id" validate:"required" example:"V1StGXR8Z5jdHi6B"`
+	Username       string    `json:"username" validate:"required" example:"johndoe"`
+	Email          string    `json:"email" validate:"required" example:"john@example.com"`
 	ProfilePicture string    `json:"profilePicture,omitempty" example:"https://res.cloudinary.com/example/avatar.jpg"`
-	CreatedAt      time.Time `json:"createdAt" example:"2023-01-01T00:00:00Z"`
-	UpdatedAt      time.Time `json:"updatedAt" example:"2023-01-01T00:00:00Z"`
+	CreatedAt      time.Time `json:"createdAt" validate:"required" example:"2023-01-01T00:00:00Z"`
+	UpdatedAt      time.Time `json:"updatedAt" validate:"required" example:"2023-01-01T00:00:00Z"`
 }

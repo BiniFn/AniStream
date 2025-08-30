@@ -1513,6 +1513,9 @@ components:
           type: array
         pageInfo:
           $ref: "#/components/schemas/models.PageInfo"
+      required:
+        - items
+        - pageInfo
       type: object
     models.AnimeMetadataResponse:
       properties:
@@ -1573,6 +1576,26 @@ components:
         trailerEmbedUrl:
           example: https://www.youtube.com/embed/abc123
           type: string
+      required:
+        - airingEndDate
+        - airingStartDate
+        - airingStatus
+        - avgEpisodeDuration
+        - description
+        - mainPictureUrl
+        - malId
+        - mean
+        - mediaType
+        - popularity
+        - rank
+        - rating
+        - scoringUsers
+        - season
+        - seasonYear
+        - source
+        - studio
+        - totalEpisodes
+        - trailerEmbedUrl
       type: object
     models.AnimeResponse:
       properties:
@@ -1606,6 +1629,11 @@ components:
         seasonYear:
           example: 2023
           type: integer
+      required:
+        - genre
+        - id
+        - imageUrl
+        - season
       type: object
     models.AnimeWithMetadataResponse:
       properties:
@@ -1641,12 +1669,19 @@ components:
         seasonYear:
           example: 2023
           type: integer
+      required:
+        - genre
+        - id
+        - imageUrl
+        - season
       type: object
     models.BannerResponse:
       properties:
         url:
           example: https://example.com/banner.jpg
           type: string
+      required:
+        - url
       type: object
     models.CreateUserRequest:
       properties:
@@ -1690,6 +1725,11 @@ components:
         title:
           example: The Attack Titan
           type: string
+      required:
+        - id
+        - isFiller
+        - number
+        - title
       type: object
     models.EpisodeServerResponse:
       properties:
@@ -1702,12 +1742,18 @@ components:
         type:
           example: sub
           type: string
+      required:
+        - serverId
+        - serverName
+        - type
       type: object
     models.ErrorResponse:
       properties:
         error:
           example: Invalid request
           type: string
+      required:
+        - error
       type: object
     models.ForgetPasswordRequest:
       properties:
@@ -1722,6 +1768,8 @@ components:
         id:
           example: V1StGXR8Z5jdHi6BmyT23
           type: string
+      required:
+        - id
       type: object
     models.LibraryImportJobResponse:
       properties:
@@ -1744,6 +1792,13 @@ components:
         userId:
           example: V1StGXR8Z5jdHi6B
           type: string
+      required:
+        - completedAt
+        - createdAt
+        - id
+        - status
+        - updatedAt
+        - userId
       type: object
     models.LibraryListResponse:
       properties:
@@ -1753,18 +1808,15 @@ components:
           type: array
         pageInfo:
           $ref: "#/components/schemas/models.PageInfo"
+      required:
+        - items
+        - pageInfo
       type: object
     models.LibraryRequest:
       properties:
         status:
           allOf:
             - $ref: "#/components/schemas/models.LibraryStatus"
-          enum:
-            - watching
-            - completed
-            - on_hold
-            - dropped
-            - plan_to_watch
           example: watching
         watchedEpisodes:
           example: 12
@@ -1799,6 +1851,15 @@ components:
         watchedEpisodes:
           example: 12
           type: integer
+      required:
+        - anime
+        - animeId
+        - createdAt
+        - id
+        - status
+        - updatedAt
+        - userId
+        - watchedEpisodes
       type: object
     models.LibraryStatus:
       enum:
@@ -1837,6 +1898,11 @@ components:
           type: boolean
         totalPages:
           type: integer
+      required:
+        - currentPage
+        - hasNextPage
+        - hasPrevPage
+        - totalPages
       type: object
     models.RelationsResponse:
       properties:
@@ -1848,6 +1914,9 @@ components:
           items:
             $ref: "#/components/schemas/models.AnimeResponse"
           type: array
+      required:
+        - related
+        - watchOrder
       type: object
     models.ResetPasswordRequest:
       properties:
@@ -1880,6 +1949,14 @@ components:
         type:
           example: TV
           type: string
+      required:
+        - anime
+        - bannerImageUrl
+        - description
+        - episodes
+        - id
+        - startDate
+        - type
       type: object
     models.SegmentResponse:
       properties:
@@ -1889,6 +1966,9 @@ components:
         start:
           example: 90
           type: integer
+      required:
+        - end
+        - start
       type: object
     models.SettingsRequest:
       properties:
@@ -1922,6 +2002,12 @@ components:
         userId:
           example: V1StGXR8Z5jdHi6B
           type: string
+      required:
+        - autoNextEpisode
+        - autoPlayEpisode
+        - autoResumeEpisode
+        - incognitoMode
+        - userId
       type: object
     models.StreamingDataResponse:
       properties:
@@ -1935,6 +2021,11 @@ components:
           items:
             $ref: "#/components/schemas/models.TrackResponse"
           type: array
+      required:
+        - intro
+        - outro
+        - source
+        - tracks
       type: object
     models.StreamingSourceResponse:
       properties:
@@ -1947,6 +2038,8 @@ components:
         proxyHls:
           example: /proxy?p=encodedurl&s=hd
           type: string
+      required:
+        - iframe
       type: object
     models.TrackResponse:
       properties:
@@ -1965,12 +2058,20 @@ components:
         url:
           example: /proxy?p=encodedurl&s=hd
           type: string
+      required:
+        - default
+        - kind
+        - label
+        - raw
+        - url
       type: object
     models.TrailerResponse:
       properties:
         trailer:
           example: https://www.youtube.com/embed/abc123
           type: string
+      required:
+        - trailer
       type: object
     models.UpdatePasswordRequest:
       properties:
@@ -2020,6 +2121,12 @@ components:
         username:
           example: johndoe
           type: string
+      required:
+        - createdAt
+        - email
+        - id
+        - updatedAt
+        - username
       type: object
     models.ValidationErrorResponse:
       properties:
@@ -2032,4 +2139,6 @@ components:
         error:
           example: Validation failed
           type: string
+      required:
+        - error
       type: object
