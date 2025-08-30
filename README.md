@@ -183,7 +183,7 @@ make openapi          # Generate OpenAPI documentation
 ### Database
 
 ```bash
-make migrate <name>   # Create new migration files
+make migrate          # Create new migration files (interactive)
 ```
 
 ### Docker
@@ -192,13 +192,6 @@ make migrate <name>   # Create new migration files
 make dev-docker-up    # Start development containers
 make dev-docker-down  # Stop development containers
 make dev-docker-logs  # View container logs
-```
-
-### Building
-
-```bash
-make build            # Build API and proxy binaries
-make docker-build-api # Build API Docker image
 ```
 
 ## 🌐 API Documentation

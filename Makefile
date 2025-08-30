@@ -1,40 +1,36 @@
-MIGRATION_NAME := $(filter-out migrate,$(MAKECMDGOALS))
-
-# ----- Migration ----- #
-.PHONY: migrate
-migrate: ## Generate migration files
-	@if [ -z "$(MIGRATION_NAME)" ]; then \
-	  echo "Usage: make migrate <migration_name>"; \
-	  exit 1; \
-	fi
-	migrate create -seq -dir migrations -ext sql $(MIGRATION_NAME)
-
-%:
-	@:
+# Variables
+API_CMD := ./cmd/api
+PROXY_CMD := ./cmd/proxy
+WORKER_CMD := ./cmd/worker
+TMP_DIR := ./tmp
+DOCKER_COMPOSE_FILE := docker/docker-compose.dev.yaml
+ENV_FILE := .env.local
 
 # ----- Local Dev ----- #
 .PHONY: dev-api dev-proxy dev-worker
 dev-api: ## Run API with Air
 	air -c .air.toml \
-		-build.cmd "go build -o ./tmp/api ./cmd/api" \
-		-build.bin "./tmp/api"
+		-build.cmd "go build -o $(TMP_DIR)/api $(API_CMD)" \
+		-build.bin "$(TMP_DIR)/api"
 
 dev-proxy: ## Run proxy locally
 	air -c .air.toml \
-		-build.cmd "go build -o ./tmp/proxy ./cmd/proxy" \
-		-build.full_bin "APP_ENV=development ./tmp/proxy"
+		-build.cmd "go build -o $(TMP_DIR)/proxy $(PROXY_CMD)" \
+		-build.full_bin "APP_ENV=development $(TMP_DIR)/proxy"
 
 dev-worker: ## Run worker locally
 	air -c .air.toml \
-		-build.cmd "go build -o ./tmp/worker ./cmd/worker" \
-		-build.bin "./tmp/worker"
+		-build.cmd "go build -o $(TMP_DIR)/worker $(WORKER_CMD)" \
+		-build.bin "$(TMP_DIR)/worker"
 
-# ----- SQLC & GraphQL ----- #
-.PHONY: sqlc genqlient
+# ----- AutoGen code ----- #
+.PHONY: sqlc genqlient openapi migrate
 sqlc: ## Generate SQLC code
+	@command -v sqlc >/dev/null || (echo "sqlc not installed" && exit 1)
 	sqlc generate
 
 genqlient: ## Generate GraphQL client code
+	@command -v genqlient >/dev/null || (echo "genqlient not installed" && exit 1)
 	@if [ ! -f schema.graphql ]; then \
 		npx --yes graphqurl https://graphql.anilist.co --introspect > schema.graphql; \
 		if [ $$? -ne 0 ]; then \
@@ -44,49 +40,39 @@ genqlient: ## Generate GraphQL client code
 	fi
 	genqlient genqlient.yaml
 
-# ----- OpenAPI ----- #
-.PHONY: openapi
 openapi: ## Generate full openapi docs + ts client
-	./scripts/create-openapi.sh
+	@./scripts/create-openapi.sh
 
-# ----- Go Build & Tidy ----- #
-.PHONY: build tidy
-build: ## Build API and Proxy binaries
-	go build -o bin/api ./cmd/api
-	go build -o bin/proxy ./cmd/proxy
-
-tidy: ## Go mod tidy
-	go mod tidy
-
-# ----- Docker Build ----- #
-.PHONY: docker-build-api docker-build-proxy docker-build-worker
-docker-build-api: ## Build API Docker image
-	docker build --target=api -t aniways-api -f docker/Dockerfile .
-
-docker-build-proxy: ## Build Proxy Docker image
-	docker build --target=proxy -t aniways-proxy -f docker/Dockerfile .
-
-docker-build-worker: ## Build Worker Docker image
-	docker build --target=worker -t aniways-worker -f docker/Dockerfile .
+migrate: ## Generate migration files
+	@./scripts/migrate.sh
 
 # ----- Docker Compose (Dev) ----- #
 .PHONY: dev-docker-up dev-docker-down dev-docker-logs
 dev-docker-up: ## Start dev containers
-	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local up -d
+	@test -f $(ENV_FILE) || (echo "$(ENV_FILE) not found" && exit 1)
+	docker compose -p aniways -f $(DOCKER_COMPOSE_FILE) --env-file $(ENV_FILE) up -d
 
 dev-docker-down: ## Stop dev containers
-	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local down
+	docker compose -p aniways -f $(DOCKER_COMPOSE_FILE) --env-file $(ENV_FILE) down
 
 dev-docker-logs: ## View logs for all containers
-	docker compose -p aniways -f docker/docker-compose.dev.yaml --env-file .env.local logs -f
+	docker compose -p aniways -f $(DOCKER_COMPOSE_FILE) --env-file $(ENV_FILE) logs -f
 
 # ----- Tmux Commands ----- #
 .PHONY: tmux
-tmux:
-	./scripts/aniways-tmux.sh
+tmux: ## Start tmux session
+	@./scripts/aniways-tmux.sh
 
 # ----- Help Menu ----- #
 .PHONY: help
 help: ## Show help
-	@grep -E '^[a-zA-Z_\-]+:.*?## ' $(MAKEFILE_LIST) | \
-	  awk 'BEGIN {FS=":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo "Available commands:"
+	@echo ""
+	@awk '/^# ----- .* ----- #/ { \
+		gsub(/^# ----- | ----- #$$/, "", $$0); \
+		printf "\033[33m%s:\033[0m\n", $$0; \
+	} \
+	/^[a-zA-Z_-]+:.*?##/ { \
+		split($$0, parts, ":.*?## "); \
+		printf "  \033[36m%-18s\033[0m %s\n", parts[1], parts[2]; \
+	}' $(MAKEFILE_LIST)
