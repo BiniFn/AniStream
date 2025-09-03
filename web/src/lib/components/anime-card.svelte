@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Play } from 'lucide-svelte';
 	import type { components } from '$lib/api/openapi';
+	import { Play } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
@@ -16,7 +16,7 @@
 
 <a
 	href="/anime/{anime.id}"
-	class="group block transform transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+	class="group block transform transition-all duration-500 hover:-translate-y-2 hover:scale-105"
 	style="animation-delay: {index * 100}ms"
 >
 	<div
@@ -29,16 +29,14 @@
 		/>
 		<div
 			class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100"
-		/>
+		></div>
 
-		<!-- Top Left Badge (customizable via snippet) -->
 		{#if topLeftBadge}
 			<div class="absolute top-3 left-3">
 				{@render topLeftBadge()}
 			</div>
 		{/if}
 
-		<!-- Episode Badge (top right) -->
 		{#if anime.lastEpisode}
 			<div class="absolute top-3 right-3">
 				<span
@@ -49,12 +47,11 @@
 			</div>
 		{/if}
 
-		<!-- Hover Content - Genre Tags -->
 		<div
 			class="absolute right-3 bottom-3 left-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
 		>
 			<div class="flex gap-1">
-				{#each anime.genre.split(', ').slice(0, 2) as genre}
+				{#each anime.genre.split(', ').slice(0, 2) as genre (genre)}
 					<span class="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white backdrop-blur-sm">
 						{genre}
 					</span>
@@ -62,7 +59,6 @@
 			</div>
 		</div>
 
-		<!-- Play Button Overlay -->
 		<div
 			class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100"
 		>
@@ -71,7 +67,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<div class="space-y-2">
 		<h3
 			class="line-clamp-1 text-sm font-semibold transition-colors duration-300 group-hover:text-primary"

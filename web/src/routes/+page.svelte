@@ -44,14 +44,6 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Aniways - Your Ultimate Anime Destination</title>
-	<meta
-		name="description"
-		content="Discover, watch, and track your favorite anime series and movies. Stay updated with the latest releases and trending shows."
-	/>
-</svelte:head>
-
 {#if featuredAnime}
 	<section class="absolute top-0 right-0 left-0 z-10 mb-16 h-screen w-screen overflow-hidden">
 		<div class="absolute inset-0">
@@ -83,7 +75,7 @@
 							</div>
 						</div>
 						<h1
-							class="mb-4 text-4xl leading-none font-black tracking-tight text-white sm:mb-6 sm:text-6xl md:text-8xl lg:text-9xl"
+							class="mb-4 text-4xl leading-none font-black tracking-tight text-white sm:mb-6 sm:text-6xl md:text-8xl xl:text-9xl"
 						>
 							{featuredAnime.ename || featuredAnime.jname}
 						</h1>

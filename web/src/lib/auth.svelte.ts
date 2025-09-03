@@ -15,3 +15,4 @@ export function getUser() {
 export function isLoggedIn() {
 	return user !== null;
 }
+
