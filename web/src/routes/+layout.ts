@@ -2,7 +2,11 @@ import { apiClient } from '$lib/api/client';
 import type { LayoutLoad } from './$types';
 
 export const load: LayoutLoad = async ({ fetch }) => {
-	const seasonalAnime = await apiClient.GET('/anime/listings/seasonal', { fetch });
+	const user = await apiClient
+		.GET('/auth/me', { fetch })
+		.catch(() => ({ data: null, error: null }));
 
-	return { seasonalAnime };
+	return {
+		user: user.data,
+	};
 };

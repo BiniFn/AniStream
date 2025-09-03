@@ -1,24 +1,19 @@
 <script lang="ts">
+	import { setUser } from '$lib/auth.svelte';
+	import Footer from '$lib/components/footer.svelte';
+	import NavBar from '$lib/components/nav-bar.svelte';
 	import '../app.css';
 	import type { LayoutProps } from './$types';
-	import NavBar from './nav-bar.svelte';
-	import SeasonalAnime from './seasonal-anime.svelte';
 
 	let { children, data }: LayoutProps = $props();
 
-	let seasonalAnime = $derived(data.seasonalAnime.data);
-	let seasonalAnimeError = $derived(data.seasonalAnime.error);
+	if (data?.user) setUser(data?.user);
 </script>
 
 <NavBar />
-{#if seasonalAnimeError}
-	<p class="text-red-500">
-		Error loading seasonal anime: {seasonalAnimeError.error ??
-			'Something went wrong try again later'}
-	</p>
-{:else if seasonalAnime}
-	<SeasonalAnime {seasonalAnime} />
-{/if}
-<div class="h-full w-full p-4">
-	{@render children?.()}
+<div class="flex min-h-screen flex-col">
+	<div class="flex-1 p-4">
+		{@render children?.()}
+	</div>
+	<Footer />
 </div>
