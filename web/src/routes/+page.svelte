@@ -47,13 +47,13 @@
 							</div>
 						</div>
 						<h1
-							class="mb-4 text-4xl leading-none font-black tracking-tight text-white sm:mb-6 sm:text-6xl md:text-8xl xl:text-9xl"
+							class="mb-4 text-4xl leading-none font-black tracking-tight text-white sm:mb-6 sm:text-6xl md:text-8xl"
 						>
-							{featuredAnime.ename || featuredAnime.jname}
+							{featuredAnime.jname || featuredAnime.ename}
 						</h1>
-						{#if featuredAnime.jname && featuredAnime.ename}
+						{#if featuredAnime.ename && featuredAnime.jname}
 							<p class="mb-4 hidden text-2xl font-light text-gray-300 sm:mb-6 sm:block">
-								{featuredAnime.jname}
+								{featuredAnime.ename}
 							</p>
 						{/if}
 						<div class="mb-4 flex flex-wrap items-center gap-6 sm:mb-8">

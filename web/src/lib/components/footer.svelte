@@ -58,7 +58,10 @@
 							</a>
 						</li>
 						<li>
-							<a href="/settings" class="text-muted-foreground transition-colors hover:text-primary">
+							<a
+								href="/settings"
+								class="text-muted-foreground transition-colors hover:text-primary"
+							>
 								Settings
 							</a>
 						</li>
@@ -74,7 +77,10 @@
 							</a>
 						</li>
 						<li>
-							<a href="/register" class="text-muted-foreground transition-colors hover:text-primary">
+							<a
+								href="/register"
+								class="text-muted-foreground transition-colors hover:text-primary"
+							>
 								Register
 							</a>
 						</li>
@@ -91,9 +97,9 @@
 						</a>
 					</li>
 					<li>
-						<a 
-							href="https://github.com/yourusername/aniways" 
-							target="_blank" 
+						<a
+							href="https://github.com/yourusername/aniways"
+							target="_blank"
 							rel="noopener noreferrer"
 							class="text-muted-foreground transition-colors hover:text-primary"
 						>
