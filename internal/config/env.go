@@ -8,7 +8,7 @@ import (
 type Env struct {
 	AppEnv                  string `envconfig:"APP_ENV" default:"development"`
 	AppPort                 string `envconfig:"APP_PORT" default:"8080"`
-	AllowedOrigins          string `envconfig:"ALLOWED_ORIGINS" default:"*"`
+	AllowedOrigins          string `envconfig:"ALLOWED_ORIGINS" default:"http://localhost:3000"`
 	FrontendURL             string `envconfig:"FRONTEND_URL" default:"http://localhost:3000"`
 	ApiURL                  string `envconfig:"API_URL" default:"http://localhost:8080"`
 	DatabaseURL             string `envconfig:"DATABASE_URL" required:"true"`

@@ -7,8 +7,8 @@ import (
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/coeeter/aniways/internal/config"
-	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/models"
+	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/utils"
 	"github.com/go-chi/chi/v5"
@@ -27,7 +27,13 @@ type MiddlewareConfig struct {
 
 func UseMiddlewares(c MiddlewareConfig) {
 	userService := users.NewUserService(c.Repo, c.Cld)
-	c.Router.Use(corsHandler(c.Env))
+	c.Router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{c.Env.AllowedOrigins},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type"},
+		MaxAge:           300,
+		AllowCredentials: true,
+	}))
 
 	c.Router.Use(
 		middleware.RealIP,
@@ -38,21 +44,6 @@ func UseMiddlewares(c MiddlewareConfig) {
 		middleware.Recoverer,
 		middleware.Timeout(60*time.Second),
 	)
-}
-
-func corsHandler(env *config.Env) func(http.Handler) http.Handler {
-	if env.AppEnv == "development" {
-		return cors.AllowAll().Handler
-	}
-
-	// In production, use specific allowed origins
-	return cors.Handler(cors.Options{
-		AllowedOrigins:   []string{env.AllowedOrigins},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type"},
-		MaxAge:           300, // 5 minutes
-		AllowCredentials: true,
-	})
 }
 
 func injectLogger(logger *slog.Logger) func(http.Handler) http.Handler {

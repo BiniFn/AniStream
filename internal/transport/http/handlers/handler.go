@@ -77,6 +77,10 @@ func (h *Handler) RegisterRoutes() {
 
 	h.RegisterOpenAPIRoutes()
 
+	h.r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	h.r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	})
