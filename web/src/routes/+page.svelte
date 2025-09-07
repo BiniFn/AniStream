@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { getUser } from '$lib/auth.svelte';
 	import AnimeCard from '$lib/components/anime-card.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Calendar, ChevronRight, CircleAlert, Play, Star, TrendingUp } from 'lucide-svelte';
@@ -9,38 +7,12 @@
 	let { data }: PageProps = $props();
 
 	const { trending, popular, recentlyUpdated, seasonal, featuredAnime } = data;
-	const user = getUser();
 
 	const hasData =
 		trending.length > 0 || popular.length > 0 || recentlyUpdated.length > 0 || seasonal.length > 0;
 
-	let popularAnime = $state(popular);
-
-	function updatePopularAnime() {
-		if (!browser) return;
-
-		const width = window.innerWidth;
-		if (width < 640) {
-			popularAnime = popular.slice(0, 3);
-			return;
-		}
-		if (width < 1024) {
-			popularAnime = popular.slice(0, 4);
-			return;
-		}
-		if (width < 1280) {
-			popularAnime = popular.slice(0, 6);
-			return;
-		}
-		popularAnime = popular.slice(0, 8);
-	}
-
-	$effect(() => {
-		updatePopularAnime();
-		if (!browser) return;
-
-		window.addEventListener('resize', updatePopularAnime);
-		return () => window.removeEventListener('resize', updatePopularAnime);
+	let popularAnime = $derived.by(() => {
+		return popular.slice(0, 8);
 	});
 </script>
 
@@ -154,7 +126,7 @@
 {/if}
 
 {#if !hasData}
-	<div class="mt-screen container mx-auto px-4 py-20">
+	<div class="container mx-auto mt-[100vh] px-4 py-20">
 		<div class="mx-auto max-w-md text-center">
 			<div class="mb-6">
 				<CircleAlert class="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
@@ -209,7 +181,6 @@
 						<a
 							href="/anime/{anime.id}"
 							class="group block transform transition-all duration-300 hover:scale-[1.02]"
-							style="animation-delay: {index * 50}ms"
 						>
 							<div
 								class="flex gap-4 rounded-xl border bg-card/50 p-5 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/20 hover:bg-card hover:shadow-xl hover:shadow-primary/5"
@@ -309,11 +280,10 @@
 					<h2 class="text-2xl font-bold sm:text-3xl">This Season</h2>
 				</div>
 				<div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-					{#each seasonal.slice(0, 6) as seasonalAnime, index (seasonalAnime.id)}
+					{#each seasonal.slice(0, 6) as seasonalAnime (seasonalAnime.id)}
 						<a
 							href="/anime/{seasonalAnime.anime.id}"
 							class="group block transform transition-all duration-300 hover:scale-[1.02]"
-							style="animation-delay: {index * 100}ms"
 						>
 							<div
 								class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/10"
@@ -388,7 +358,7 @@
 			</section>
 		{/if}
 
-		{#if !user}
+		{#if !data.isLoggedIn}
 			<section
 				class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 p-8 text-center md:p-16"
 			>

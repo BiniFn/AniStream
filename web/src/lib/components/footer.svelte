@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { Heart } from 'lucide-svelte';
 </script>
 
@@ -10,8 +11,7 @@
 					Aniways
 				</h3>
 				<p class="text-sm leading-relaxed text-muted-foreground">
-					Your ultimate destination for anime streaming. Discover, watch, and track your favorite
-					series and movies.
+					Discover, track, and organize your favorite anime series. Built by fans, for fans.
 				</p>
 			</div>
 
@@ -19,8 +19,13 @@
 				<h4 class="mb-4 text-sm font-semibold tracking-wide text-foreground uppercase">Browse</h4>
 				<ul class="space-y-3 text-sm">
 					<li>
+						<a href="/" class="text-muted-foreground transition-colors hover:text-primary">
+							Home
+						</a>
+					</li>
+					<li>
 						<a href="/catalog" class="text-muted-foreground transition-colors hover:text-primary">
-							All Anime
+							Catalog
 						</a>
 					</li>
 					<li>
@@ -30,59 +35,74 @@
 					</li>
 					<li>
 						<a href="/recent" class="text-muted-foreground transition-colors hover:text-primary">
-							Recently Updated
+							Recent
 						</a>
 					</li>
+					{#if page.data.isLoggedIn}
+						<li>
+							<a href="/my-list" class="text-muted-foreground transition-colors hover:text-primary">
+								My List
+							</a>
+						</li>
+					{/if}
 				</ul>
 			</div>
 
 			<div>
 				<h4 class="mb-4 text-sm font-semibold tracking-wide text-foreground uppercase">Account</h4>
 				<ul class="space-y-3 text-sm">
-					<li>
-						<a href="/login" class="text-muted-foreground transition-colors hover:text-primary">
-							Sign In
-						</a>
-					</li>
-					<li>
-						<a href="/register" class="text-muted-foreground transition-colors hover:text-primary">
-							Create Account
-						</a>
-					</li>
-					<li>
-						<a href="/my-list" class="text-muted-foreground transition-colors hover:text-primary">
-							My List
-						</a>
-					</li>
-					<li>
-						<a href="/settings" class="text-muted-foreground transition-colors hover:text-primary">
-							Settings
-						</a>
-					</li>
+					{#if page.data.isLoggedIn}
+						<li>
+							<a href="/profile" class="text-muted-foreground transition-colors hover:text-primary">
+								Profile
+							</a>
+						</li>
+						<li>
+							<a href="/settings" class="text-muted-foreground transition-colors hover:text-primary">
+								Settings
+							</a>
+						</li>
+						<li>
+							<a href="/logout" class="text-muted-foreground transition-colors hover:text-primary">
+								Log out
+							</a>
+						</li>
+					{:else}
+						<li>
+							<a href="/login" class="text-muted-foreground transition-colors hover:text-primary">
+								Sign In
+							</a>
+						</li>
+						<li>
+							<a href="/register" class="text-muted-foreground transition-colors hover:text-primary">
+								Register
+							</a>
+						</li>
+					{/if}
 				</ul>
 			</div>
 
 			<div>
-				<h4 class="mb-4 text-sm font-semibold tracking-wide text-foreground uppercase">Support</h4>
+				<h4 class="mb-4 text-sm font-semibold tracking-wide text-foreground uppercase">More</h4>
 				<ul class="space-y-3 text-sm">
 					<li>
-						<a href="/help" class="text-muted-foreground transition-colors hover:text-primary">
-							Help Center
+						<a href="/about" class="text-muted-foreground transition-colors hover:text-primary">
+							About
 						</a>
 					</li>
 					<li>
-						<a href="/contact" class="text-muted-foreground transition-colors hover:text-primary">
-							Contact Us
+						<a 
+							href="https://github.com/yourusername/aniways" 
+							target="_blank" 
+							rel="noopener noreferrer"
+							class="text-muted-foreground transition-colors hover:text-primary"
+						>
+							GitHub
 						</a>
 					</li>
 					<li>
-						<a href="/privacy" class="text-muted-foreground transition-colors hover:text-primary">
-							Privacy Policy
-						</a>
-					</li>
-					<li>
-						<a href="/terms" class="text-muted-foreground transition-colors hover:text-primary">
-							Terms of Service
+						<a href="/status" class="text-muted-foreground transition-colors hover:text-primary">
+							Status
 						</a>
 					</li>
 				</ul>
@@ -93,7 +113,7 @@
 			class="mt-12 flex flex-col items-center justify-between border-t border-border pt-8 md:flex-row"
 		>
 			<p class="text-sm text-muted-foreground">
-				© {new Date().getFullYear()} Aniways. All rights reserved.
+				© {new Date().getFullYear()} Aniways. Open source project.
 			</p>
 			<div class="mt-4 flex items-center gap-1 text-sm text-muted-foreground md:mt-0">
 				<span>Made with</span>
@@ -103,4 +123,3 @@
 		</div>
 	</div>
 </footer>
-

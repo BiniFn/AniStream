@@ -1,29 +1,38 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import * as Avatar from '$lib/components/ui/avatar';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
+	import UserProfileDropdown from '$lib/components/user-profile-dropdown.svelte';
 	import { cn } from '$lib/utils';
-	import { Menu, Search } from 'lucide-svelte';
+	import {
+		Clock,
+		Heart,
+		House,
+		Library,
+		LogOut,
+		Menu,
+		Search,
+		Settings,
+		Swords,
+		User,
+	} from 'lucide-svelte';
 
-	const links = [
-		{
-			label: 'Home',
-			link: '/',
-		},
-		{
-			label: 'Catalog',
-			link: '/catalog',
-		},
-		{
-			label: 'Genres',
-			link: '/genres',
-		},
-		{
-			label: 'My List',
-			link: '/my-list',
-		},
-	];
+	let links = $derived.by(() => {
+		const base = [
+			{ label: 'Home', link: '/', Icon: House },
+			{ label: 'Catalog', link: '/catalog', Icon: Library },
+			{ label: 'Genres', link: '/genres', Icon: Swords },
+			{ label: 'Recent', link: '/recent', Icon: Clock },
+		];
+
+		if (page.data.isLoggedIn) {
+			base.push({ label: 'My List', link: '/my-list', Icon: Heart });
+		}
+
+		return base;
+	});
 
 	let isSheetOpen = $state(false);
 	let isSearchOpen = $state(false);
@@ -83,8 +92,12 @@
 					</kbd>
 				</Button>
 
-				<Button href="/login" variant="outline" class="hidden lg:inline-flex">Sign In</Button>
-				<Button href="/register" class="hidden lg:inline-flex">Register</Button>
+				{#if !page.data.isLoggedIn}
+					<Button href="/login" variant="outline" class="hidden lg:inline-flex">Sign In</Button>
+					<Button href="/register" class="hidden lg:inline-flex">Register</Button>
+				{:else}
+					<UserProfileDropdown user={page.data.user!} class="hidden lg:flex" />
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -95,19 +108,61 @@
 		<Sheet.Header>
 			<Sheet.Title>Menu</Sheet.Title>
 		</Sheet.Header>
+
+		{#if page.data.isLoggedIn}
+			<div class="px-4 pb-4">
+				<div class="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
+					<UserProfileDropdown user={page.data.user!} class="hidden" />
+					<Avatar.Root class="size-10">
+						<Avatar.Image src={page.data.user?.profilePicture} alt={page.data.user?.username} />
+						<Avatar.Fallback class="bg-primary/50 text-sm font-medium">
+							{page.data.user?.username
+								?.split(' ')
+								.map((n) => n.charAt(0))
+								.join('')
+								.toUpperCase()
+								.slice(0, 2)}
+						</Avatar.Fallback>
+					</Avatar.Root>
+					<div class="flex flex-col">
+						<p class="text-sm font-medium">{page.data.user?.username}</p>
+						<p class="text-xs text-muted-foreground">{page.data.user?.email}</p>
+					</div>
+				</div>
+			</div>
+		{/if}
+
 		<div class="flex flex-col gap-2 px-4">
 			{#each links as link (link.link)}
 				<a
 					href={link.link}
 					class={cn(
-						'font-medium text-muted-foreground transition-colors hover:text-primary',
+						'flex items-center font-medium text-muted-foreground transition-colors hover:text-primary',
 						page.url.pathname === link.link && 'text-foreground',
 					)}
 				>
+					<link.Icon class="mr-2 h-4 w-4" />
 					{link.label}
 				</a>
 			{/each}
+			{#if page.data.isLoggedIn}
+				<a
+					href="/profile"
+					class="font-medium text-muted-foreground transition-colors hover:text-primary"
+				>
+					<User class="mr-2 inline h-4 w-4" />
+					Profile
+				</a>
+				<a
+					href="/settings"
+					class="font-medium text-muted-foreground transition-colors hover:text-primary"
+				>
+					<Settings class="mr-2 inline h-4 w-4" />
+					Settings
+				</a>
+			{/if}
 		</div>
+
 		<div class="flex flex-col gap-2 px-4">
 			<Button
 				variant="outline"
@@ -120,8 +175,15 @@
 				<Search class="h-4 w-4" />
 				<span>Search anime...</span>
 			</Button>
-			<Button href="/login" variant="outline" class="w-full">Sign In</Button>
-			<Button href="/register" class="w-full">Register</Button>
+			{#if !page.data.isLoggedIn}
+				<Button href="/login" variant="outline" class="w-full">Sign In</Button>
+				<Button href="/register" class="w-full">Register</Button>
+			{:else}
+				<Button href="/logout" variant="destructive" class="w-full">
+					<LogOut class="h-4 w-4" />
+					Log out
+				</Button>
+			{/if}
 		</div>
 	</Sheet.Content>
 </Sheet.Root>
