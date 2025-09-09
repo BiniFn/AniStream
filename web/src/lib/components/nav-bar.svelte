@@ -34,6 +34,18 @@
 		return base;
 	});
 
+	let sheetLinks = $derived.by(() => {
+		if (!page.data.isLoggedIn) {
+			return links;
+		}
+
+		return [
+			...links,
+			{ label: 'Profile', link: '/profile', Icon: User },
+			{ label: 'Settings', link: '/settings', Icon: Settings },
+		];
+	});
+
 	let isSheetOpen = $state(false);
 	let isSearchOpen = $state(false);
 
@@ -133,7 +145,7 @@
 		{/if}
 
 		<div class="flex flex-col gap-2 px-4">
-			{#each links as link (link.link)}
+			{#each sheetLinks as link (link.link)}
 				<a
 					href={link.link}
 					class={cn(
@@ -145,22 +157,6 @@
 					{link.label}
 				</a>
 			{/each}
-			{#if page.data.isLoggedIn}
-				<a
-					href="/profile"
-					class="font-medium text-muted-foreground transition-colors hover:text-primary"
-				>
-					<User class="mr-2 inline h-4 w-4" />
-					Profile
-				</a>
-				<a
-					href="/settings"
-					class="font-medium text-muted-foreground transition-colors hover:text-primary"
-				>
-					<Settings class="mr-2 inline h-4 w-4" />
-					Settings
-				</a>
-			{/if}
 		</div>
 
 		<div class="flex flex-col gap-2 px-4">

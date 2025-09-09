@@ -117,4 +117,3 @@ type EpisodeListResponse = []EpisodeResponse
 type EpisodeServerListResponse = []EpisodeServerResponse
 type TrendingAnimeListResponse = []AnimeResponse
 type PopularAnimeListResponse = []AnimeResponse
-

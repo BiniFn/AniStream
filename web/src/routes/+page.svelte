@@ -36,7 +36,7 @@
 					class="flex flex-col items-center gap-8 lg:flex-row lg:justify-between lg:gap-16 xl:gap-20"
 				>
 					<div class="max-w-3xl flex-1">
-						<div class="mb-6 flex items-center gap-3 pt-20 md:pt-0">
+						<div class="mb-6 flex items-center gap-3 pt-8 md:pt-0">
 							<div
 								class="flex items-center gap-2 rounded-full border border-primary/50 bg-primary/20 px-4 py-2 backdrop-blur-xl"
 							>
@@ -247,34 +247,6 @@
 			</section>
 		{/if}
 
-		{#if recentlyUpdated.length > 0}
-			<section>
-				<div class="mb-8 flex items-center justify-between">
-					<div class="flex items-center gap-3">
-						<Calendar class="h-6 w-6 text-primary" />
-						<h2 class="text-2xl font-bold sm:text-3xl">Recently Updated</h2>
-					</div>
-					<Button variant="ghost" class="gap-2" href="/recent">
-						View All
-						<ChevronRight class="h-4 w-4" />
-					</Button>
-				</div>
-				<div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-					{#each recentlyUpdated as anime, index (anime.id)}
-						<AnimeCard {anime} {index}>
-							{#snippet topLeftBadge()}
-								<div
-									class="animate-pulse rounded-full bg-red-500/90 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
-								>
-									NEW
-								</div>
-							{/snippet}
-						</AnimeCard>
-					{/each}
-				</div>
-			</section>
-		{/if}
-
 		{#if seasonal.length > 0}
 			<section>
 				<div class="mb-8 flex items-center gap-3">
@@ -305,14 +277,6 @@
 											class="rounded-md bg-primary/90 px-3 py-1 text-sm font-semibold text-primary-foreground backdrop-blur-sm"
 										>
 											{seasonalAnime.episodes} Episodes
-										</span>
-									</div>
-
-									<div class="absolute top-4 left-4">
-										<span
-											class="rounded-full bg-black/60 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm"
-										>
-											{seasonalAnime.type}
 										</span>
 									</div>
 								</div>
@@ -355,6 +319,34 @@
 								</div>
 							</div>
 						</a>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
+		{#if recentlyUpdated.length > 0}
+			<section>
+				<div class="mb-8 flex items-center justify-between">
+					<div class="flex items-center gap-3">
+						<Calendar class="h-6 w-6 text-primary" />
+						<h2 class="text-2xl font-bold sm:text-3xl">Recently Updated</h2>
+					</div>
+					<Button variant="ghost" class="gap-2" href="/recent">
+						View All
+						<ChevronRight class="h-4 w-4" />
+					</Button>
+				</div>
+				<div class="mb-4 grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+					{#each recentlyUpdated as anime, index (anime.id)}
+						<AnimeCard {anime} {index}>
+							{#snippet topLeftBadge()}
+								<div
+									class="animate-pulse rounded-full bg-red-500/90 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
+								>
+									NEW
+								</div>
+							{/snippet}
+						</AnimeCard>
 					{/each}
 				</div>
 			</section>

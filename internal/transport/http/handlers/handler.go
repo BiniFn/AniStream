@@ -147,7 +147,7 @@ func (h *Handler) jsonError(w http.ResponseWriter, status int, msg string) {
 	_ = json.NewEncoder(w).Encode(models.ErrorResponse{Error: msg})
 }
 
-func (h *Handler) jsonOK(w http.ResponseWriter, v interface{}) {
+func (h *Handler) jsonOK(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(v)
 }
@@ -160,7 +160,7 @@ func (h *Handler) logger(r *http.Request) *slog.Logger {
 	return logger.With("layer", "controller")
 }
 
-func (h *Handler) parseAndValidate(w http.ResponseWriter, r *http.Request, req interface{}) bool {
+func (h *Handler) parseAndValidate(w http.ResponseWriter, r *http.Request, req any) bool {
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		h.jsonError(w, http.StatusBadRequest, "Invalid JSON")
 		return false
