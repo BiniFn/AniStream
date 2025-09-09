@@ -13,11 +13,17 @@ export const load: PageLoad = async ({ fetch }) => {
 	]);
 
 	const featuredAnime = trending?.data?.[0];
+	const metadata = featuredAnime
+		? await apiClient.GET('/anime/{id}', {
+				fetch,
+				params: { path: { id: featuredAnime?.id || '' } },
+			})
+		: null;
 	return {
 		trending: trending.data || [],
 		popular: popular.data || [],
 		recentlyUpdated: recentlyUpdated.data?.items || [],
 		seasonal: seasonal.data || [],
-		featuredAnime: featuredAnime || null,
+		featuredAnime: metadata?.data,
 	};
 };

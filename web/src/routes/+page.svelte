@@ -20,13 +20,13 @@
 	<section class="absolute top-0 right-0 left-0 z-10 mb-16 h-screen w-screen overflow-hidden">
 		<div class="absolute inset-0">
 			<img
-				src={featuredAnime.imageUrl}
+				src={featuredAnime.metadata?.mainPictureUrl || featuredAnime.imageUrl}
 				alt={featuredAnime.ename || featuredAnime.jname}
 				class="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
 			/>
 			<div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/20"></div>
 			<div
-				class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
+				class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent md:bg-gradient-to-t"
 			></div>
 		</div>
 
@@ -38,10 +38,10 @@
 					<div class="max-w-3xl flex-1">
 						<div class="mb-6 flex items-center gap-3 pt-20 md:pt-0">
 							<div
-								class="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/20 px-4 py-2 backdrop-blur-sm"
+								class="flex items-center gap-2 rounded-full border border-primary/50 bg-primary/20 px-4 py-2 backdrop-blur-xl"
 							>
 								<TrendingUp class="h-4 w-4 text-primary" />
-								<span class="text-sm font-semibold tracking-wider text-primary uppercase">
+								<span class="text-sm font-bold tracking-wider text-primary uppercase">
 									Trending Now
 								</span>
 							</div>
@@ -79,6 +79,7 @@
 							<Button
 								size="lg"
 								class="gap-3 bg-primary px-8 py-4 text-lg shadow-xl shadow-primary/25 hover:bg-primary/90"
+								href={`/anime/${featuredAnime.id}/watch`}
 							>
 								<Play class="h-6 w-6" />
 								Watch Now
@@ -87,6 +88,7 @@
 								variant="outline"
 								size="lg"
 								class="gap-3 border-white/30 bg-white/10 px-8 py-4 text-lg text-white shadow-xl backdrop-blur-sm hover:bg-white/20"
+								href={`/anime/${featuredAnime.id}`}
 							>
 								More Info
 								<ChevronRight class="h-5 w-5" />
@@ -98,9 +100,9 @@
 						<div class="relative">
 							<div class="relative overflow-hidden rounded-2xl shadow-2xl">
 								<img
-									src={featuredAnime.imageUrl}
+									src={featuredAnime.metadata?.mainPictureUrl || featuredAnime.imageUrl}
 									alt={featuredAnime.ename || featuredAnime.jname}
-									class="h-96 w-72 rounded-2xl object-cover lg:h-[550px] lg:w-96 xl:h-[600px] xl:w-[400px]"
+									class="h-96 w-72 rounded-2xl object-cover lg:h-[550px] lg:w-96"
 								/>
 							</div>
 							<div
@@ -157,9 +159,9 @@
 							<AnimeCard {anime} {index}>
 								{#snippet topLeftBadge()}
 									<div
-										class="flex items-center gap-1 rounded-md bg-primary/90 px-2 py-1 text-xs font-semibold text-primary-foreground backdrop-blur-sm"
+										class="flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 text-xs font-semibold text-primary-foreground backdrop-blur-sm"
 									>
-										<Star class="h-3 w-3" />
+										<Star class="h-3 w-3 fill-yellow-400 text-yellow-400" />
 										<span>#{index + 2}</span>
 									</div>
 								{/snippet}

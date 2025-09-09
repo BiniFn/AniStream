@@ -98,7 +98,7 @@
 					</li>
 					<li>
 						<a
-							href="https://github.com/yourusername/aniways"
+							href="https://github.com/coeeter/aniways"
 							target="_blank"
 							rel="noopener noreferrer"
 							class="text-muted-foreground transition-colors hover:text-primary"
