@@ -34,4 +34,3 @@ func (p OAuthProvider) IsValid() bool {
 		return false
 	}
 }
-

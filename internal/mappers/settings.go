@@ -14,4 +14,3 @@ func SettingsFromRepository(r repository.Setting) models.SettingsResponse {
 		IncognitoMode:     r.IncognitoMode,
 	}
 }
-

@@ -12,4 +12,3 @@ type ForgetPasswordRequest struct {
 type ResetPasswordRequest struct {
 	Password string `json:"password" validate:"required,min=6" example:"newpassword123"`
 }
-

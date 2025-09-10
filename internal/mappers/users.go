@@ -15,4 +15,3 @@ func UserFromRepository(user repository.User) models.UserResponse {
 		UpdatedAt:      user.UpdatedAt.Time,
 	}
 }
-

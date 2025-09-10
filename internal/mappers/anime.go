@@ -150,4 +150,3 @@ func nilIfEmpty[T comparable](value T) *T {
 	}
 	return &value
 }
-

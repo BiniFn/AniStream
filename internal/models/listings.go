@@ -38,4 +38,3 @@ type GetAnimesParams struct {
 	SortBy     SortBy
 	SortOrder  SortOrder
 }
-
