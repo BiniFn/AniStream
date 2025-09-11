@@ -357,13 +357,13 @@
 					</Form.Field>
 
 					<!-- Create Account Button -->
-					<Form.Button type="submit" size="lg" class="w-full gap-2" disabled={$submitting}>
+					<Form.Button type="submit" size="lg" class="group w-full gap-2" disabled={$submitting}>
 						{#if $submitting}
 							<LoaderCircle class="size-4 animate-spin" />
 							Creating Account...
 						{:else}
 							Create Account
-							<ArrowRight class="h-4 w-4" />
+							<ArrowRight class="size-4 transition group-hover:translate-x-1" />
 						{/if}
 					</Form.Button>
 				</form>

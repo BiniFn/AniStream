@@ -8,14 +8,6 @@
 	let { children }: LayoutProps = $props();
 </script>
 
-<svelte:head>
-	<title>Aniways</title>
-	<meta
-		name="description"
-		content="Discover, watch, and track your favorite anime series and movies. Stay updated with the latest releases and trending shows."
-	/>
-</svelte:head>
-
 <NavBar />
 <div class="flex min-h-screen flex-col">
 	<div class="flex-1 pb-4">

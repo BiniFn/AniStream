@@ -61,6 +61,7 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <header
+	id="navbar"
 	class="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
 >
 	<div class="container mx-auto p-4">

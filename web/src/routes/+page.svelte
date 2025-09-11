@@ -16,6 +16,14 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Aniways</title>
+	<meta
+		name="description"
+		content="Discover, watch, and track your favorite anime series and movies. Stay updated with the latest releases and trending shows."
+	/>
+</svelte:head>
+
 {#if featuredAnime}
 	<section class="absolute top-0 right-0 left-0 z-10 mb-16 h-screen w-screen overflow-hidden">
 		<div class="absolute inset-0">
@@ -33,12 +41,12 @@
 		<div class="absolute inset-0 z-20 flex items-center">
 			<div class="container mx-auto px-6">
 				<div
-					class="flex flex-col items-center gap-8 lg:flex-row lg:justify-between lg:gap-16 xl:gap-20"
+					class="flex flex-col-reverse items-center gap-8 lg:flex-row lg:justify-between lg:gap-16 xl:gap-20"
 				>
 					<div class="max-w-3xl flex-1">
-						<div class="mb-6 flex items-center gap-3 pt-8 md:pt-0">
+						<div class="mb-6 flex items-center gap-3 md:pt-0">
 							<div
-								class="flex items-center gap-2 rounded-full border border-primary/50 bg-primary/20 px-4 py-2 backdrop-blur-xl"
+								class="hidden items-center gap-2 rounded-full border border-primary/50 bg-primary/20 px-4 py-2 backdrop-blur-xl md:flex"
 							>
 								<TrendingUp class="h-4 w-4 text-primary" />
 								<span class="text-sm font-bold tracking-wider text-primary uppercase">
@@ -98,7 +106,7 @@
 
 					<div class="lg:flex-shrink-0">
 						<div class="relative">
-							<div class="relative overflow-hidden rounded-2xl shadow-2xl">
+							<div class="relative overflow-hidden rounded-2xl pt-12 shadow-2xl md:pt-0">
 								<img
 									src={featuredAnime.metadata?.mainPictureUrl || featuredAnime.imageUrl}
 									alt={featuredAnime.ename || featuredAnime.jname}

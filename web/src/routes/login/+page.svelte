@@ -163,13 +163,13 @@
 						<Form.FieldErrors />
 					</Form.Field>
 
-					<Form.Button size="lg" class="w-full gap-2" disabled={$submitting}>
+					<Form.Button size="lg" class="group w-full gap-2" disabled={$submitting}>
 						{#if $submitting}
 							<LoaderCircle class="size-4 animate-spin" />
 							Signing In...
 						{:else}
 							Sign In
-							<ArrowRight class="h-4 w-4" />
+							<ArrowRight class="size-4 transition group-hover:translate-x-1" />
 						{/if}
 					</Form.Button>
 				</form>
