@@ -14,6 +14,42 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+func (s *AnimeService) GetAnimeCatalog(
+	ctx context.Context,
+	input *models.GetAnimeCatalogParams,
+) (models.AnimeListResponse, error) {
+	limit, offset, err := utils.ValidatePaginationParams(input.Page, input.ItemsPerPage)
+	if err != nil {
+		return models.AnimeListResponse{}, err
+	}
+
+	rows, err := s.repo.GetAnimeCatalog(ctx, input.ToRepo(limit, offset))
+	if err != nil {
+		return models.AnimeListResponse{}, err
+	}
+
+	for _, r := range rows {
+		s.refresher.Enqueue(r.MalID.Int32)
+	}
+
+	total, err := s.repo.GetAnimeCatalogCount(ctx, input.ToRepoCount())
+	if err != nil {
+		return models.AnimeListResponse{}, err
+	}
+
+	items := make([]models.AnimeResponse, len(rows))
+	for i, a := range rows {
+		items[i] = mappers.AnimeFromCatalog(a)
+	}
+
+	pageSize := int64(limit)
+	pageInfo := utils.PageInfo(input.Page, pageSize, total)
+	return models.AnimeListResponse{
+		PageInfo: pageInfo,
+		Items:    items,
+	}, nil
+}
+
 func (s *AnimeService) GetRecentlyUpdatedAnimes(
 	ctx context.Context,
 	page, size int,

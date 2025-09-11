@@ -496,6 +496,86 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/anime/listings': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get anime catalog
+		 * @description Get anime catalog
+		 */
+		get: {
+			parameters: {
+				query?: {
+					/** @description Page number */
+					page?: number;
+					/** @description Number of items per page */
+					itemsPerPage?: number;
+					/** @description Search text */
+					search?: string;
+					/** @description Genres (repeat param) */
+					genres?: string[];
+					/** @description Genre match mode */
+					genresMode?: 'any' | 'all';
+					/** @description Seasons (repeat param) */
+					seasons?: ('winter' | 'spring' | 'summer' | 'fall' | 'unknown')[];
+					/** @description Years (repeat param) */
+					years?: number[];
+					/** @description Minimum year (inclusive) */
+					yearMin?: number;
+					/** @description Maximum year (inclusive) */
+					yearMax?: number;
+					/** @description Sort field */
+					sortBy?: 'ename' | 'jname' | 'season' | 'year' | 'relevance' | 'updated_at';
+					/** @description Sort order */
+					sortOrder?: 'asc' | 'desc';
+				};
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.AnimeListResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/anime/listings/genres': {
 		parameters: {
 			query?: never;

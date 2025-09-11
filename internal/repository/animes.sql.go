@@ -43,7 +43,7 @@ func (q *Queries) GetAllGenres(ctx context.Context) ([]string, error) {
 
 const getAnimeByGenre = `-- name: GetAnimeByGenre :many
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -83,6 +83,7 @@ func (q *Queries) GetAnimeByGenre(ctx context.Context, arg GetAnimeByGenreParams
 			&i.SearchVector,
 			&i.Season,
 			&i.SeasonYear,
+			&i.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -112,7 +113,7 @@ func (q *Queries) GetAnimeByGenreCount(ctx context.Context, genre pgtype.Text) (
 
 const getAnimeByHiAnimeId = `-- name: GetAnimeByHiAnimeId :one
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -137,13 +138,14 @@ func (q *Queries) GetAnimeByHiAnimeId(ctx context.Context, hiAnimeID string) (An
 		&i.SearchVector,
 		&i.Season,
 		&i.SeasonYear,
+		&i.GenresArr,
 	)
 	return i, err
 }
 
 const getAnimeById = `-- name: GetAnimeById :one
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -168,13 +170,14 @@ func (q *Queries) GetAnimeById(ctx context.Context, id string) (Anime, error) {
 		&i.SearchVector,
 		&i.Season,
 		&i.SeasonYear,
+		&i.GenresArr,
 	)
 	return i, err
 }
 
 const getAnimeByMalId = `-- name: GetAnimeByMalId :one
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -199,13 +202,14 @@ func (q *Queries) GetAnimeByMalId(ctx context.Context, malID pgtype.Int4) (Anime
 		&i.SearchVector,
 		&i.Season,
 		&i.SeasonYear,
+		&i.GenresArr,
 	)
 	return i, err
 }
 
 const getAnimeBySeason = `-- name: GetAnimeBySeason :many
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -245,6 +249,7 @@ func (q *Queries) GetAnimeBySeason(ctx context.Context, arg GetAnimeBySeasonPara
 			&i.SearchVector,
 			&i.Season,
 			&i.SeasonYear,
+			&i.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -258,7 +263,7 @@ func (q *Queries) GetAnimeBySeason(ctx context.Context, arg GetAnimeBySeasonPara
 
 const getAnimeBySeasonAndYear = `-- name: GetAnimeBySeasonAndYear :many
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -305,6 +310,7 @@ func (q *Queries) GetAnimeBySeasonAndYear(ctx context.Context, arg GetAnimeBySea
 			&i.SearchVector,
 			&i.Season,
 			&i.SeasonYear,
+			&i.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -356,7 +362,7 @@ func (q *Queries) GetAnimeBySeasonCount(ctx context.Context, season Season) (int
 
 const getAnimeByYear = `-- name: GetAnimeByYear :many
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -396,6 +402,7 @@ func (q *Queries) GetAnimeByYear(ctx context.Context, arg GetAnimeByYearParams) 
 			&i.SearchVector,
 			&i.Season,
 			&i.SeasonYear,
+			&i.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -418,6 +425,282 @@ WHERE
 
 func (q *Queries) GetAnimeByYearCount(ctx context.Context, seasonYear int32) (int64, error) {
 	row := q.db.QueryRow(ctx, getAnimeByYearCount, seasonYear)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getAnimeCatalog = `-- name: GetAnimeCatalog :many
+WITH p AS (
+  SELECT
+    -- normalized/trimmed search
+    NULLIF(trim($7::text), '') AS q,
+    -- normalized genres (lowercased, trimmed) or NULL
+    CASE WHEN $8::text[] IS NULL THEN
+      NULL
+    ELSE
+      (
+        SELECT
+          array_agg(lower(trim(g)))
+        FROM
+          unnest($8::text[]) AS u(g)
+        WHERE
+          trim(g) <> '')
+    END AS g,
+    $9::text AS gm,
+    $10::text AS sb,
+    $11::text AS so
+)
+SELECT
+  a.id, a.ename, a.jname, a.image_url, a.genre, a.hi_anime_id, a.mal_id, a.anilist_id, a.last_episode, a.created_at, a.updated_at, a.search_vector, a.season, a.season_year, a.genres_arr,
+  CASE WHEN p.q IS NOT NULL THEN
+    ts_rank(a.search_vector, plainto_tsquery('english', p.q))
+  ELSE
+    NULL
+  END AS query_rank
+FROM
+  animes a,
+  p
+WHERE
+  -- only MAL-linked rows
+(a.mal_id IS NOT NULL
+    AND a.mal_id <> 0)
+  -- search (skip when q is null)
+  AND (p.q IS NULL
+    OR a.ename % p.q
+    OR a.jname % p.q
+    OR a.search_vector @@ plainto_tsquery('english', p.q))
+  -- seasons (skip when null)
+  AND ($3::text[] IS NULL
+    OR a.season = ANY ($3::season[]))
+  -- years list (skip when null)
+  AND ($4::int[] IS NULL
+    OR a.season_year = ANY ($4::int[]))
+  -- year range (skip each bound when null)
+  AND ($5::int IS NULL
+    OR a.season_year >= $5::int)
+  AND ($6::int IS NULL
+    OR a.season_year <= $6::int)
+  -- genres ANY/ALL using generated genres_arr (skip when null/empty)
+  AND (p.g IS NULL
+    OR (
+      CASE WHEN p.gm = 'all' THEN
+        a.genres_arr @> p.g
+      ELSE
+        a.genres_arr && p.g
+      END))
+ORDER BY
+  -- relevance
+  CASE WHEN p.sb = 'relevance'
+    AND p.so = 'asc' THEN
+    CASE WHEN p.q IS NOT NULL THEN
+      ts_rank(a.search_vector, plainto_tsquery('english', p.q))
+    END
+  END ASC NULLS LAST,
+  CASE WHEN p.sb = 'relevance'
+    AND p.so = 'desc' THEN
+    CASE WHEN p.q IS NOT NULL THEN
+      ts_rank(a.search_vector, plainto_tsquery('english', p.q))
+    END
+  END DESC NULLS LAST,
+  -- ename
+  CASE WHEN p.sb = 'ename'
+    AND p.so = 'asc' THEN
+    a.ename
+  END ASC NULLS LAST,
+  CASE WHEN p.sb = 'ename'
+    AND p.so = 'desc' THEN
+    a.ename
+  END DESC NULLS LAST,
+  -- jname
+  CASE WHEN p.sb = 'jname'
+    AND p.so = 'asc' THEN
+    a.jname
+  END ASC NULLS LAST,
+  CASE WHEN p.sb = 'jname'
+    AND p.so = 'desc' THEN
+    a.jname
+  END DESC NULLS LAST,
+  -- season
+  CASE WHEN p.sb = 'season'
+    AND p.so = 'asc' THEN
+    a.season::text
+  END ASC NULLS LAST,
+  CASE WHEN p.sb = 'season'
+    AND p.so = 'desc' THEN
+    a.season::text
+  END DESC NULLS LAST,
+  -- year
+  CASE WHEN p.sb = 'year'
+    AND p.so = 'asc' THEN
+    a.season_year
+  END ASC NULLS LAST,
+  CASE WHEN p.sb = 'year'
+    AND p.so = 'desc' THEN
+    a.season_year
+  END DESC NULLS LAST,
+  -- updated_at
+  CASE WHEN p.sb = 'updated_at'
+    AND p.so = 'asc' THEN
+    a.updated_at
+  END ASC NULLS LAST,
+  CASE WHEN p.sb = 'updated_at'
+    AND p.so = 'desc' THEN
+    a.updated_at
+  END DESC NULLS LAST,
+  -- stable tiebreakers (helpful for deterministic paging)
+  a.updated_at DESC,
+  a.id DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetAnimeCatalogParams struct {
+	Limit      int32
+	Offset     int32
+	Seasons    []string
+	Years      []int32
+	YearMin    pgtype.Int4
+	YearMax    pgtype.Int4
+	Search     pgtype.Text
+	Genres     []string
+	GenresMode pgtype.Text
+	SortBy     pgtype.Text
+	SortOrder  pgtype.Text
+}
+
+type GetAnimeCatalogRow struct {
+	ID           string
+	Ename        string
+	Jname        string
+	ImageUrl     string
+	Genre        string
+	HiAnimeID    string
+	MalID        pgtype.Int4
+	AnilistID    pgtype.Int4
+	LastEpisode  int32
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
+	SearchVector string
+	Season       Season
+	SeasonYear   int32
+	GenresArr    []string
+	QueryRank    interface{}
+}
+
+func (q *Queries) GetAnimeCatalog(ctx context.Context, arg GetAnimeCatalogParams) ([]GetAnimeCatalogRow, error) {
+	rows, err := q.db.Query(ctx, getAnimeCatalog,
+		arg.Limit,
+		arg.Offset,
+		arg.Seasons,
+		arg.Years,
+		arg.YearMin,
+		arg.YearMax,
+		arg.Search,
+		arg.Genres,
+		arg.GenresMode,
+		arg.SortBy,
+		arg.SortOrder,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAnimeCatalogRow
+	for rows.Next() {
+		var i GetAnimeCatalogRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ename,
+			&i.Jname,
+			&i.ImageUrl,
+			&i.Genre,
+			&i.HiAnimeID,
+			&i.MalID,
+			&i.AnilistID,
+			&i.LastEpisode,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SearchVector,
+			&i.Season,
+			&i.SeasonYear,
+			&i.GenresArr,
+			&i.QueryRank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAnimeCatalogCount = `-- name: GetAnimeCatalogCount :one
+WITH p AS (
+  SELECT
+    NULLIF(trim($5::text), '') AS q,
+    CASE WHEN $6::text[] IS NULL THEN
+      NULL
+    ELSE
+      (
+        SELECT
+          array_agg(lower(trim(g)))
+        FROM
+          unnest($6::text[]) AS u(g)
+        WHERE
+          trim(g) <> '')
+    END AS g,
+    $7::text AS gm
+)
+SELECT
+  COUNT(*)
+FROM
+  animes a,
+  p
+WHERE (a.mal_id IS NOT NULL
+  AND a.mal_id <> 0)
+AND (p.q IS NULL
+  OR a.ename % p.q
+  OR a.jname % p.q
+  OR a.search_vector @@ plainto_tsquery('english', p.q))
+AND ($1::text[] IS NULL
+  OR a.season = ANY ($1::season[]))
+AND ($2::int[] IS NULL
+  OR a.season_year = ANY ($2::int[]))
+AND ($3::int IS NULL
+  OR a.season_year >= $3::int)
+AND ($4::int IS NULL
+  OR a.season_year <= $4::int)
+AND (p.g IS NULL
+  OR (
+    CASE WHEN p.gm = 'all' THEN
+      a.genres_arr @> p.g
+    ELSE
+      a.genres_arr && p.g
+    END))
+`
+
+type GetAnimeCatalogCountParams struct {
+	Seasons    []string
+	Years      []int32
+	YearMin    pgtype.Int4
+	YearMax    pgtype.Int4
+	Search     pgtype.Text
+	Genres     []string
+	GenresMode pgtype.Text
+}
+
+func (q *Queries) GetAnimeCatalogCount(ctx context.Context, arg GetAnimeCatalogCountParams) (int64, error) {
+	row := q.db.QueryRow(ctx, getAnimeCatalogCount,
+		arg.Seasons,
+		arg.Years,
+		arg.YearMin,
+		arg.YearMax,
+		arg.Search,
+		arg.Genres,
+		arg.GenresMode,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -463,7 +746,7 @@ func (q *Queries) GetAnimeMetadataByMalId(ctx context.Context, malID int32) (Ani
 
 const getAnimesByHiAnimeIds = `-- name: GetAnimesByHiAnimeIds :many
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -496,6 +779,7 @@ func (q *Queries) GetAnimesByHiAnimeIds(ctx context.Context, hiAnimeIds []string
 			&i.SearchVector,
 			&i.Season,
 			&i.SeasonYear,
+			&i.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -509,7 +793,7 @@ func (q *Queries) GetAnimesByHiAnimeIds(ctx context.Context, hiAnimeIds []string
 
 const getAnimesByMalIds = `-- name: GetAnimesByMalIds :many
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -542,6 +826,7 @@ func (q *Queries) GetAnimesByMalIds(ctx context.Context, malIds []int32) ([]Anim
 			&i.SearchVector,
 			&i.Season,
 			&i.SeasonYear,
+			&i.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -569,7 +854,7 @@ func (q *Queries) GetCountOfAnimes(ctx context.Context) (int64, error) {
 
 const getRandomAnime = `-- name: GetRandomAnime :one
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 ORDER BY
@@ -595,13 +880,14 @@ func (q *Queries) GetRandomAnime(ctx context.Context) (Anime, error) {
 		&i.SearchVector,
 		&i.Season,
 		&i.SeasonYear,
+		&i.GenresArr,
 	)
 	return i, err
 }
 
 const getRandomAnimeByGenre = `-- name: GetRandomAnimeByGenre :one
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -629,13 +915,14 @@ func (q *Queries) GetRandomAnimeByGenre(ctx context.Context, genre pgtype.Text) 
 		&i.SearchVector,
 		&i.Season,
 		&i.SeasonYear,
+		&i.GenresArr,
 	)
 	return i, err
 }
 
 const getRecentlyUpdatedAnimes = `-- name: GetRecentlyUpdatedAnimes :many
 SELECT
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
 WHERE
@@ -675,6 +962,7 @@ func (q *Queries) GetRecentlyUpdatedAnimes(ctx context.Context, arg GetRecentlyU
 			&i.SearchVector,
 			&i.Season,
 			&i.SeasonYear,
+			&i.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -707,7 +995,7 @@ const insertAnime = `-- name: InsertAnime :exec
 INSERT INTO animes(ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, season, season_year)
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, NOW()), COALESCE($10, NOW()), $11, $12)
 RETURNING
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 `
 
 type InsertAnimeParams struct {
@@ -758,7 +1046,7 @@ type InsertMultipleAnimesParams struct {
 
 const searchAnimes = `-- name: SearchAnimes :many
 SELECT
-  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year,
+  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year, animes.genres_arr,
   ts_rank(animes.search_vector, plainto_tsquery($3)) AS query_rank
 FROM
   animes
@@ -798,6 +1086,7 @@ type SearchAnimesRow struct {
 	SearchVector string
 	Season       Season
 	SeasonYear   int32
+	GenresArr    []string
 	QueryRank    float32
 }
 
@@ -830,6 +1119,7 @@ func (q *Queries) SearchAnimes(ctx context.Context, arg SearchAnimesParams) ([]S
 			&i.SearchVector,
 			&i.Season,
 			&i.SeasonYear,
+			&i.GenresArr,
 			&i.QueryRank,
 		); err != nil {
 			return nil, err
@@ -888,7 +1178,7 @@ SET
 WHERE
   id = $12
 RETURNING
-  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 `
 
 type UpdateAnimeParams struct {

@@ -381,6 +381,7 @@ type Anime struct {
 	SearchVector string
 	Season       Season
 	SeasonYear   int32
+	GenresArr    []string
 }
 
 type AnimeMetadatum struct {

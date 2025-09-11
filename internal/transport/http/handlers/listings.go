@@ -5,11 +5,13 @@ import (
 	"strconv"
 
 	"github.com/coeeter/aniways/internal/models"
+	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"
 )
 
 func (h *Handler) AnimeListingRoutes() {
 	h.r.Route("/anime/listings", func(r chi.Router) {
+		r.With(h.catalogInput()).Get("/", h.catalog)
 		r.Get("/recently-updated", h.listRecentlyUpdated)
 		r.Get("/seasonal", h.seasonalAnimes)
 		r.Get("/seasons", h.getBySeason)
@@ -20,6 +22,49 @@ func (h *Handler) AnimeListingRoutes() {
 		r.Get("/trending", h.trendingAnimes)
 		r.Get("/popular", h.popularAnimes)
 	})
+}
+
+func (h *Handler) catalogInput() func(http.Handler) http.Handler {
+	errorHandler := httpin.Option.WithErrorHandler(func(w http.ResponseWriter, _ *http.Request, err error) {
+		h.jsonError(w, http.StatusBadRequest, err.Error())
+	})
+
+	return httpin.NewInput(models.GetAnimeCatalogParams{}, errorHandler)
+}
+
+// @Summary Get anime catalog
+// @Description Get anime catalog
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number"
+// @Param itemsPerPage query int false "Number of items per page"
+// @Param search query string false "Search text"
+// @Param genres query []string false "Genres (repeat param)" collectionFormat(multi)
+// @Param genresMode query string false "Genre match mode" Enums(any,all)
+// @Param seasons query []string false "Seasons (repeat param)" Enums(winter,spring,summer,fall,unknown) collectionFormat(multi)
+// @Param years query []int false "Years (repeat param)" collectionFormat(multi)
+// @Param yearMin query int false "Minimum year (inclusive)"
+// @Param yearMax query int false "Maximum year (inclusive)"
+// @Param sortBy query string false "Sort field" Enums(ename,jname,season,year,relevance,updated_at)
+// @Param sortOrder query string false "Sort order" Enums(asc,desc)
+// @Success 200 {object} models.AnimeListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings [get]
+func (h *Handler) catalog(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	input := h.getHttpInput(r).(*models.GetAnimeCatalogParams)
+
+	resp, err := h.animeService.GetAnimeCatalog(r.Context(), input)
+	if err != nil {
+		log.Error("failed to fetch anime catalog", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to fetch anime catalog")
+		return
+	}
+
+	h.jsonOK(w, resp)
 }
 
 // @Summary Get recently updated anime

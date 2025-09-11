@@ -4,11 +4,16 @@ import (
 	"net/http"
 
 	"github.com/coeeter/aniways/internal/service/anime"
+	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"
 )
 
+type GetAnimeByIDInput struct {
+	ID string `in:"path=id"`
+}
+
 func (h *Handler) AnimeDetailsRoutes() {
-	h.r.Route("/anime/{id}", func(r chi.Router) {
+	h.r.With(httpin.NewInput(GetAnimeByIDInput{})).Route("/anime/{id}", func(r chi.Router) {
 		r.Get("/", h.getAnimeByID)
 		r.Get("/trailer", h.getAnimeTrailer)
 		r.Get("/banner", h.getAnimeBanner)
@@ -30,11 +35,8 @@ func (h *Handler) AnimeDetailsRoutes() {
 func (h *Handler) getAnimeByID(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	id, err := h.pathParam(r, "id")
-	if err != nil {
-		h.jsonError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	input := h.getHttpInput(r).(*GetAnimeByIDInput)
+	id := input.ID
 
 	resp, err := h.animeService.GetAnimeByID(r.Context(), id)
 	switch err {
@@ -66,11 +68,8 @@ func (h *Handler) getAnimeByID(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) getAnimeTrailer(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	id, err := h.pathParam(r, "id")
-	if err != nil {
-		h.jsonError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	input := h.getHttpInput(r).(*GetAnimeByIDInput)
+	id := input.ID
 
 	resp, err := h.animeService.GetAnimeTrailer(r.Context(), id)
 	switch err {
@@ -102,11 +101,8 @@ func (h *Handler) getAnimeTrailer(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) getAnimeBanner(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	id, err := h.pathParam(r, "id")
-	if err != nil {
-		h.jsonError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	input := h.getHttpInput(r).(*GetAnimeByIDInput)
+	id := input.ID
 
 	resp, err := h.animeService.GetAnimeBanner(r.Context(), id)
 	switch err {
@@ -138,11 +134,8 @@ func (h *Handler) getAnimeBanner(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) getAnimeFranchise(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	id, err := h.pathParam(r, "id")
-	if err != nil {
-		h.jsonError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	input := h.getHttpInput(r).(*GetAnimeByIDInput)
+	id := input.ID
 
 	resp, err := h.animeService.GetAnimeRelations(r.Context(), id)
 	switch err {

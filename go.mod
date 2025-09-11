@@ -22,9 +22,9 @@ require (
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/resend/resend-go/v2 v2.21.0
 	github.com/robfig/cron/v3 v3.0.0
-	golang.org/x/crypto v0.37.0
-	golang.org/x/net v0.39.0
-	golang.org/x/sync v0.15.0
+	golang.org/x/crypto v0.40.0
+	golang.org/x/net v0.42.0
+	golang.org/x/sync v0.16.0
 	golang.org/x/time v0.12.0
 )
 
@@ -34,6 +34,8 @@ require (
 	github.com/creasty/defaults v1.8.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/ggicci/httpin v0.20.1 // indirect
+	github.com/ggicci/owl v0.8.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/gorilla/schema v1.4.1 // indirect
@@ -42,10 +44,16 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/labstack/echo/v4 v4.13.4 // indirect
+	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.30 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 )

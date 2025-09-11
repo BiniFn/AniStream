@@ -24,6 +24,21 @@ func AnimeFromRepository(anime repository.Anime) models.AnimeResponse {
 	}
 }
 
+func AnimeFromCatalog(anime repository.GetAnimeCatalogRow) models.AnimeResponse {
+	return models.AnimeResponse{
+		ID:          anime.ID,
+		EName:       nilIfEmpty(anime.Ename),
+		JName:       nilIfEmpty(anime.Jname),
+		ImageURL:    anime.ImageUrl,
+		Genre:       anime.Genre,
+		Season:      string(anime.Season),
+		SeasonYear:  nilIfEmpty(anime.SeasonYear),
+		MalID:       nilIfEmpty(anime.MalID.Int32),
+		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
+		LastEpisode: nilIfEmpty(anime.LastEpisode),
+	}
+}
+
 func AnimeFromSearch(anime repository.SearchAnimesRow) models.AnimeResponse {
 	return models.AnimeResponse{
 		ID:          anime.ID,

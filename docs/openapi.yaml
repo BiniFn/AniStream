@@ -301,6 +301,115 @@ paths:
       summary: Get anime trailer
       tags:
         - Anime
+  /anime/listings:
+    get:
+      description: Get anime catalog
+      parameters:
+        - description: Page number
+          in: query
+          name: page
+          schema:
+            type: integer
+        - description: Number of items per page
+          in: query
+          name: itemsPerPage
+          schema:
+            type: integer
+        - description: Search text
+          in: query
+          name: search
+          schema:
+            type: string
+        - description: Genres (repeat param)
+          in: query
+          name: genres
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - description: Genre match mode
+          in: query
+          name: genresMode
+          schema:
+            type: string
+            enum:
+              - any
+              - all
+        - description: Seasons (repeat param)
+          in: query
+          name: seasons
+          explode: true
+          schema:
+            type: array
+            items:
+              enum:
+                - winter
+                - spring
+                - summer
+                - fall
+                - unknown
+              type: string
+        - description: Years (repeat param)
+          in: query
+          name: years
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - description: Minimum year (inclusive)
+          in: query
+          name: yearMin
+          schema:
+            type: integer
+        - description: Maximum year (inclusive)
+          in: query
+          name: yearMax
+          schema:
+            type: integer
+        - description: Sort field
+          in: query
+          name: sortBy
+          schema:
+            type: string
+            enum:
+              - ename
+              - jname
+              - season
+              - year
+              - relevance
+              - updated_at
+        - description: Sort order
+          in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.AnimeListResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime catalog
+      tags:
+        - Anime Listings
   /anime/listings/genres:
     get:
       description: Get list of anime genres

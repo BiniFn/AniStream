@@ -30,7 +30,7 @@ func (q *Queries) DeleteLibrary(ctx context.Context, arg DeleteLibraryParams) er
 const getContinueWatchingAnime = `-- name: GetContinueWatchingAnime :many
 SELECT
   library.id, library.user_id, library.anime_id, library.status, library.watched_episodes, library.created_at, library.updated_at,
-  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year
+  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year, animes.genres_arr
 FROM
   library
   INNER JOIN animes ON animes.id = library.anime_id
@@ -85,6 +85,7 @@ func (q *Queries) GetContinueWatchingAnime(ctx context.Context, arg GetContinueW
 			&i.Anime.SearchVector,
 			&i.Anime.Season,
 			&i.Anime.SeasonYear,
+			&i.Anime.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -118,7 +119,7 @@ func (q *Queries) GetContinueWatchingAnimeCount(ctx context.Context, userID stri
 const getLibrary = `-- name: GetLibrary :many
 SELECT
   library.id, library.user_id, library.anime_id, library.status, library.watched_episodes, library.created_at, library.updated_at,
-  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year
+  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year, animes.genres_arr
 FROM
   library
   INNER JOIN animes ON animes.id = library.anime_id
@@ -178,6 +179,7 @@ func (q *Queries) GetLibrary(ctx context.Context, arg GetLibraryParams) ([]GetLi
 			&i.Anime.SearchVector,
 			&i.Anime.Season,
 			&i.Anime.SeasonYear,
+			&i.Anime.GenresArr,
 		); err != nil {
 			return nil, err
 		}
@@ -192,7 +194,7 @@ func (q *Queries) GetLibrary(ctx context.Context, arg GetLibraryParams) ([]GetLi
 const getLibraryByID = `-- name: GetLibraryByID :one
 SELECT
   library.id, library.user_id, library.anime_id, library.status, library.watched_episodes, library.created_at, library.updated_at,
-  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year
+  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year, animes.genres_arr
 FROM
   library
   INNER JOIN animes ON animes.id = library.anime_id
@@ -230,6 +232,7 @@ func (q *Queries) GetLibraryByID(ctx context.Context, id string) (GetLibraryByID
 		&i.Anime.SearchVector,
 		&i.Anime.Season,
 		&i.Anime.SeasonYear,
+		&i.Anime.GenresArr,
 	)
 	return i, err
 }
@@ -259,7 +262,7 @@ func (q *Queries) GetLibraryCount(ctx context.Context, arg GetLibraryCountParams
 const getLibraryOfUserByAnimeID = `-- name: GetLibraryOfUserByAnimeID :one
 SELECT
   library.id, library.user_id, library.anime_id, library.status, library.watched_episodes, library.created_at, library.updated_at,
-  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year
+  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year, animes.genres_arr
 FROM
   library
   INNER JOIN animes ON animes.id = library.anime_id
@@ -303,6 +306,7 @@ func (q *Queries) GetLibraryOfUserByAnimeID(ctx context.Context, arg GetLibraryO
 		&i.Anime.SearchVector,
 		&i.Anime.Season,
 		&i.Anime.SeasonYear,
+		&i.Anime.GenresArr,
 	)
 	return i, err
 }
@@ -310,7 +314,7 @@ func (q *Queries) GetLibraryOfUserByAnimeID(ctx context.Context, arg GetLibraryO
 const getPlanToWatchAnime = `-- name: GetPlanToWatchAnime :many
 SELECT
   library.id, library.user_id, library.anime_id, library.status, library.watched_episodes, library.created_at, library.updated_at,
-  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year
+  animes.id, animes.ename, animes.jname, animes.image_url, animes.genre, animes.hi_anime_id, animes.mal_id, animes.anilist_id, animes.last_episode, animes.created_at, animes.updated_at, animes.search_vector, animes.season, animes.season_year, animes.genres_arr
 FROM
   library
   INNER JOIN animes ON animes.id = library.anime_id
@@ -365,6 +369,7 @@ func (q *Queries) GetPlanToWatchAnime(ctx context.Context, arg GetPlanToWatchAni
 			&i.Anime.SearchVector,
 			&i.Anime.Season,
 			&i.Anime.SeasonYear,
+			&i.Anime.GenresArr,
 		); err != nil {
 			return nil, err
 		}

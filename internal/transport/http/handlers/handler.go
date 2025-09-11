@@ -18,6 +18,8 @@ import (
 	"github.com/coeeter/aniways/internal/service/users"
 	"github.com/coeeter/aniways/internal/utils"
 	"github.com/flowchartsman/swaggerui"
+	"github.com/ggicci/httpin"
+	"github.com/ggicci/httpin/integration"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 )
@@ -207,4 +209,12 @@ func (h *Handler) jsonValidationError(w http.ResponseWriter, err error) {
 		Error:   "Validation failed",
 		Details: details,
 	})
+}
+
+func init() {
+	integration.UseGochiURLParam("path", chi.URLParam)
+}
+
+func (h *Handler) getHttpInput(r *http.Request) any {
+	return r.Context().Value(httpin.Input)
 }

@@ -47,7 +47,7 @@
 							</div>
 						</div>
 						<h1
-							class="mb-4 text-4xl leading-none font-black tracking-tight text-white sm:mb-6 sm:text-6xl md:text-8xl"
+							class="mb-4 line-clamp-3 text-4xl leading-none font-black tracking-tight text-white sm:mb-6 sm:text-6xl md:text-8xl"
 						>
 							{featuredAnime.jname || featuredAnime.ename}
 						</h1>
