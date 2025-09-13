@@ -27,6 +27,27 @@
 	onMount(() => {
 		onScroll();
 	});
+
+	const ratings: Record<string, string> = {
+		g: 'G - All Ages',
+		pg: 'PG - Children',
+		pg_13: 'PG-13 - Teens 13 or older',
+		r: 'R - 17+ (violence & profanity)',
+		r_plus: 'R+ - Mild Nudity',
+		rx: 'Rx - Hentai',
+		unknown: 'Unknown Rating',
+	};
+
+	let infoPills = $derived.by(() => {
+		return [
+			data.anime?.data?.metadata?.mediaType.toUpperCase(),
+			ratings[data.anime?.data?.metadata?.rating ?? 'unknown'],
+			data.anime?.data?.metadata?.airingStatus
+				.split('_')
+				.map((text) => text.charAt(0).toUpperCase() + text.slice(1).toLowerCase())
+				.join(' '),
+		];
+	});
 </script>
 
 <svelte:window onscroll={onScroll} />
@@ -61,10 +82,19 @@
 			<h2 class="text-xl text-muted-foreground">
 				{data.anime?.data?.ename}
 			</h2>
+			<div class="mt-2 flex flex-wrap gap-2">
+				{#each infoPills as info (info)}
+					<span
+						class="rounded-md border border-primary bg-primary/30 px-2 py-1 text-sm font-medium text-primary"
+					>
+						{info}
+					</span>
+				{/each}
+			</div>
 			{#if data.anime?.data?.genre?.split(', ').length}
 				<div class="mt-2 flex flex-wrap gap-2">
 					{#each data.anime?.data?.genre?.split(', ') as genre (genre)}
-						<Button size="sm" variant="outline">{genre}</Button>
+						<Button size="sm" variant="outline" href="/catalog?genres={genre}">{genre}</Button>
 					{/each}
 				</div>
 			{/if}
