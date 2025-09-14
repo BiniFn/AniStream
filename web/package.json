@@ -53,6 +53,7 @@
 	},
 	"dependencies": {
 		"arktype": "^2.1.21",
+		"date-fns": "^4.1.0",
 		"lucide-svelte": "^0.539.0",
 		"openapi-fetch": "^0.14.0"
 	}

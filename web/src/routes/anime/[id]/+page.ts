@@ -1,18 +1,51 @@
 import { apiClient } from '$lib/api/client';
 import type { PageLoad } from './$types';
+import { redirectToErrorPage } from '$lib/errors';
 
 export const load: PageLoad = async ({ fetch, params }) => {
-	const [anime, banner, trailer, episodes] = await Promise.allSettled([
+	const [anime, banner, trailer, episodes, franchise] = await Promise.allSettled([
 		apiClient.GET('/anime/{id}', { fetch, params: { path: params } }),
 		apiClient.GET('/anime/{id}/banner', { fetch, params: { path: params } }),
 		apiClient.GET('/anime/{id}/trailer', { fetch, params: { path: params } }),
 		apiClient.GET('/anime/{id}/episodes', { fetch, params: { path: params } }),
+		apiClient.GET('/anime/{id}/franchise', { fetch, params: { path: params } }),
 	]);
 
+	const isAnyRejected = [anime, banner, trailer, episodes, franchise].some(
+		(result) => result.status === 'rejected',
+	);
+	if (isAnyRejected) {
+		console.error('One or more API requests failed:', {
+			anime,
+			banner,
+			trailer,
+			episodes,
+			franchise,
+		});
+	}
+
+	const isAnimeError = anime.status === 'rejected';
+	const animeData = anime.status === 'fulfilled' ? anime.value?.data : null;
+	if (isAnimeError || !animeData) {
+		redirectToErrorPage('anime_not_found_or_unavailable');
+	}
+
+	const ratings: Record<string, string> = {
+		g: 'G - All Ages',
+		pg: 'PG - Children',
+		pg_13: 'PG-13 - Teens 13+',
+		r: 'R - 17+ (violence & profanity)',
+		r_plus: 'R+ - Mild Nudity',
+		rx: 'Rx - Hentai',
+		unknown: 'Unknown Rating',
+	};
+
 	return {
-		anime: anime.status === 'fulfilled' ? anime.value : null,
+		anime: animeData as NonNullable<typeof animeData>,
+		ratingLabel: ratings[animeData?.metadata?.rating ?? 'unknown'] || 'Unknown Rating',
 		banner: banner.status === 'fulfilled' ? banner.value : null,
 		trailer: trailer.status === 'fulfilled' ? trailer.value : null,
 		episodes: episodes.status === 'fulfilled' ? episodes.value : null,
+		franchise: franchise.status === 'fulfilled' ? franchise.value : null,
 	};
 };
