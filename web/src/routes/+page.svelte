@@ -64,22 +64,20 @@
 								{featuredAnime.ename}
 							</p>
 						{/if}
-						<div class="mb-4 flex flex-wrap items-center gap-6 sm:mb-8">
-							<div
-								class="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-gray-300 backdrop-blur-sm"
+						<div
+							class="mb-6 flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-gray-300 backdrop-blur-sm"
+						>
+							<Calendar class="h-4 w-4" />
+							<span class="font-medium capitalize"
+								>{featuredAnime.season} {featuredAnime.seasonYear}</span
 							>
-								<Calendar class="h-4 w-4" />
-								<span class="font-medium capitalize"
-									>{featuredAnime.season} {featuredAnime.seasonYear}</span
-								>
-							</div>
+						</div>
+						<div class="mb-4 flex flex-wrap items-center gap-6 sm:mb-8">
 							<div class="flex flex-wrap gap-2">
-								{#each featuredAnime.genre.split(', ').slice(0, 3) as genre (genre)}
-									<span
-										class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-sm"
-									>
+								{#each featuredAnime.genre.split(', ') as genre (genre)}
+									<Button size="sm" variant="outline" href="/catalog?genres={genre}">
 										{genre}
-									</span>
+									</Button>
 								{/each}
 							</div>
 						</div>

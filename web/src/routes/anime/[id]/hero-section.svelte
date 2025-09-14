@@ -2,6 +2,7 @@
 	import type { components } from '$lib/api/openapi';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Check, CirclePlay, Play, Plus, Share2, Star } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
 
@@ -58,9 +59,10 @@
 					{#if trailer}
 						<button
 							onclick={() => window.open(trailer, '_blank')}
-							class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+							class="absolute inset-0 flex cursor-pointer flex-col items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
 						>
 							<CirclePlay class="h-12 w-12 text-white" />
+							<span class="mt-2 text-sm font-medium text-white">Watch Trailer</span>
 						</button>
 					{/if}
 				</div>
@@ -142,7 +144,15 @@
 						</Button>
 					{/if}
 
-					<Button size="default" variant="ghost" class="hidden gap-2 md:inline-flex">
+					<Button
+						size="default"
+						variant="ghost"
+						class="hidden gap-2 md:inline-flex"
+						onclick={() => {
+							navigator.clipboard.writeText(window.location.href);
+							toast.success('Link copied to clipboard');
+						}}
+					>
 						<Share2 class="h-4 w-4" />
 					</Button>
 				</div>
