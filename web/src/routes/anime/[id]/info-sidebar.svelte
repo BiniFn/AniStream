@@ -19,7 +19,7 @@
 	});
 </script>
 
-<div class={cn('sticky top-32 space-y-6', selectedTab !== 'overview' && 'hidden md:block')}>
+<div class={cn('sticky top-36 h-fit space-y-6', selectedTab !== 'overview' && 'hidden md:block')}>
 	<div class="rounded-xl border bg-card p-6 shadow-sm">
 		<h3 class="mb-4 text-lg font-bold">Information</h3>
 		<dl class="space-y-3 text-sm">

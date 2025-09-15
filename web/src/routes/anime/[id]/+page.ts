@@ -3,15 +3,16 @@ import type { PageLoad } from './$types';
 import { redirectToErrorPage } from '$lib/errors';
 
 export const load: PageLoad = async ({ fetch, params }) => {
-	const [anime, banner, trailer, episodes, franchise] = await Promise.allSettled([
+	const [anime, banner, trailer, episodes, franchise, libraryStatus] = await Promise.allSettled([
 		apiClient.GET('/anime/{id}', { fetch, params: { path: params } }),
 		apiClient.GET('/anime/{id}/banner', { fetch, params: { path: params } }),
 		apiClient.GET('/anime/{id}/trailer', { fetch, params: { path: params } }),
 		apiClient.GET('/anime/{id}/episodes', { fetch, params: { path: params } }),
 		apiClient.GET('/anime/{id}/franchise', { fetch, params: { path: params } }),
+		apiClient.GET('/library/{animeID}', { fetch, params: { path: { animeID: params.id } } }),
 	]);
 
-	const isAnyRejected = [anime, banner, trailer, episodes, franchise].some(
+	const isAnyRejected = [anime, banner, trailer, episodes, franchise, libraryStatus].some(
 		(result) => result.status === 'rejected',
 	);
 	if (isAnyRejected) {
@@ -47,5 +48,6 @@ export const load: PageLoad = async ({ fetch, params }) => {
 		trailer: trailer.status === 'fulfilled' ? trailer.value : null,
 		episodes: episodes.status === 'fulfilled' ? episodes.value : null,
 		franchise: franchise.status === 'fulfilled' ? franchise.value : null,
+		libraryStatus: libraryStatus.status === 'fulfilled' ? libraryStatus.value : null,
 	};
 };

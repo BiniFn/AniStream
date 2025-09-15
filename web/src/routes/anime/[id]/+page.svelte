@@ -30,29 +30,32 @@
 	trailer={data.trailer?.data?.trailer ?? null}
 	ratingLabel={data.ratingLabel}
 	totalEpisodes={data.episodes?.data?.length}
+	libraryEntry={data.libraryStatus?.data ?? null}
 />
 
 <div
-	class="sticky top-17 z-20 container mx-auto w-full border-b bg-background/95 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
+	class="sticky top-17 z-20 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
 >
-	<nav class="mx-auto flex justify-center gap-8 md:justify-start">
-		{#each tabs as tab (tab)}
-			<a
-				href={`?tab=${tab}`}
-				class={cn(
-					'relative py-4 text-sm font-medium transition-colors hover:text-primary',
-					selectedTab === tab ? 'text-primary' : 'text-muted-foreground',
-				)}
-				data-sveltekit-noscroll
-				data-sveltekit-replacestate
-			>
-				{tab.charAt(0).toUpperCase() + tab.slice(1)}
-				{#if selectedTab === tab}
-					<div class="absolute right-0 bottom-0 left-0 h-0.5 bg-primary"></div>
-				{/if}
-			</a>
-		{/each}
-	</nav>
+	<div class="container mx-auto px-4">
+		<nav class="mx-auto flex justify-center gap-8 md:justify-start">
+			{#each tabs as tab (tab)}
+				<a
+					href={`?tab=${tab}`}
+					class={cn(
+						'relative py-4 text-sm font-medium transition-colors hover:text-primary',
+						selectedTab === tab ? 'text-primary' : 'text-muted-foreground',
+					)}
+					data-sveltekit-noscroll
+					data-sveltekit-replacestate
+				>
+					{tab.charAt(0).toUpperCase() + tab.slice(1)}
+					{#if selectedTab === tab}
+						<div class="absolute right-0 bottom-0 left-0 h-0.5 bg-primary"></div>
+					{/if}
+				</a>
+			{/each}
+		</nav>
+	</div>
 </div>
 <div class="container mx-auto px-4 py-8">
 	<div class={cn('grid gap-8 lg:grid-cols-3')}>

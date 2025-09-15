@@ -40,6 +40,10 @@
 			return textToSearch.toLowerCase().includes(episodesSearch.toLowerCase());
 		});
 	});
+
+	let related = $derived.by(() => {
+		return franchise?.related?.filter((rel) => rel.id !== anime.id) || [];
+	});
 </script>
 
 <div class="space-y-8 lg:col-span-2">
@@ -226,11 +230,11 @@
 				</div>
 			{/if}
 
-			{#if franchise?.related && franchise.related.length > 0}
+			{#if related && related.length > 0}
 				<div class="space-y-4">
 					<h3 class="text-xl font-bold">Related Anime</h3>
 					<div class="grid gap-4 sm:grid-cols-2">
-						{#each franchise.related as relatedAnime (relatedAnime.id)}
+						{#each related as relatedAnime (relatedAnime.id)}
 							{@const isCurrent = relatedAnime.id === anime.id}
 							<a
 								href={isCurrent ? undefined : `/anime/${relatedAnime.id}`}
@@ -281,7 +285,7 @@
 				</div>
 			{/if}
 
-			{#if !franchise?.watchOrder?.length && !franchise?.related?.length}
+			{#if !franchise?.watchOrder?.length && !related?.length}
 				<div class="rounded-lg border bg-muted/30 p-8 text-center">
 					<BookOpen class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
 					<p class="text-sm text-muted-foreground">No related anime found</p>

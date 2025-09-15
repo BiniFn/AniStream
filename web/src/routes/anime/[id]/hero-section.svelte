@@ -5,6 +5,7 @@
 	import { toast } from 'svelte-sonner';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
+	type LibraryReponse = components['schemas']['models.LibraryResponse'];
 
 	interface Props {
 		anime: AnimeResponse;
@@ -12,14 +13,10 @@
 		trailer: string | null;
 		ratingLabel: string;
 		totalEpisodes?: number;
+		libraryEntry: LibraryReponse | null;
 	}
 
-	let { anime, banner, trailer, totalEpisodes, ratingLabel }: Props = $props();
-
-	let isInLibrary = $state(false);
-	const onLibraryToggle = () => {
-		isInLibrary = !isInLibrary;
-	};
+	let { anime, banner, trailer, totalEpisodes, ratingLabel, libraryEntry }: Props = $props();
 
 	let mediaType = $derived.by(() => {
 		const type = anime.metadata?.mediaType || 'tv';
@@ -119,11 +116,10 @@
 
 					<Button
 						size="default"
-						variant={isInLibrary ? 'secondary' : 'outline'}
-						onclick={onLibraryToggle}
+						variant={libraryEntry != null ? 'secondary' : 'outline'}
 						class="gap-2"
 					>
-						{#if isInLibrary}
+						{#if libraryEntry != null}
 							<Check class="h-4 w-4" />
 							In Library
 						{:else}
