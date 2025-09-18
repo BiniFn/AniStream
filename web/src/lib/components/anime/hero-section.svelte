@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { components } from '$lib/api/openapi';
+	import LibraryBtn from '$lib/components/anime/library-btn.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { Check, CirclePlay, Play, Plus, Share2, Star } from 'lucide-svelte';
+	import { CirclePlay, Play, Share2, Star } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
@@ -114,19 +115,7 @@
 						</Button>
 					{/if}
 
-					<Button
-						size="default"
-						variant={libraryEntry != null ? 'secondary' : 'outline'}
-						class="gap-2"
-					>
-						{#if libraryEntry != null}
-							<Check class="h-4 w-4" />
-							In Library
-						{:else}
-							<Plus class="h-4 w-4" />
-							Add to Library
-						{/if}
-					</Button>
+					<LibraryBtn {libraryEntry} animeId={anime.id} />
 
 					{#if trailer}
 						<Button

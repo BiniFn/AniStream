@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import UserProfileDropdown from '$lib/components/layout/user-profile-dropdown.svelte';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
-	import UserProfileDropdown from '$lib/components/user-profile-dropdown.svelte';
 	import { cn } from '$lib/utils';
 	import {
 		Clock,

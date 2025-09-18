@@ -1700,7 +1700,7 @@ export interface paths {
 			parameters: {
 				query: {
 					/** @description Library status filter */
-					status: 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
+					status: 'planning' | 'watching' | 'completed' | 'dropped' | 'paused';
 					/** @description Page number */
 					page?: number;
 					/** @description Number of items per page */
@@ -2789,7 +2789,7 @@ export interface components {
 			watchedEpisodes: number;
 		};
 		/** @enum {string} */
-		'models.LibraryStatus': 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
+		'models.LibraryStatus': 'planning' | 'watching' | 'completed' | 'dropped' | 'paused';
 		'models.LoginRequest': {
 			/** @example user@example.com */
 			email: string;

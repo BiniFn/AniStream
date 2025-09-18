@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Footer from '$lib/components/footer.svelte';
-	import NavBar from '$lib/components/nav-bar.svelte';
+	import Footer from '$lib/components/layout/footer.svelte';
+	import NavBar from '$lib/components/layout/nav-bar.svelte';
 	import Sonner from '$lib/components/ui/sonner/sonner.svelte';
 	import '../app.css';
 	import type { LayoutProps } from './$types';
