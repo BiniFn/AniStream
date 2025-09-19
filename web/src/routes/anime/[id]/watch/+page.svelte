@@ -6,6 +6,7 @@
 	import Player from '$lib/components/anime/player/index.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
+	import { appState } from '$lib/context/state.svelte';
 	import { cn } from '$lib/utils';
 	import {
 		ArrowLeft,
@@ -242,6 +243,7 @@
 							info={streamInfo}
 							{nextEpisodeUrl}
 							updateLibrary={async () => {
+								if (!appState.user) return;
 								if (data.libraryEntry && data.episodeNumber <= data.libraryEntry.watchedEpisodes)
 									return;
 

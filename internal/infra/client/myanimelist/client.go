@@ -191,10 +191,10 @@ func (c *Client) UpdateAnimeList(ctx context.Context, params UpdateAnimeListPara
 	body := url.Values{}
 
 	s := MalListStatus("").FromRepository(params.Status)
-	if s.IsValid() {
+	if s.IsValid() && params.Status != "" {
 		body.Set("status", string(s))
 	}
-	if params.WatchedEpisodes > 0 {
+	if params.WatchedEpisodes >= 0 {
 		body.Set("num_watched_episodes", strconv.Itoa(params.WatchedEpisodes))
 	}
 

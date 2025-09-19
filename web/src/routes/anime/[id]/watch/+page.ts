@@ -41,4 +41,3 @@ export const load: PageLoad = async ({ fetch, params, url }) => {
 		libraryEntry: libraryData,
 	};
 };
-

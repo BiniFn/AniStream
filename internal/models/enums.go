@@ -3,16 +3,16 @@ package models
 type LibraryStatus string
 
 const (
-	LibraryStatusWatching    LibraryStatus = "watching"
-	LibraryStatusCompleted   LibraryStatus = "completed"
-	LibraryStatusOnHold      LibraryStatus = "on_hold"
-	LibraryStatusDropped     LibraryStatus = "dropped"
-	LibraryStatusPlanToWatch LibraryStatus = "plan_to_watch"
+	LibraryStatusPlanning  LibraryStatus = "planning"
+	LibraryStatusWatching  LibraryStatus = "watching"
+	LibraryStatusCompleted LibraryStatus = "completed"
+	LibraryStatusDropped   LibraryStatus = "dropped"
+	LibraryStatusPaused    LibraryStatus = "paused"
 )
 
 func (s LibraryStatus) IsValid() bool {
 	switch s {
-	case LibraryStatusWatching, LibraryStatusCompleted, LibraryStatusOnHold, LibraryStatusDropped, LibraryStatusPlanToWatch:
+	case LibraryStatusWatching, LibraryStatusCompleted, LibraryStatusPaused, LibraryStatusDropped, LibraryStatusPlanning:
 		return true
 	default:
 		return false

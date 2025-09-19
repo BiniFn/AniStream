@@ -1031,11 +1031,11 @@ paths:
           schema:
             type: string
             enum:
+              - planning
               - watching
               - completed
-              - on_hold
               - dropped
-              - plan_to_watch
+              - paused
         - description: Page number
           in: query
           name: page
@@ -1972,18 +1972,18 @@ components:
       type: object
     models.LibraryStatus:
       enum:
+        - planning
         - watching
         - completed
-        - on_hold
         - dropped
-        - plan_to_watch
+        - paused
       type: string
       x-enum-varnames:
+        - LibraryStatusPlanning
         - LibraryStatusWatching
         - LibraryStatusCompleted
-        - LibraryStatusOnHold
         - LibraryStatusDropped
-        - LibraryStatusPlanToWatch
+        - LibraryStatusPaused
     models.LoginRequest:
       properties:
         email:
