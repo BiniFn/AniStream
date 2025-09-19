@@ -127,10 +127,20 @@
 	body {
 		@apply bg-background text-foreground;
 	}
-	.line-clamp-2 {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
+}
+
+.art-controls {
+	--art-control-height: 46px;
+	--art-control-width: 46px;
+}
+
+@media (max-width: 768px) {
+	.art-controls {
+		--art-control-height: 36px;
+		--art-control-width: 36px;
 	}
+}
+
+[class^='art'] {
+	z-index: 0 !important;
 }

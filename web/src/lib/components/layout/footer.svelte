@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { page } from '$app/state';
+	import { appState } from '$lib/context/state.svelte';
 	import { Heart } from 'lucide-svelte';
+
+	let isLoggedIn = $derived(appState.user != null);
 </script>
 
 <footer class="border-t border-border bg-background">
@@ -38,7 +40,7 @@
 							Recent
 						</a>
 					</li>
-					{#if page.data.isLoggedIn}
+					{#if isLoggedIn}
 						<li>
 							<a href="/my-list" class="text-muted-foreground transition-colors hover:text-primary">
 								My List
@@ -51,7 +53,7 @@
 			<div>
 				<h4 class="mb-4 text-sm font-semibold tracking-wide text-foreground uppercase">Account</h4>
 				<ul class="space-y-3 text-sm">
-					{#if page.data.isLoggedIn}
+					{#if isLoggedIn}
 						<li>
 							<a href="/profile" class="text-muted-foreground transition-colors hover:text-primary">
 								Profile

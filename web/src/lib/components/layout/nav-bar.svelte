@@ -5,6 +5,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
+	import { appState } from '$lib/context/state.svelte';
 	import { cn } from '$lib/utils';
 	import {
 		Clock,
@@ -19,6 +20,8 @@
 		User,
 	} from 'lucide-svelte';
 
+	let user = $derived(appState.user);
+	let isLoggedIn = $derived(user != null);
 	let links = $derived.by(() => {
 		const base = [
 			{ label: 'Home', link: '/', Icon: House },
@@ -27,7 +30,7 @@
 			{ label: 'Recent', link: '/recent', Icon: Clock },
 		];
 
-		if (page.data.isLoggedIn) {
+		if (isLoggedIn) {
 			base.push({ label: 'My List', link: '/my-list', Icon: Heart });
 		}
 
@@ -35,7 +38,7 @@
 	});
 
 	let sheetLinks = $derived.by(() => {
-		if (!page.data.isLoggedIn) {
+		if (!isLoggedIn) {
 			return links;
 		}
 
@@ -105,11 +108,11 @@
 					</kbd>
 				</Button>
 
-				{#if !page.data.isLoggedIn}
+				{#if !isLoggedIn}
 					<Button href="/login" variant="outline" class="hidden lg:inline-flex">Sign In</Button>
 					<Button href="/register" class="hidden lg:inline-flex">Register</Button>
 				{:else}
-					<UserProfileDropdown user={page.data.user!} class="hidden lg:flex" />
+					<UserProfileDropdown user={user!} class="hidden lg:flex" />
 				{/if}
 			</div>
 		</div>
@@ -122,14 +125,14 @@
 			<Sheet.Title>Menu</Sheet.Title>
 		</Sheet.Header>
 
-		{#if page.data.isLoggedIn}
+		{#if isLoggedIn}
 			<div class="px-4 pb-4">
 				<div class="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-					<UserProfileDropdown user={page.data.user!} class="hidden" />
+					<UserProfileDropdown user={user!} class="hidden" />
 					<Avatar.Root class="size-10">
-						<Avatar.Image src={page.data.user?.profilePicture} alt={page.data.user?.username} />
+						<Avatar.Image src={user?.profilePicture} alt={user?.username} />
 						<Avatar.Fallback class="bg-primary/50 text-sm font-medium">
-							{page.data.user?.username
+							{user?.username
 								?.split(' ')
 								.map((n) => n.charAt(0))
 								.join('')
@@ -138,8 +141,8 @@
 						</Avatar.Fallback>
 					</Avatar.Root>
 					<div class="flex flex-col">
-						<p class="text-sm font-medium">{page.data.user?.username}</p>
-						<p class="text-xs text-muted-foreground">{page.data.user?.email}</p>
+						<p class="text-sm font-medium">{user?.username}</p>
+						<p class="text-xs text-muted-foreground">{user?.email}</p>
 					</div>
 				</div>
 			</div>
@@ -172,7 +175,7 @@
 				<Search class="h-4 w-4" />
 				<span>Search anime...</span>
 			</Button>
-			{#if !page.data.isLoggedIn}
+			{#if !isLoggedIn}
 				<Button href="/login" variant="outline" class="w-full">Sign In</Button>
 				<Button href="/register" class="w-full">Register</Button>
 			{:else}

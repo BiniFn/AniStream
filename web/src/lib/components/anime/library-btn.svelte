@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	import { page } from '$app/state';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import { buttonVariants } from '$lib/components/ui/button';
@@ -11,6 +10,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import { appState } from '$lib/context/state.svelte';
 	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 	import { cn } from '$lib/utils';
 	import { type } from 'arktype';
@@ -28,7 +28,7 @@
 
 	let { animeId, libraryEntry }: Props = $props();
 
-	let isLoggedIn = $derived(page.data.isLoggedIn);
+	let isLoggedIn = $derived(appState.user != null);
 	let isOpen = $state(false);
 	let isAdding = $state(false);
 	let isDeleting = $state(false);
