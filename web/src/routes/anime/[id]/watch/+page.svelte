@@ -22,12 +22,12 @@
 	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import type { PageData } from './$types';
+	import type { PageProps } from './$types';
 
 	type StreamingData = components['schemas']['models.StreamingDataResponse'];
 	type EpisodeServer = components['schemas']['models.EpisodeServerResponse'];
 
-	let { data }: { data: PageData } = $props();
+	let { data }: PageProps = $props();
 
 	let selectedServer: EpisodeServer | null = $state(data.servers[0] || null);
 	let streamInfo: StreamingData | null = $state(null);
@@ -37,8 +37,6 @@
 	let isFullscreen = $state(false);
 
 	let episodesSearch = $state('');
-	let showEpisodesSidebar = $state(true);
-	let isMobile = $state(false);
 
 	let groupedServers = $derived.by(() => {
 		const groups: Record<string, EpisodeServer[]> = {};
@@ -49,24 +47,14 @@
 		return groups;
 	});
 
-	const hasNextEpisode = $derived(data.episodeNumber < data.episodes.length);
-	const hasPrevEpisode = $derived(data.episodeNumber > 1);
-	const nextEpisodeUrl = $derived.by(() =>
+	let hasNextEpisode = $derived(data.episodeNumber < data.episodes.length);
+	let hasPrevEpisode = $derived(data.episodeNumber > 1);
+	let nextEpisodeUrl = $derived.by(() =>
 		hasNextEpisode ? `/anime/${data.anime.id}/watch?ep=${data.episodeNumber + 1}` : undefined,
 	);
 
 	$effect(() => {
 		if (nextEpisodeUrl) preloadData(nextEpisodeUrl);
-	});
-
-	$effect(() => {
-		const check = () => {
-			isMobile = window.innerWidth < 768;
-			if (isMobile) showEpisodesSidebar = false;
-		};
-		check();
-		window.addEventListener('resize', check);
-		return () => window.removeEventListener('resize', check);
 	});
 
 	let filteredEpisodes = $derived.by(() => {
@@ -130,10 +118,6 @@
 		goto(`/anime/${data.anime.id}/watch?ep=${n}`, { replaceState: true });
 	}
 
-	function selectServer(server: EpisodeServer) {
-		selectedServer = server;
-	}
-
 	onMount(() => {
 		const handleFS = () => (isFullscreen = !!document.fullscreenElement);
 		document.addEventListener('fullscreenchange', handleFS);
@@ -184,12 +168,7 @@
 		</div>
 	</header>
 
-	<div
-		class={cn(
-			'flex flex-col p-4 lg:grid lg:gap-6 lg:p-6',
-			showEpisodesSidebar ? 'lg:grid-cols-[1fr,380px]' : 'lg:grid-cols-1',
-		)}
-	>
+	<div class={cn('flex flex-col gap-6 p-4 lg:p-6')}>
 		<div class="space-y-4">
 			<div
 				class={cn(
@@ -218,10 +197,14 @@
 							</Button>
 							<Button
 								onclick={() => {
-									const next = data.servers.find((s) => s.serverId !== selectedServer?.serverId);
+									const currentIndex = data.servers.findIndex(
+										(s) =>
+											s.serverId === selectedServer?.serverId && s.type === selectedServer?.type,
+									);
+									const next = data.servers[(currentIndex + 1) % data.servers.length];
 									if (next) {
 										videoError = false;
-										selectServer(next);
+										selectedServer = next;
 									}
 								}}
 								variant="secondary"
@@ -289,15 +272,6 @@
 							<ChevronRight class="ml-1 h-4 w-4" />
 						</Button>
 					</div>
-
-					<Button
-						size="sm"
-						variant="ghost"
-						onclick={() => (showEpisodesSidebar = !showEpisodesSidebar)}
-						class="hidden lg:inline-flex"
-					>
-						{showEpisodesSidebar ? 'Hide' : 'Show'} Episodes
-					</Button>
 				</div>
 
 				{#if Object.keys(groupedServers).length > 0}
@@ -314,7 +288,7 @@
 												? 'default'
 												: 'outline'}
 											size="sm"
-											onclick={() => selectServer(server)}
+											onclick={() => (selectedServer = server)}
 											class="justify-start"
 										>
 											<Server class="mr-2 h-3 w-3" />
@@ -379,69 +353,9 @@
 				</div>
 			</div>
 		</div>
-
-		{#if showEpisodesSidebar}
-			<div class="hidden lg:block">
-				<div class="sticky top-20">
-					<div class="rounded-lg border bg-card">
-						<div class="border-b p-4">
-							<div class="mb-3 flex items-center justify-between">
-								<h3 class="font-semibold">Episodes</h3>
-								<span class="text-sm text-muted-foreground">
-									{data.episodes.length} Total
-								</span>
-							</div>
-							<Input
-								type="text"
-								placeholder="Search episodes..."
-								bind:value={episodesSearch}
-								class="h-9"
-							/>
-						</div>
-
-						<div class="max-h-[calc(100vh-200px)] overflow-y-auto p-2">
-							<div class="space-y-1">
-								{#each filteredEpisodes as episode (episode.id)}
-									{@const isActive = episode.number === data.episodeNumber}
-									<button
-										onclick={() => changeEpisode(episode.number)}
-										class={cn(
-											'group flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-colors',
-											isActive
-												? 'bg-primary text-primary-foreground'
-												: 'hover:bg-accent hover:text-accent-foreground',
-										)}
-									>
-										<div
-											class={cn(
-												'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded text-xs font-bold',
-												isActive ? 'bg-primary-foreground/20' : 'bg-muted',
-											)}
-										>
-											{episode.number}
-										</div>
-										<div class="min-w-0 flex-1">
-											<p class="line-clamp-1 text-sm">
-												{episode.title || `Episode ${episode.number}`}
-											</p>
-											{#if episode.isFiller}
-												<span class="text-xs opacity-70">Filler</span>
-											{/if}
-										</div>
-										{#if isActive}
-											<Play class="h-3 w-3 flex-shrink-0" />
-										{/if}
-									</button>
-								{/each}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		{/if}
 	</div>
 
-	<div class="border-t bg-card p-4 lg:hidden">
+	<div class="border-t bg-card p-4">
 		<div class="mb-3 flex items-center justify-between">
 			<h3 class="font-semibold">Episodes</h3>
 			<span class="text-sm text-muted-foreground">
@@ -454,7 +368,7 @@
 			bind:value={episodesSearch}
 			class="mb-3 h-9"
 		/>
-		<div class="max-h-64 overflow-y-auto rounded-lg border">
+		<div class="max-h-96 overflow-y-auto rounded-lg border">
 			<div class="space-y-1 p-2">
 				{#each filteredEpisodes as episode (episode.id)}
 					{@const isActive = episode.number === data.episodeNumber}
