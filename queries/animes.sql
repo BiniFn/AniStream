@@ -453,3 +453,23 @@ AND (p.g IS NULL
       a.genres_arr && p.g
     END));
 
+-- name: GetGenrePreviews :many
+WITH g AS (
+  SELECT DISTINCT
+    unnest(a.genres_arr) AS genre
+  FROM
+    animes a
+)
+SELECT
+  g.genre::text AS name,
+  COALESCE(ARRAY (
+      SELECT
+        a2.image_url::text
+      FROM animes a2
+      WHERE
+        a2.genres_arr @> ARRAY[g.genre]::text[] ORDER BY a2.season_year DESC, a2.updated_at DESC, a2.id DESC LIMIT 6), ARRAY[]::text[]) AS previews
+FROM
+  g
+ORDER BY
+  g.genre;
+

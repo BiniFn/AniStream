@@ -256,3 +256,8 @@ func init() {
 		return (*SortOrder)(s), nil
 	})
 }
+
+type GenrePreview struct {
+	Name     string   `json:"name"`
+	Previews []string `json:"previews"`
+}

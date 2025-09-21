@@ -205,7 +205,7 @@
 							<Sheet.Content side="bottom" class="flex h-[90vh] max-h-[90vh] flex-col">
 								<div class="mx-auto flex h-full w-full max-w-lg flex-col">
 									<Sheet.Header class="pb-2">
-										<div class="mx-auto mb-2 h-1 w-12 rounded-full bg-muted" />
+										<div class="mx-auto mb-2 h-1 w-12 rounded-full bg-muted"></div>
 										<Sheet.Title class="text-center text-sm">Filters & Sort</Sheet.Title>
 									</Sheet.Header>
 									<div class="flex-1 space-y-3 overflow-y-auto px-4">
@@ -364,7 +364,7 @@
 				</div>
 
 				<div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
-					<div class="flex gap-2 lg:hidden">
+					<div class="flex flex-col gap-2 lg:hidden">
 						<div class="relative flex-1">
 							<Search
 								class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -385,38 +385,38 @@
 								</button>
 							{/if}
 						</div>
-						<Select.Root
-							type="single"
-							value={sortBy}
-							onValueChange={(value: string | undefined) => {
-								if (value) {
-									sortBy = value as typeof sortBy;
+						<div class="flex items-center gap-1">
+							<Select.Root
+								type="single"
+								value={sortBy}
+								onValueChange={(value: string | undefined) => {
+									if (value) {
+										sortBy = value as typeof sortBy;
+										updateFilters();
+									}
+								}}
+							>
+								<Select.Trigger class="h-9 flex-1 text-sm">
+									{sortOptions.find((o) => o.value === sortBy)?.label || 'Sort'}
+								</Select.Trigger>
+								<Select.Content>
+									{#each sortOptions as option (option.value)}
+										<Select.Item value={option.value}>{option.label}</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+							<Button
+								variant="outline"
+								size="icon"
+								class="h-9 w-9"
+								onclick={() => {
+									sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
 									updateFilters();
-								}
-							}}
-						>
-							<Select.Trigger class="h-9 w-28">
-								<span class="text-sm"
-									>{sortOptions.find((o) => o.value === sortBy)?.label || 'Sort'}</span
-								>
-							</Select.Trigger>
-							<Select.Content>
-								{#each sortOptions as option (option.value)}
-									<Select.Item value={option.value}>{option.label}</Select.Item>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-						<Button
-							variant="outline"
-							size="icon"
-							class="h-9 w-9"
-							onclick={() => {
-								sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-								updateFilters();
-							}}
-						>
-							{sortOrder === 'asc' ? '↑' : '↓'}
-						</Button>
+								}}
+							>
+								{sortOrder === 'asc' ? '↑' : '↓'}
+							</Button>
+						</div>
 					</div>
 
 					<div class="relative hidden w-full lg:block lg:w-80">
@@ -451,7 +451,7 @@
 								}
 							}}
 						>
-							<Select.Trigger class="w-[140px]">
+							<Select.Trigger class="w-[172px]">
 								<span>{sortOptions.find((o) => o.value === sortBy)?.label || 'Sort by'}</span>
 							</Select.Trigger>
 							<Select.Content>

@@ -17,6 +17,7 @@ func (h *Handler) AnimeListingRoutes() {
 		r.Get("/seasons", h.getBySeason)
 		r.Get("/random", h.randomAnime)
 		r.Get("/genres", h.listGenres)
+		r.Get("/genres/previews", h.genrePreviews)
 		r.Get("/genres/{genre}", h.animeByGenre)
 		r.Get("/search", h.searchAnimes)
 		r.Get("/trending", h.trendingAnimes)
@@ -222,6 +223,25 @@ func (h *Handler) listGenres(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("failed to fetch anime genres", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch anime genres")
+		return
+	}
+	h.jsonOK(w, resp)
+}
+
+// @Summary Get genre previews
+// @Description Get 6 preview image URLs for each genre
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.GenrePreview
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/listings/genres/previews [get]
+func (h *Handler) genrePreviews(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+	resp, err := h.animeService.GetGenrePreviews(r.Context())
+	if err != nil {
+		log.Error("failed to fetch genre previews", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to fetch genre previews")
 		return
 	}
 	h.jsonOK(w, resp)

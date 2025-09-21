@@ -491,3 +491,31 @@ func (s *AnimeService) GetPopularAnimes(ctx context.Context) (models.PopularAnim
 		return popularAnimes, nil
 	})
 }
+
+func (s *AnimeService) GetGenrePreviews(ctx context.Context) ([]models.GenrePreview, error) {
+	return cache.GetOrFill(ctx, s.redis, "genre_previews:6", 12*time.Hour, func(ctx context.Context) ([]models.GenrePreview, error) {
+		rows, err := s.repo.GetGenrePreviews(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]models.GenrePreview, 0, len(rows))
+		for _, r := range rows {
+			previews := make([]string, 0)
+			switch v := r.Previews.(type) {
+			case []string:
+				previews = v
+			case []any:
+				for _, e := range v {
+					if s, ok := e.(string); ok {
+						previews = append(previews, s)
+					}
+				}
+			}
+			out = append(out, models.GenrePreview{
+				Name:     r.Name,
+				Previews: previews,
+			})
+		}
+		return out, nil
+	})
+}

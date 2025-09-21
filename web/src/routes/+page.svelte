@@ -337,7 +337,7 @@
 						<Calendar class="h-6 w-6 text-primary" />
 						<h2 class="text-2xl font-bold sm:text-3xl">Recently Updated</h2>
 					</div>
-					<Button variant="ghost" class="gap-2" href="/recent">
+					<Button variant="ghost" class="gap-2" href="/catalog?sortBy=updated_at&sortOrder=desc">
 						View All
 						<ChevronRight class="h-4 w-4" />
 					</Button>

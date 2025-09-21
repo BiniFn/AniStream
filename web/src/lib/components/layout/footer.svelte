@@ -36,7 +36,7 @@
 						</a>
 					</li>
 					<li>
-						<a href="/recent" class="text-muted-foreground transition-colors hover:text-primary">
+						<a href="/catalog?sortBy=updated_at&sortOrder=desc" class="text-muted-foreground transition-colors hover:text-primary">
 							Recent
 						</a>
 					</li>

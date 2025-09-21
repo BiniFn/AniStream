@@ -32,7 +32,7 @@
 			{ label: 'Home', link: '/', Icon: House },
 			{ label: 'Catalog', link: '/catalog', Icon: Library },
 			{ label: 'Genres', link: '/genres', Icon: Swords },
-			{ label: 'Recent', link: '/recent', Icon: Clock },
+			{ label: 'Recent', link: '/catalog?sortBy=updated_at&sortOrder=desc', Icon: Clock },
 		];
 
 		if (isLoggedIn) {

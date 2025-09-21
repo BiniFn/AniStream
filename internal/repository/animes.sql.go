@@ -852,6 +852,49 @@ func (q *Queries) GetCountOfAnimes(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const getGenrePreviews = `-- name: GetGenrePreviews :many
+WITH g AS (
+  SELECT DISTINCT unnest(a.genres_arr) AS genre
+  FROM animes a
+)
+SELECT
+  g.genre::text AS name,
+  COALESCE(ARRAY(
+      SELECT a2.image_url::text
+      FROM animes a2
+      WHERE a2.genres_arr @> ARRAY[g.genre]::text[]
+      ORDER BY a2.season_year DESC, a2.updated_at DESC, a2.id DESC
+      LIMIT 6
+  ), ARRAY[]::text[]) AS previews
+FROM g
+ORDER BY g.genre
+`
+
+type GetGenrePreviewsRow struct {
+	Name     string
+	Previews interface{}
+}
+
+func (q *Queries) GetGenrePreviews(ctx context.Context) ([]GetGenrePreviewsRow, error) {
+	rows, err := q.db.Query(ctx, getGenrePreviews)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetGenrePreviewsRow
+	for rows.Next() {
+		var i GetGenrePreviewsRow
+		if err := rows.Scan(&i.Name, &i.Previews); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRandomAnime = `-- name: GetRandomAnime :one
 SELECT
   id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr

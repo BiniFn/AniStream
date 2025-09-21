@@ -689,6 +689,54 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/anime/listings/genres/previews': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get genre previews
+		 * @description Get 6 preview image URLs for each genre
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.GenrePreview'][];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/anime/listings/popular': {
 		parameters: {
 			query?: never;
@@ -2742,6 +2790,10 @@ export interface components {
 		'models.ForgetPasswordRequest': {
 			/** @example user@example.com */
 			email: string;
+		};
+		'models.GenrePreview': {
+			name?: string;
+			previews?: string[];
 		};
 		'models.ImportJobResponse': {
 			/** @example V1StGXR8Z5jdHi6BmyT23 */

@@ -473,6 +473,27 @@ paths:
       summary: Get anime by genre
       tags:
         - Anime Listings
+  /anime/listings/genres/previews:
+    get:
+      description: Get 6 preview image URLs for each genre
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.GenrePreview"
+                type: array
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get genre previews
+      tags:
+        - Anime Listings
   /anime/listings/popular:
     get:
       description: Get popular anime
@@ -1871,6 +1892,15 @@ components:
           type: string
       required:
         - email
+      type: object
+    models.GenrePreview:
+      properties:
+        name:
+          type: string
+        previews:
+          items:
+            type: string
+          type: array
       type: object
     models.ImportJobResponse:
       properties:
