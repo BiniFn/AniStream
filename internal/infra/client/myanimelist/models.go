@@ -199,6 +199,6 @@ type Data struct {
 
 type ListStatus struct {
 	Status          string `json:"status"`
-	EpisodesWatched int    `json:"num_watched_episodes"`
+	EpisodesWatched int    `json:"num_episodes_watched"`
 	UpdatedAt       string `json:"updated_at"`
 }

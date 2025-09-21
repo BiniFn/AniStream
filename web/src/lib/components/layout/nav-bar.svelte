@@ -305,7 +305,6 @@
 					{/each}
 				{/if}
 
-				<!-- Always show view all button when there's a query -->
 				{#if searchQuery.length >= 3}
 					{#if searchResults.length > 0}
 						<Command.Separator />
