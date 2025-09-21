@@ -11,7 +11,7 @@
 		class="group relative overflow-hidden rounded-xl border bg-card transition hover:scale-[1.05] hover:shadow-lg"
 	>
 		<a
-			href={`/catalog?genres=${encodeURIComponent(name)}`}
+			href={`/catalog?genres=${name}`}
 			class="absolute inset-0 z-20"
 			aria-label={`Open ${name} genre`}
 		></a>

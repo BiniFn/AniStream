@@ -90,8 +90,8 @@
 	}
 
 	function toggleGenre(genre: string) {
-		if (selectedGenres.includes(genre)) {
-			selectedGenres = selectedGenres.filter((g) => g !== genre);
+		if (selectedGenres.map((g) => g.toLowerCase()).includes(genre.toLowerCase())) {
+			selectedGenres = selectedGenres.filter((g) => g.toLowerCase() !== genre.toLowerCase());
 		} else {
 			selectedGenres = [...selectedGenres, genre];
 		}
@@ -140,7 +140,7 @@
 	}
 
 	$effect(() => {
-		data = data;
+		searchQuery = data.initialQuery.search;
 	});
 
 	const totalFilters = $derived(
@@ -215,7 +215,11 @@
 												<div class="flex max-h-32 flex-wrap gap-1.5 overflow-y-auto pr-2">
 													{#each data.genres as genre (genre)}
 														<Badge
-															variant={selectedGenres.includes(genre) ? 'default' : 'outline'}
+															variant={selectedGenres
+																.map((g) => g.toLowerCase())
+																.includes(genre.toLowerCase())
+																? 'default'
+																: 'outline'}
 															class="h-6 cursor-pointer px-2 py-0.5 text-xs"
 															onclick={() => toggleGenre(genre)}
 														>
@@ -565,16 +569,18 @@
 							</div>
 							<div class="filter-scroll max-h-60 space-y-1 overflow-y-auto pr-2">
 								{#each data.genres as genre (genre)}
+									{@const isSelected = selectedGenres
+										.map((g) => g.toLowerCase())
+										.includes(genre.toLowerCase())}
 									<button
 										onclick={() => toggleGenre(genre)}
-										class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent {selectedGenres.includes(
-											genre,
-										)
-											? 'bg-accent font-medium'
-											: ''}"
+										class={cn(
+											'flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
+											isSelected ? 'bg-accent font-medium' : '',
+										)}
 									>
 										<span>{genre}</span>
-										{#if selectedGenres.includes(genre)}
+										{#if isSelected}
 											<X class="h-3 w-3" />
 										{/if}
 									</button>

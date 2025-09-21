@@ -11,7 +11,6 @@
 	import { appState } from '$lib/context/state.svelte';
 	import { cn } from '$lib/utils';
 	import {
-		Clock,
 		Heart,
 		House,
 		Library,
@@ -32,7 +31,6 @@
 			{ label: 'Home', link: '/', Icon: House },
 			{ label: 'Catalog', link: '/catalog', Icon: Library },
 			{ label: 'Genres', link: '/genres', Icon: Swords },
-			{ label: 'Recent', link: '/catalog?sortBy=updated_at&sortOrder=desc', Icon: Clock },
 		];
 
 		if (isLoggedIn) {
@@ -82,7 +80,7 @@
 					query: {
 						q: query,
 						page: 1,
-						limit: 8,
+						itemsPerPage: 5,
 					},
 				},
 			});
@@ -253,7 +251,7 @@
 	</Sheet.Content>
 </Sheet.Root>
 
-<Command.Dialog bind:open={isSearchOpen}>
+<Command.Dialog bind:open={isSearchOpen} shouldFilter={false}>
 	<Command.Input
 		placeholder="Search anime..."
 		value={searchQuery}
@@ -278,17 +276,17 @@
 							<div class="relative h-16 w-12 flex-shrink-0 overflow-hidden rounded-md">
 								<img
 									src={anime.imageUrl}
-									alt={anime.ename || anime.jname}
+									alt={anime.jname || anime.ename}
 									class="h-full w-full object-cover"
 								/>
 							</div>
 							<div class="min-w-0 flex-1">
 								<div class="line-clamp-1 font-medium">
-									{anime.ename || anime.jname}
+									{anime.jname || anime.ename}
 								</div>
-								{#if anime.ename && anime.jname}
+								{#if anime.jname && anime.ename}
 									<div class="line-clamp-1 text-sm text-muted-foreground">
-										{anime.jname}
+										{anime.ename}
 									</div>
 								{/if}
 								<div class="flex items-center gap-2 text-xs text-muted-foreground">

@@ -35,11 +35,6 @@
 							Genres
 						</a>
 					</li>
-					<li>
-						<a href="/catalog?sortBy=updated_at&sortOrder=desc" class="text-muted-foreground transition-colors hover:text-primary">
-							Recent
-						</a>
-					</li>
 					{#if isLoggedIn}
 						<li>
 							<a href="/my-list" class="text-muted-foreground transition-colors hover:text-primary">

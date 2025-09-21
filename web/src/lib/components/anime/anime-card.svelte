@@ -24,7 +24,7 @@
 	>
 		<img
 			src={anime.imageUrl}
-			alt={anime.ename || anime.jname}
+			alt={anime.jname || anime.ename}
 			class="h-full w-full object-cover transition-all duration-700 group-hover:scale-110"
 		/>
 
@@ -76,7 +76,7 @@
 		<h3
 			class="line-clamp-1 text-sm font-semibold transition-colors duration-300 group-hover:text-primary"
 		>
-			{anime.ename || anime.jname}
+			{anime.jname || anime.ename}
 		</h3>
 		<div class="text-xs text-muted-foreground">
 			<span class="capitalize">{anime.season} {anime.seasonYear}</span>
