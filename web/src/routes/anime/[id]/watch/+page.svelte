@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto, preloadData } from '$app/navigation';
+	import { goto, invalidate, preloadData } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import LibraryBtn from '$lib/components/anime/library-btn.svelte';
@@ -238,6 +238,7 @@
 										body: { watchedEpisodes: data.episodeNumber, status: 'watching' },
 									});
 
+									await invalidate((url) => url.pathname.startsWith('/library'));
 									toast.success('Library status updated');
 								} catch {
 									toast.error('Failed to update library status');

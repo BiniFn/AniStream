@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import { buttonVariants } from '$lib/components/ui/button';
@@ -50,7 +50,7 @@
 				return;
 			}
 
-			await invalidateAll();
+			await invalidate((url) => url.pathname.startsWith('/library'));
 			toast.success('Added to library');
 			isOpen = false;
 		} catch {
@@ -74,7 +74,7 @@
 				return;
 			}
 
-			await invalidateAll();
+			await invalidate((url) => url.pathname.startsWith('/library'));
 			toast.success('Removed from library');
 			isOpen = false;
 		} catch {
@@ -120,7 +120,7 @@
 					return;
 				}
 
-				await invalidateAll();
+				await invalidate((url) => url.pathname.startsWith('/library'));
 				toast.success('Library updated');
 				isOpen = false;
 			} catch {
