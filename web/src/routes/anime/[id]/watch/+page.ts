@@ -24,7 +24,7 @@ export const load: PageLoad = async ({ fetch, params, url }) => {
 	const currentEpisode = episodesData?.find((ep) => ep.number === episodeNumber);
 
 	if (!currentEpisode) {
-		redirectToErrorPage('anime_not_found_or_unavailable');
+		redirectToErrorPage('episode_not_found_or_unavailable');
 	}
 
 	const episodeServers = await apiClient.GET('/anime/{id}/episodes/{episodeID}/servers', {

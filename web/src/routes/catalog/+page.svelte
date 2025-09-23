@@ -26,9 +26,9 @@
 
 	let { data }: PageProps = $props();
 
-	let searchQuery = $state(data.initialQuery.search);
-	let selectedGenres = $state<string[]>(data.initialQuery.genres);
-	let genresMode = $state<'any' | 'all'>(data.initialQuery.genresMode);
+	let searchQuery = $derived(data.initialQuery.search);
+	let selectedGenres = $state(data.initialQuery.genres);
+	let genresMode = $state(data.initialQuery.genresMode);
 	let selectedSeasons = $state(data.initialQuery.seasons);
 	let selectedYears = $state(data.initialQuery.years);
 	let sortBy = $state(data.initialQuery.sortBy);
@@ -138,10 +138,6 @@
 		updateFilters();
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
-
-	$effect(() => {
-		searchQuery = data.initialQuery.search;
-	});
 
 	const totalFilters = $derived(
 		selectedGenres.length +

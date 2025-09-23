@@ -4,6 +4,7 @@
 	import type { components } from '$lib/api/openapi';
 	import LibraryBtn from '$lib/components/anime/library-btn.svelte';
 	import Player from '$lib/components/anime/player/index.svelte';
+	import { Badge } from '$lib/components/ui/badge';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { appState } from '$lib/context/state.svelte';
@@ -29,7 +30,7 @@
 
 	let { data }: PageProps = $props();
 
-	let selectedServer: EpisodeServer | null = $state(data.servers[0] || null);
+	let selectedServer = $state(data.servers[0] || null);
 	let streamInfo: StreamingData | null = $state(null);
 	let isLoading = $state(true);
 	let videoError = $state(false);
@@ -394,9 +395,14 @@
 								{episode.title || `Episode ${episode.number}`}
 							</p>
 						</div>
-						{#if isActive}
-							<Play class="h-3 w-3 flex-shrink-0" />
-						{/if}
+						<div class="flex items-center gap-2">
+							{#if episode.isFiller}
+								<Badge variant="secondary" class="text-xs">Filler</Badge>
+							{/if}
+							{#if isActive}
+								<Play class="h-3 w-3 flex-shrink-0" />
+							{/if}
+						</div>
 					</button>
 				{/each}
 			</div>

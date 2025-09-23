@@ -9,7 +9,7 @@
 	let { data }: PageProps = $props();
 
 	const tabs = ['overview', 'episodes', 'relations'] as const;
-	let selectedTab: (typeof tabs)[number] = $derived.by(() => {
+	let selectedTab = $derived.by(() => {
 		const urlTab = page.url.searchParams.get('tab') || 'overview';
 		return urlTab as (typeof tabs)[number];
 	});

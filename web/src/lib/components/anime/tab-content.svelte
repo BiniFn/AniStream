@@ -5,6 +5,7 @@
 	import { cn } from '$lib/utils';
 	import { ArrowRight, BookOpen, Check, ChevronDown, Film, Play, Users } from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
+	import { Button } from '../ui/button';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
 	type EpisodeResponse = components['schemas']['models.EpisodeResponse'];
@@ -33,12 +34,21 @@
 	});
 
 	let episodesSearch = $state('');
+	let sortOrder = $state<'asc' | 'desc'>('asc');
 	let filteredEpisodes = $derived.by(() => {
-		if (!episodesSearch) return episodes;
-		return episodes.filter((ep) => {
-			const textToSearch = ep.number.toString() + (ep.title || 'Episode ' + ep.number);
-			return textToSearch.toLowerCase().includes(episodesSearch.toLowerCase());
-		});
+		return episodes
+			.filter((ep) => {
+				if (!episodesSearch) return true;
+				const textToSearch = ep.number.toString() + (ep.title || 'Episode ' + ep.number);
+				return textToSearch.toLowerCase().includes(episodesSearch.toLowerCase());
+			})
+			.sort((a, b) => {
+				if (sortOrder === 'asc') {
+					return a.number - b.number;
+				} else {
+					return b.number - a.number;
+				}
+			});
 	});
 
 	let related = $derived.by(() => {
@@ -92,6 +102,17 @@
 						{episodes.length}
 						{episodes.length === 1 ? 'Episode' : 'Episodes'}
 					</span>
+
+					<Button
+						variant="outline"
+						size="icon"
+						class="h-9 w-9"
+						onclick={() => {
+							sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+						}}
+					>
+						{sortOrder === 'asc' ? '↑' : '↓'}
+					</Button>
 
 					<Input
 						type="text"
