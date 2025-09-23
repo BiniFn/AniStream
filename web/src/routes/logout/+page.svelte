@@ -29,7 +29,6 @@
 <div
 	class="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/10"
 >
-	<!-- Animated background elements -->
 	<div class="pointer-events-none absolute inset-0 overflow-hidden">
 		<div
 			class="absolute -top-20 -right-20 h-64 w-64 animate-pulse rounded-full bg-primary/5 blur-3xl"

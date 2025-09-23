@@ -111,7 +111,6 @@
 <div
 	class="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/10"
 >
-	<!-- Animated background elements -->
 	<div class="pointer-events-none absolute inset-0 overflow-hidden">
 		<div
 			class="absolute -top-20 -right-20 h-64 w-64 animate-pulse rounded-full bg-primary/5 blur-3xl"
@@ -128,7 +127,6 @@
 
 	<div class="relative z-10 container mx-auto px-4 py-8">
 		<div class="mx-auto w-full max-w-md">
-			<!-- Header -->
 			<div class="mb-8 text-center">
 				<div class="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
 					<Sparkles class="h-4 w-4 text-primary" />
@@ -140,10 +138,8 @@
 				<p class="text-muted-foreground">Start your personalized anime journey today</p>
 			</div>
 
-			<!-- Register Form -->
 			<div class="rounded-2xl border border-primary/10 bg-card/80 p-8 shadow-2xl backdrop-blur-sm">
 				<form method="POST" use:enhance class="space-y-6">
-					<!-- Email Field -->
 					<Form.Field form={sf} name="email">
 						<Form.Control>
 							{#snippet children({ props })}
@@ -171,7 +167,6 @@
 						<Form.FieldErrors />
 					</Form.Field>
 
-					<!-- Username Field -->
 					<Form.Field form={sf} name="username">
 						<Form.Control>
 							{#snippet children({ props })}
@@ -199,7 +194,6 @@
 						<Form.FieldErrors />
 					</Form.Field>
 
-					<!-- Password Field -->
 					<Form.Field form={sf} name="password">
 						<Form.Control>
 							{#snippet children({ props })}
@@ -235,7 +229,6 @@
 									</button>
 								</div>
 
-								<!-- Password Requirements -->
 								{#if $form.password.length > 0}
 									<div class="mt-3 space-y-2 rounded-lg bg-muted/30 p-4 backdrop-blur-sm">
 										<p class="text-sm font-medium text-muted-foreground">Password Requirements:</p>
@@ -303,7 +296,6 @@
 						</Form.Control>
 					</Form.Field>
 
-					<!-- Confirm Password Field -->
 					<Form.Field form={sf} name="confirmPassword">
 						<Form.Control>
 							{#snippet children({ props })}
@@ -356,7 +348,6 @@
 						<Form.FieldErrors />
 					</Form.Field>
 
-					<!-- Create Account Button -->
 					<Form.Button type="submit" size="lg" class="group w-full gap-2" disabled={$submitting}>
 						{#if $submitting}
 							<LoaderCircle class="size-4 animate-spin" />
@@ -368,14 +359,12 @@
 					</Form.Button>
 				</form>
 
-				<!-- Divider -->
 				<div class="my-8 flex items-center">
 					<div class="flex-1 border-t border-muted"></div>
 					<div class="px-4 text-sm text-muted-foreground">or</div>
 					<div class="flex-1 border-t border-muted"></div>
 				</div>
 
-				<!-- Sign In Link -->
 				<div class="text-center">
 					<p class="text-sm text-muted-foreground">
 						Already have an account?
@@ -384,15 +373,6 @@
 						</a>
 					</p>
 				</div>
-			</div>
-
-			<!-- Footer -->
-			<div class="mt-8 text-center text-sm text-muted-foreground">
-				<p>
-					By creating an account, you agree to our
-					<a href="/terms" class="underline hover:text-foreground">Terms of Service</a> and
-					<a href="/privacy" class="underline hover:text-foreground">Privacy Policy</a>.
-				</p>
 			</div>
 		</div>
 	</div>

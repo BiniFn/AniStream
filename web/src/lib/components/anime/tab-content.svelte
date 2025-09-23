@@ -172,7 +172,6 @@
 			{/if}
 		</section>
 	{:else if selectedTab === 'relations'}
-		<!-- Relations/Franchise -->
 		<section class="space-y-6">
 			{#if franchise?.watchOrder && franchise.watchOrder.length > 0}
 				<div class="space-y-4">

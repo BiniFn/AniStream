@@ -2,22 +2,31 @@
 	import type { components } from '$lib/api/openapi';
 	import { Play } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
+	import LibraryBtn from './library-btn.svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
+	type LibraryResponse = components['schemas']['models.LibraryResponse'];
 
 	interface Props {
 		anime: AnimeResponse;
 		index?: number;
 		topLeftBadge?: Snippet;
+		libraryEntry?: LibraryResponse | null;
+		showLibraryInfo?: boolean;
 	}
 
-	let { anime, index = 0, topLeftBadge }: Props = $props();
+	let { anime, index = 0, topLeftBadge, libraryEntry, showLibraryInfo = false }: Props = $props();
 </script>
 
 <a
 	href="/anime/{anime.id}"
 	class="group block transform transition-all duration-500 hover:-translate-y-2 hover:scale-105"
 	style="animation-delay: {index * 100}ms"
+	onclick={(e) => {
+		if ((e.target as HTMLElement).closest('button')) {
+			e.preventDefault();
+		}
+	}}
 >
 	<div
 		class="relative mb-4 aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-muted to-muted/50 shadow-lg transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/20"
@@ -51,6 +60,12 @@
 			</div>
 		{/if}
 
+		{#if showLibraryInfo && libraryEntry}
+			<div class="absolute top-3 left-3 z-10">
+				<LibraryBtn animeId={anime.id} {libraryEntry} iconOnly={true} />
+			</div>
+		{/if}
+
 		<div
 			class="absolute right-3 bottom-3 left-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
 		>
@@ -72,14 +87,23 @@
 		</div>
 	</div>
 
-	<div class="space-y-2">
+	<div class="space-y-1">
 		<h3
 			class="line-clamp-1 text-sm font-semibold transition-colors duration-300 group-hover:text-primary"
 		>
 			{anime.jname || anime.ename}
 		</h3>
-		<div class="text-xs text-muted-foreground">
-			<span class="capitalize">{anime.season} {anime.seasonYear}</span>
-		</div>
+		{#if showLibraryInfo && libraryEntry}
+			<div class="text-xs text-muted-foreground">
+				<span class="capitalize">{libraryEntry.status.replace('_', ' ')}</span>
+				<span class="font-bold">{libraryEntry.watchedEpisodes}</span> of
+				<span class="font-bold">{anime.lastEpisode ?? '???'}</span>
+				{anime.lastEpisode === 1 ? 'episode' : 'episodes'}
+			</div>
+		{:else}
+			<div class="text-xs text-muted-foreground">
+				<span class="capitalize">{anime.season} {anime.seasonYear}</span>
+			</div>
+		{/if}
 	</div>
 </a>

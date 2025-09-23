@@ -12,12 +12,18 @@
 </svelte:head>
 
 <div class="min-h-screen bg-background">
-	<div class="container mx-auto px-4 py-8 sm:py-10">
-		<div class="mb-6 sm:mb-8">
-			<h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Browse by Genre</h1>
-			<p class="text-sm text-muted-foreground">Pick a genre to explore the catalog.</p>
+	<div
+		class="sticky top-17 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+	>
+		<div class="container mx-auto px-4 py-4">
+			<h1 class="text-2xl font-bold tracking-tight">Browse by Genre</h1>
+			<p class="text-sm text-muted-foreground">
+				Pick a genre to explore the catalog
+			</p>
 		</div>
+	</div>
 
+	<div class="container mx-auto px-4 py-8">
 		{#if genres.length === 0}
 			<div class="rounded-lg border p-6 text-center text-muted-foreground">
 				No genres available.

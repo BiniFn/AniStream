@@ -14,7 +14,16 @@
 	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 	import { cn } from '$lib/utils';
 	import { type } from 'arktype';
-	import { Check, Clapperboard, ListChecks, LoaderCircle, Plus, Save, Trash } from 'lucide-svelte';
+	import {
+		Check,
+		Clapperboard,
+		ListChecks,
+		LoaderCircle,
+		Pencil,
+		Plus,
+		Save,
+		Trash,
+	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { arktype } from 'sveltekit-superforms/adapters';
@@ -24,9 +33,11 @@
 	type Props = {
 		animeId: string;
 		libraryEntry: LibraryResponse | null;
+		class?: string;
+		iconOnly?: boolean;
 	};
 
-	let { animeId, libraryEntry }: Props = $props();
+	let { animeId, libraryEntry, class: className, iconOnly = false }: Props = $props();
 
 	let isLoggedIn = $derived(appState.user != null);
 	let isOpen = $state(false);
@@ -148,18 +159,23 @@
 			<Drawer.Trigger
 				class={cn(
 					buttonVariants({
-						size: 'default',
+						size: iconOnly ? 'icon' : 'default',
 						variant: libraryEntry != null ? 'secondary' : 'outline',
 					}),
-					'flex items-center gap-2 capitalize',
+					iconOnly ? '' : 'flex items-center gap-2 capitalize',
+					className,
 				)}
 			>
-				<Check class="h-4 w-4" />
-				{libraryEntry.status.split('_').join(' ')}
-				{#if libraryEntry.watchedEpisodes > 0}
-					· {libraryEntry.watchedEpisodes} Ep{libraryEntry.watchedEpisodes > 1 ? 's' : ''}
+				{#if iconOnly}
+					<Pencil class="h-4 w-4" />
 				{:else}
-					· 0 Eps
+					<Check class="h-4 w-4" />
+					{libraryEntry.status.split('_').join(' ')}
+					{#if libraryEntry.watchedEpisodes > 0}
+						· {libraryEntry.watchedEpisodes} Ep{libraryEntry.watchedEpisodes > 1 ? 's' : ''}
+					{:else}
+						· 0 Eps
+					{/if}
 				{/if}
 			</Drawer.Trigger>
 			<Drawer.Content>
@@ -267,18 +283,23 @@
 			<Dialog.Trigger
 				class={cn(
 					buttonVariants({
-						size: 'default',
+						size: iconOnly ? 'icon' : 'default',
 						variant: libraryEntry != null ? 'secondary' : 'outline',
 					}),
-					'flex items-center gap-2 capitalize',
+					iconOnly ? '' : 'flex items-center gap-2 capitalize',
+					className,
 				)}
 			>
-				<Check class="h-4 w-4" />
-				{libraryEntry.status.split('_').join(' ')}
-				{#if libraryEntry.watchedEpisodes > 0}
-					· {libraryEntry.watchedEpisodes} Ep{libraryEntry.watchedEpisodes > 1 ? 's' : ''}
+				{#if iconOnly}
+					<Pencil class="h-4 w-4" />
 				{:else}
-					· 0 Eps
+					<Check class="h-4 w-4" />
+					{libraryEntry.status.split('_').join(' ')}
+					{#if libraryEntry.watchedEpisodes > 0}
+						· {libraryEntry.watchedEpisodes} Ep{libraryEntry.watchedEpisodes > 1 ? 's' : ''}
+					{:else}
+						· 0 Eps
+					{/if}
 				{/if}
 			</Dialog.Trigger>
 			<Dialog.Content>
@@ -384,16 +405,17 @@
 {:else}
 	<Button
 		variant="outline"
-		class="flex items-center gap-2"
+		size={iconOnly ? 'icon' : 'default'}
+		class={cn(iconOnly ? '' : 'flex items-center gap-2', className)}
 		onclick={() => checkIfLoggedIn(addToLibrary)}
 		disabled={isAdding}
 	>
 		{#if isAdding}
 			<LoaderCircle class="size-4 animate-spin" />
-			Adding...
+			{#if !iconOnly}Adding...{/if}
 		{:else}
 			<Plus class="h-4 w-4" />
-			Add to Library
+			{#if !iconOnly}Add to Library{/if}
 		{/if}
 	</Button>
 {/if}

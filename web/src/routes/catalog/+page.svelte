@@ -5,14 +5,13 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { Pagination } from '$lib/components/ui/pagination';
 	import * as Select from '$lib/components/ui/select';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { cn } from '$lib/utils';
 	import {
 		Calendar,
-		ChevronLeft,
-		ChevronRight,
 		Funnel,
 		Hash,
 		LayoutGrid,
@@ -787,73 +786,7 @@
 					</div>
 				{/if}
 
-				{#if totalPages > 1}
-					<div class="mt-12 flex flex-wrap items-center justify-center gap-2">
-						<Button
-							variant="outline"
-							size="icon"
-							disabled={currentPage === 1}
-							onclick={() => changePage(currentPage - 1)}
-						>
-							<ChevronLeft class="h-4 w-4" />
-						</Button>
-
-						{#if totalPages <= 7}
-							{#each Array(totalPages) as _, i (i)}
-								<Button
-									variant={currentPage === i + 1 ? 'default' : 'outline'}
-									size="icon"
-									onclick={() => changePage(i + 1)}
-								>
-									{i + 1}
-								</Button>
-							{/each}
-						{:else}
-							{#if currentPage > 3}
-								<Button variant="outline" size="icon" onclick={() => changePage(1)}>1</Button>
-								{#if currentPage > 4}
-									<span class="px-2 text-muted-foreground">...</span>
-								{/if}
-							{/if}
-
-							{#each Array(5) as _, i (i)}
-								{@const pageNum =
-									currentPage <= 3
-										? i + 1
-										: currentPage >= totalPages - 2
-											? totalPages - 4 + i
-											: currentPage - 2 + i}
-								{#if pageNum > 0 && pageNum <= totalPages}
-									<Button
-										variant={currentPage === pageNum ? 'default' : 'outline'}
-										size="icon"
-										onclick={() => changePage(pageNum)}
-									>
-										{pageNum}
-									</Button>
-								{/if}
-							{/each}
-
-							{#if currentPage < totalPages - 2}
-								{#if currentPage < totalPages - 3}
-									<span class="px-2 text-muted-foreground">...</span>
-								{/if}
-								<Button variant="outline" size="icon" onclick={() => changePage(totalPages)}>
-									{totalPages}
-								</Button>
-							{/if}
-						{/if}
-
-						<Button
-							variant="outline"
-							size="icon"
-							disabled={currentPage === totalPages}
-							onclick={() => changePage(currentPage + 1)}
-						>
-							<ChevronRight class="h-4 w-4" />
-						</Button>
-					</div>
-				{/if}
+				<Pagination {totalPages} {currentPage} onPageChange={changePage} />
 			</main>
 		</div>
 	</div>
