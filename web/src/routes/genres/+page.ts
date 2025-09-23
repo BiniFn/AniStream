@@ -2,8 +2,6 @@ import { apiClient } from '$lib/api/client';
 import type { components } from '$lib/api/openapi';
 import type { PageLoad } from './$types';
 
-export const prerender = true;
-
 type GenrePreview = components['schemas']['models.GenrePreview'];
 
 export const load: PageLoad = async ({ fetch }) => {
