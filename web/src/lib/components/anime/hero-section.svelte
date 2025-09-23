@@ -2,6 +2,7 @@
 	import type { components } from '$lib/api/openapi';
 	import LibraryBtn from '$lib/components/anime/library-btn.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { cn } from '$lib/utils';
 	import { CirclePlay, Play, Share2, Star } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -79,12 +80,16 @@
 				</div>
 
 				<div class="flex flex-wrap items-center gap-2 text-sm md:gap-3">
-					{#if anime.metadata?.mean}
-						<div class="flex w-full items-center gap-1 md:w-fit">
-							<Star class="h-4 w-4 fill-yellow-500 text-yellow-500" />
-							<span class="font-semibold">{anime.metadata.mean.toFixed(1)}</span>
-						</div>
-					{/if}
+					<div class="flex w-full items-center gap-1 md:w-fit">
+						<Star class="h-4 w-4 fill-yellow-500 text-yellow-500" />
+						<span class={cn(anime.metadata?.mean ? 'font-semibold' : 'text-muted-foreground')}>
+							{#if anime.metadata?.mean}
+								{anime.metadata.mean.toFixed(1)}
+							{:else}
+								N/A
+							{/if}
+						</span>
+					</div>
 					<span class="hidden text-muted-foreground md:inline">|</span>
 					<span class="text-muted-foreground">{mediaType}</span>
 					<span class="text-muted-foreground">|</span>
