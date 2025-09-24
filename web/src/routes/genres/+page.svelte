@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>Genres • Aniways</title>
+	<title>Genres - Aniways</title>
 	<meta name="description" content="Browse anime by genre and discover new favorites." />
 </svelte:head>
 
@@ -17,9 +17,7 @@
 	>
 		<div class="container mx-auto px-4 py-4">
 			<h1 class="text-2xl font-bold tracking-tight">Browse by Genre</h1>
-			<p class="text-sm text-muted-foreground">
-				Pick a genre to explore the catalog
-			</p>
+			<p class="text-sm text-muted-foreground">Pick a genre to explore the catalog</p>
 		</div>
 	</div>
 

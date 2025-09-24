@@ -150,6 +150,11 @@
 	const totalPages = $derived(data.listings?.pageInfo ? data.listings.pageInfo.totalPages : 0);
 </script>
 
+<svelte:head>
+	<title>Catalog - Aniways</title>
+	<meta name="description" content="Browse and discover anime from our extensive catalog." />
+</svelte:head>
+
 <div class="min-h-screen bg-background">
 	<div
 		class="sticky top-17 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
@@ -354,9 +359,8 @@
 					<h1 class="text-2xl font-bold tracking-tight">Anime Catalog</h1>
 					<p class="text-sm text-muted-foreground">
 						{#if data.listings?.items}
-							{data.listings.items.length} anime found
 							{#if data.listings.pageInfo}
-								(Page {data.listings.pageInfo.currentPage} of {data.listings.pageInfo.totalPages})
+								Page {data.listings.pageInfo.currentPage} of {data.listings.pageInfo.totalPages}
 							{/if}
 						{/if}
 					</p>
