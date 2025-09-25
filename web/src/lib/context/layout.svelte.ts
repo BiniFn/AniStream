@@ -15,4 +15,3 @@ export const setNavbarHeight = (height: number) => {
 export const setHeaderHeight = (height: number) => {
 	layoutState.headerHeight = height;
 };
-

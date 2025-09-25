@@ -11,6 +11,9 @@
 
 	let navbarElement: HTMLElement;
 
+	setUser(data.user);
+	setSettings(data.settings);
+
 	$effect(() => {
 		setUser(data.user);
 		setSettings(data.settings);

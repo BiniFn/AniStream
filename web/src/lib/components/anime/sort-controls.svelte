@@ -59,4 +59,3 @@
 		{sortOrder === 'asc' ? '↑' : '↓'}
 	</Button>
 </div>
-

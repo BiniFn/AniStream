@@ -79,4 +79,3 @@
 		<Button variant="ghost" size="sm" onclick={onClearAll}>Clear all</Button>
 	</div>
 {/if}
-

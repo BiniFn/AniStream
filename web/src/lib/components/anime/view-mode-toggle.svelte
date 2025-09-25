@@ -52,4 +52,3 @@
 		<LayoutList class={iconSizes[size]} />
 	</Button>
 </div>
-
