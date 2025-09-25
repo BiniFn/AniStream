@@ -111,7 +111,29 @@ type TrackResponse struct {
 	Default bool   `json:"default" validate:"required" example:"true"`
 }
 
+type AnimeWithLibraryResponse struct {
+	ID          string       `json:"id" validate:"required" example:"V1StGXR8Z5jdHi6B"`
+	EName       *string      `json:"ename" example:"Attack on Titan"`
+	JName       *string      `json:"jname" example:"進撃の巨人"`
+	ImageURL    string       `json:"imageUrl" validate:"required" example:"https://example.com/anime/image.jpg"`
+	Genre       string       `json:"genre" validate:"required" example:"Action, Drama"`
+	Season      string       `json:"season" validate:"required" example:"spring"`
+	SeasonYear  *int32       `json:"seasonYear" example:"2023"`
+	MalID       *int32       `json:"malId" example:"12345"`
+	AnilistID   *int32       `json:"anilistId" example:"67890"`
+	LastEpisode *int32       `json:"lastEpisode" example:"25"`
+	Library     *LibraryInfo `json:"library,omitempty"`
+}
+
+type LibraryInfo struct {
+	ID              string        `json:"id" validate:"required" example:"V1StGXR8Z5jdHi6B"`
+	Status          LibraryStatus `json:"status" validate:"required" example:"watching"`
+	WatchedEpisodes int32         `json:"watchedEpisodes" validate:"required,min=0" example:"12"`
+	UpdatedAt       string        `json:"updatedAt" validate:"required" example:"2023-01-01T00:00:00Z"`
+}
+
 type AnimeListResponse = Pagination[AnimeResponse]
+type AnimeWithLibraryListResponse = Pagination[AnimeWithLibraryResponse]
 type SeasonalAnimeListResponse = []SeasonalAnimeResponse
 type EpisodeListResponse = []EpisodeResponse
 type EpisodeServerListResponse = []EpisodeServerResponse

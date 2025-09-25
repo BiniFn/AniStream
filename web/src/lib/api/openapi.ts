@@ -504,34 +504,46 @@ export interface paths {
 			cookie?: never;
 		};
 		/**
-		 * Get anime catalog
-		 * @description Get anime catalog
+		 * Get anime catalog with optional library information
+		 * @description Get anime catalog. When authenticated, includes library status. Supports library-only filtering and search.
 		 */
 		get: {
 			parameters: {
 				query?: {
-					/** @description Page number */
+					/** @description Page number (default: 1) */
 					page?: number;
-					/** @description Number of items per page */
+					/** @description Number of items per page (default: 30, max: 100) */
 					itemsPerPage?: number;
-					/** @description Search text */
+					/** @description Search anime by name */
 					search?: string;
-					/** @description Genres (repeat param) */
+					/** @description Filter by genres (repeat for multiple) */
 					genres?: string[];
-					/** @description Genre match mode */
+					/** @description Genre matching mode: 'any' (default) or 'all' */
 					genresMode?: 'any' | 'all';
-					/** @description Seasons (repeat param) */
+					/** @description Filter by seasons (repeat for multiple) */
 					seasons?: ('winter' | 'spring' | 'summer' | 'fall' | 'unknown')[];
-					/** @description Years (repeat param) */
+					/** @description Filter by specific years (repeat for multiple) */
 					years?: number[];
-					/** @description Minimum year (inclusive) */
+					/** @description Filter by minimum year (inclusive) */
 					yearMin?: number;
-					/** @description Maximum year (inclusive) */
+					/** @description Filter by maximum year (inclusive) */
 					yearMax?: number;
 					/** @description Sort field */
-					sortBy?: 'ename' | 'jname' | 'season' | 'year' | 'relevance' | 'updated_at';
-					/** @description Sort order */
+					sortBy?:
+						| 'ename'
+						| 'jname'
+						| 'season'
+						| 'year'
+						| 'relevance'
+						| 'updated_at'
+						| 'anime_updated_at'
+						| 'library_updated_at';
+					/** @description Sort order: 'asc' or 'desc' (default: 'desc') */
 					sortOrder?: 'asc' | 'desc';
+					/** @description Only show anime in user's library (requires authentication) */
+					inLibraryOnly?: boolean;
+					/** @description Filter by library status (requires authentication) */
+					status?: 'watching' | 'completed' | 'planning' | 'dropped' | 'paused';
 				};
 				header?: never;
 				path?: never;
@@ -539,16 +551,16 @@ export interface paths {
 			};
 			requestBody?: never;
 			responses: {
-				/** @description OK */
+				/** @description Anime catalog with optional library information */
 				200: {
 					headers: {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': components['schemas']['models.AnimeListResponse'];
+						'application/json': components['schemas']['models.AnimeWithLibraryListResponse'];
 					};
 				};
-				/** @description Bad Request */
+				/** @description Invalid request parameters */
 				400: {
 					headers: {
 						[name: string]: unknown;
@@ -557,7 +569,16 @@ export interface paths {
 						'application/json': components['schemas']['models.ErrorResponse'];
 					};
 				};
-				/** @description Internal Server Error */
+				/** @description Authentication required for library features */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal server error */
 				500: {
 					headers: {
 						[name: string]: unknown;
@@ -2726,6 +2747,33 @@ export interface components {
 			/** @example 2023 */
 			seasonYear?: number;
 		};
+		'models.AnimeWithLibraryListResponse': {
+			items: components['schemas']['models.AnimeWithLibraryResponse'][];
+			pageInfo: components['schemas']['models.PageInfo'];
+		};
+		'models.AnimeWithLibraryResponse': {
+			/** @example 67890 */
+			anilistId?: number;
+			/** @example Attack on Titan */
+			ename?: string;
+			/** @example Action, Drama */
+			genre: string;
+			/** @example V1StGXR8Z5jdHi6B */
+			id: string;
+			/** @example https://example.com/anime/image.jpg */
+			imageUrl: string;
+			/** @example 進撃の巨人 */
+			jname?: string;
+			/** @example 25 */
+			lastEpisode?: number;
+			library?: components['schemas']['models.LibraryInfo'];
+			/** @example 12345 */
+			malId?: number;
+			/** @example spring */
+			season: string;
+			/** @example 2023 */
+			seasonYear?: number;
+		};
 		'models.AnimeWithMetadataResponse': {
 			/** @example 67890 */
 			anilistId?: number;
@@ -2812,6 +2860,16 @@ export interface components {
 			updatedAt: string;
 			/** @example V1StGXR8Z5jdHi6B */
 			userId: string;
+		};
+		'models.LibraryInfo': {
+			/** @example V1StGXR8Z5jdHi6B */
+			id: string;
+			/** @example watching */
+			status: components['schemas']['models.LibraryStatus'];
+			/** @example 2023-01-01T00:00:00Z */
+			updatedAt: string;
+			/** @example 12 */
+			watchedEpisodes: number;
 		};
 		'models.LibraryListResponse': {
 			items: components['schemas']['models.LibraryResponse'][];

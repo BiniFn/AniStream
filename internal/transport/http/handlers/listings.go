@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/coeeter/aniways/internal/models"
+	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"
 )
@@ -33,32 +34,52 @@ func (h *Handler) catalogInput() func(http.Handler) http.Handler {
 	return httpin.NewInput(models.GetAnimeCatalogParams{}, errorHandler)
 }
 
-// @Summary Get anime catalog
-// @Description Get anime catalog
+// @Summary Get anime catalog with optional library information
+// @Description Get anime catalog. When authenticated, includes library status. Supports library-only filtering and search.
 // @Tags Anime Listings
 // @Accept json
 // @Produce json
-// @Param page query int false "Page number"
-// @Param itemsPerPage query int false "Number of items per page"
-// @Param search query string false "Search text"
-// @Param genres query []string false "Genres (repeat param)" collectionFormat(multi)
-// @Param genresMode query string false "Genre match mode" Enums(any,all)
-// @Param seasons query []string false "Seasons (repeat param)" Enums(winter,spring,summer,fall,unknown) collectionFormat(multi)
-// @Param years query []int false "Years (repeat param)" collectionFormat(multi)
-// @Param yearMin query int false "Minimum year (inclusive)"
-// @Param yearMax query int false "Maximum year (inclusive)"
-// @Param sortBy query string false "Sort field" Enums(ename,jname,season,year,relevance,updated_at)
-// @Param sortOrder query string false "Sort order" Enums(asc,desc)
-// @Success 200 {object} models.AnimeListResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Param page query int false "Page number (default: 1)"
+// @Param itemsPerPage query int false "Number of items per page (default: 30, max: 100)"
+// @Param search query string false "Search anime by name"
+// @Param genres query []string false "Filter by genres (repeat for multiple)" collectionFormat(multi)
+// @Param genresMode query string false "Genre matching mode: 'any' (default) or 'all'" Enums(any,all)
+// @Param seasons query []string false "Filter by seasons (repeat for multiple)" Enums(winter,spring,summer,fall,unknown) collectionFormat(multi)
+// @Param years query []int false "Filter by specific years (repeat for multiple)" collectionFormat(multi)
+// @Param yearMin query int false "Filter by minimum year (inclusive)"
+// @Param yearMax query int false "Filter by maximum year (inclusive)"
+// @Param sortBy query string false "Sort field" Enums(ename,jname,season,year,relevance,updated_at,anime_updated_at,library_updated_at)
+// @Param sortOrder query string false "Sort order: 'asc' or 'desc' (default: 'desc')" Enums(asc,desc)
+// @Param inLibraryOnly query bool false "Only show anime in user's library (requires authentication)"
+// @Param status query string false "Filter by library status (requires authentication)" Enums(watching,completed,planning,dropped,paused)
+// @Success 200 {object} models.AnimeWithLibraryListResponse "Anime catalog with optional library information"
+// @Failure 400 {object} models.ErrorResponse "Invalid request parameters"
+// @Failure 401 {object} models.ErrorResponse "Authentication required for library features"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
 // @Router /anime/listings [get]
 func (h *Handler) catalog(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
 	input := h.getHttpInput(r).(*models.GetAnimeCatalogParams)
 
-	resp, err := h.animeService.GetAnimeCatalog(r.Context(), input)
+	var userID *string
+	if input.InLibraryOnly != nil && *input.InLibraryOnly {
+		user := middleware.GetUser(r)
+		if user == nil {
+			h.jsonError(w, http.StatusUnauthorized, "authentication required for library access")
+			return
+		}
+		userID = &user.ID
+	} else if input.Status != nil {
+		user := middleware.GetUser(r)
+		if user == nil {
+			h.jsonError(w, http.StatusUnauthorized, "authentication required for status filtering")
+			return
+		}
+		userID = &user.ID
+	}
+
+	resp, err := h.animeService.GetAnimeCatalog(r.Context(), input, userID)
 	if err != nil {
 		log.Error("failed to fetch anime catalog", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch anime catalog")

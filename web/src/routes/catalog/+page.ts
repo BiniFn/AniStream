@@ -22,6 +22,8 @@ export const load: PageLoad = async ({ fetch, url }) => {
 			| 'year'
 			| 'relevance'
 			| 'updated_at'
+			| 'anime_updated_at'
+			| 'library_updated_at'
 			| null) || undefined;
 	const sortOrder = (url.searchParams.get('sortOrder') as 'asc' | 'desc' | null) || undefined;
 

@@ -17,34 +17,35 @@ import (
 func (s *AnimeService) GetAnimeCatalog(
 	ctx context.Context,
 	input *models.GetAnimeCatalogParams,
-) (models.AnimeListResponse, error) {
+	userID *string,
+) (models.AnimeWithLibraryListResponse, error) {
 	limit, offset, err := utils.ValidatePaginationParams(input.Page, input.ItemsPerPage)
 	if err != nil {
-		return models.AnimeListResponse{}, err
+		return models.AnimeWithLibraryListResponse{}, err
 	}
 
-	rows, err := s.repo.GetAnimeCatalog(ctx, input.ToRepo(limit, offset))
+	rows, err := s.repo.GetAnimeCatalog(ctx, input.ToRepo(limit, offset, userID))
 	if err != nil {
-		return models.AnimeListResponse{}, err
+		return models.AnimeWithLibraryListResponse{}, err
 	}
 
 	for _, r := range rows {
 		s.refresher.Enqueue(r.MalID.Int32)
 	}
 
-	total, err := s.repo.GetAnimeCatalogCount(ctx, input.ToRepoCount())
+	total, err := s.repo.GetAnimeCatalogCount(ctx, input.ToRepoCount(userID))
 	if err != nil {
-		return models.AnimeListResponse{}, err
+		return models.AnimeWithLibraryListResponse{}, err
 	}
 
-	items := make([]models.AnimeResponse, len(rows))
+	items := make([]models.AnimeWithLibraryResponse, len(rows))
 	for i, a := range rows {
-		items[i] = mappers.AnimeFromCatalog(a)
+		items[i] = mappers.AnimeWithLibraryFromCatalog(a)
 	}
 
 	pageSize := int64(limit)
 	pageInfo := utils.PageInfo(input.Page, pageSize, total)
-	return models.AnimeListResponse{
+	return models.AnimeWithLibraryListResponse{
 		PageInfo: pageInfo,
 		Items:    items,
 	}, nil

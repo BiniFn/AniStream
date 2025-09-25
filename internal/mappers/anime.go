@@ -3,6 +3,7 @@ package mappers
 import (
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/coeeter/aniways/internal/infra/client/hianime"
 	"github.com/coeeter/aniways/internal/models"
@@ -37,6 +38,40 @@ func AnimeFromCatalog(anime repository.GetAnimeCatalogRow) models.AnimeResponse 
 		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
 		LastEpisode: nilIfEmpty(anime.LastEpisode),
 	}
+}
+
+func AnimeWithLibraryFromCatalog(anime repository.GetAnimeCatalogRow) models.AnimeWithLibraryResponse {
+	response := models.AnimeWithLibraryResponse{
+		ID:          anime.ID,
+		EName:       nilIfEmpty(anime.Ename),
+		JName:       nilIfEmpty(anime.Jname),
+		ImageURL:    anime.ImageUrl,
+		Genre:       anime.Genre,
+		Season:      string(anime.Season),
+		SeasonYear:  nilIfEmpty(anime.SeasonYear),
+		MalID:       nilIfEmpty(anime.MalID.Int32),
+		AnilistID:   nilIfEmpty(anime.AnilistID.Int32),
+		LastEpisode: nilIfEmpty(anime.LastEpisode),
+	}
+
+	if anime.LibraryID.Valid {
+		library := models.LibraryInfo{
+			ID:              anime.LibraryID.String,
+			WatchedEpisodes: anime.LibraryWatchedEpisodes.Int32,
+		}
+
+		if anime.LibraryStatus.Valid {
+			library.Status = models.LibraryStatus(anime.LibraryStatus.LibraryStatus)
+		}
+
+		if anime.LibraryUpdatedAt.Valid {
+			library.UpdatedAt = anime.LibraryUpdatedAt.Time.Format(time.RFC3339)
+		}
+
+		response.Library = &library
+	}
+
+	return response
 }
 
 func AnimeFromSearch(anime repository.SearchAnimesRow) models.AnimeResponse {

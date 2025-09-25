@@ -303,24 +303,25 @@ paths:
         - Anime
   /anime/listings:
     get:
-      description: Get anime catalog
+      description: Get anime catalog. When authenticated, includes library status.
+        Supports library-only filtering and search.
       parameters:
-        - description: Page number
+        - description: "Page number (default: 1)"
           in: query
           name: page
           schema:
             type: integer
-        - description: Number of items per page
+        - description: "Number of items per page (default: 30, max: 100)"
           in: query
           name: itemsPerPage
           schema:
             type: integer
-        - description: Search text
+        - description: Search anime by name
           in: query
           name: search
           schema:
             type: string
-        - description: Genres (repeat param)
+        - description: Filter by genres (repeat for multiple)
           in: query
           name: genres
           explode: true
@@ -328,7 +329,7 @@ paths:
             type: array
             items:
               type: string
-        - description: Genre match mode
+        - description: "Genre matching mode: 'any' (default) or 'all'"
           in: query
           name: genresMode
           schema:
@@ -336,7 +337,7 @@ paths:
             enum:
               - any
               - all
-        - description: Seasons (repeat param)
+        - description: Filter by seasons (repeat for multiple)
           in: query
           name: seasons
           explode: true
@@ -350,7 +351,7 @@ paths:
                 - fall
                 - unknown
               type: string
-        - description: Years (repeat param)
+        - description: Filter by specific years (repeat for multiple)
           in: query
           name: years
           explode: true
@@ -358,12 +359,12 @@ paths:
             type: array
             items:
               type: integer
-        - description: Minimum year (inclusive)
+        - description: Filter by minimum year (inclusive)
           in: query
           name: yearMin
           schema:
             type: integer
-        - description: Maximum year (inclusive)
+        - description: Filter by maximum year (inclusive)
           in: query
           name: yearMax
           schema:
@@ -380,7 +381,9 @@ paths:
               - year
               - relevance
               - updated_at
-        - description: Sort order
+              - anime_updated_at
+              - library_updated_at
+        - description: "Sort order: 'asc' or 'desc' (default: 'desc')"
           in: query
           name: sortOrder
           schema:
@@ -388,26 +391,48 @@ paths:
             enum:
               - asc
               - desc
+        - description: Only show anime in user's library (requires authentication)
+          in: query
+          name: inLibraryOnly
+          schema:
+            type: boolean
+        - description: Filter by library status (requires authentication)
+          in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - watching
+              - completed
+              - planning
+              - dropped
+              - paused
       responses:
         "200":
-          description: OK
+          description: Anime catalog with optional library information
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/models.AnimeListResponse"
+                $ref: "#/components/schemas/models.AnimeWithLibraryListResponse"
         "400":
-          description: Bad Request
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "401":
+          description: Authentication required for library features
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/models.ErrorResponse"
         "500":
-          description: Internal Server Error
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/models.ErrorResponse"
-      summary: Get anime catalog
+      summary: Get anime catalog with optional library information
       tags:
         - Anime Listings
   /anime/listings/genres:
@@ -1765,6 +1790,58 @@ components:
         - imageUrl
         - season
       type: object
+    models.AnimeWithLibraryListResponse:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/models.AnimeWithLibraryResponse"
+          type: array
+        pageInfo:
+          $ref: "#/components/schemas/models.PageInfo"
+      required:
+        - items
+        - pageInfo
+      type: object
+    models.AnimeWithLibraryResponse:
+      properties:
+        anilistId:
+          example: 67890
+          type: integer
+        ename:
+          example: Attack on Titan
+          type: string
+        genre:
+          example: Action, Drama
+          type: string
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        imageUrl:
+          example: https://example.com/anime/image.jpg
+          type: string
+        jname:
+          example: 進撃の巨人
+          type: string
+        lastEpisode:
+          example: 25
+          type: integer
+        library:
+          $ref: "#/components/schemas/models.LibraryInfo"
+        malId:
+          example: 12345
+          type: integer
+        season:
+          example: spring
+          type: string
+        seasonYear:
+          example: 2023
+          type: integer
+      required:
+        - genre
+        - id
+        - imageUrl
+        - season
+      type: object
     models.AnimeWithMetadataResponse:
       properties:
         anilistId:
@@ -1938,6 +2015,28 @@ components:
         - status
         - updatedAt
         - userId
+      type: object
+    models.LibraryInfo:
+      properties:
+        id:
+          example: V1StGXR8Z5jdHi6B
+          type: string
+        status:
+          allOf:
+            - $ref: "#/components/schemas/models.LibraryStatus"
+          example: watching
+        updatedAt:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        watchedEpisodes:
+          example: 12
+          minimum: 0
+          type: integer
+      required:
+        - id
+        - status
+        - updatedAt
+        - watchedEpisodes
       type: object
     models.LibraryListResponse:
       properties:

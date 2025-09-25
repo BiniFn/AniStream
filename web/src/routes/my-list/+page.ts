@@ -17,25 +17,60 @@ export const load: PageLoad = async ({ fetch, parent, url }) => {
 		| 'dropped'
 		| 'paused';
 	const page = parseInt(searchParams.get('page') || '1', 10);
-	const itemsPerPage = 24;
+	const itemsPerPageParam = searchParams.get('itemsPerPage');
+	const itemsPerPage = itemsPerPageParam ? Number(itemsPerPageParam) : 24;
+	const search = searchParams.get('search') || undefined;
+	const genres = searchParams.getAll('genres');
+	const genresMode = (searchParams.get('genresMode') as 'any' | 'all' | null) || undefined;
+	const seasons = searchParams.getAll('seasons') as Array<
+		'winter' | 'spring' | 'summer' | 'fall' | 'unknown'
+	>;
+	const years = searchParams.getAll('years').map(Number).filter(Boolean);
+	const yearMinStr = searchParams.get('yearMin');
+	const yearMaxStr = searchParams.get('yearMax');
+	const sortBy =
+		(searchParams.get('sortBy') as
+			| 'ename'
+			| 'jname'
+			| 'season'
+			| 'year'
+			| 'relevance'
+			| 'updated_at'
+			| 'anime_updated_at'
+			| 'library_updated_at'
+			| null) || undefined;
+	const sortOrder = (searchParams.get('sortOrder') as 'asc' | 'desc' | null) || undefined;
 
-	const libraryData = await apiClient.GET('/library', {
-		fetch,
-		params: {
-			query: {
-				status,
-				page,
-				itemsPerPage,
+	const [listings, genresList] = await Promise.all([
+		apiClient.GET('/anime/listings', {
+			fetch,
+			params: {
+				query: {
+					inLibraryOnly: true,
+					status,
+					page,
+					itemsPerPage,
+					search,
+					genres: genres.length ? genres : undefined,
+					genresMode,
+					seasons: seasons.length ? seasons : undefined,
+					years: years.length ? years : undefined,
+					yearMin: yearMinStr ? Number(yearMinStr) : undefined,
+					yearMax: yearMaxStr ? Number(yearMaxStr) : undefined,
+					sortBy: sortBy || 'library_updated_at',
+					sortOrder: sortOrder || 'desc',
+				},
 			},
-		},
-	});
+		}),
+		apiClient.GET('/anime/listings/genres', { fetch }),
+	]);
 
-	if (libraryData.error) {
-		console.error('Failed to fetch library:', libraryData.error);
+	if (listings.error) {
+		console.error('Failed to fetch library:', listings.error);
 		return {
 			status,
 			page,
-			library: {
+			listings: {
 				items: [],
 				pageInfo: {
 					currentPage: 1,
@@ -44,12 +79,40 @@ export const load: PageLoad = async ({ fetch, parent, url }) => {
 					hasPrevPage: false,
 				},
 			},
+			genres: genresList.data || [],
+			initialQuery: {
+				page,
+				itemsPerPage,
+				search: search ?? '',
+				genres,
+				genresMode: genresMode ?? 'any',
+				seasons,
+				years,
+				yearMin: yearMinStr ? Number(yearMinStr) : undefined,
+				yearMax: yearMaxStr ? Number(yearMaxStr) : undefined,
+				sortBy: sortBy ?? 'library_updated_at',
+				sortOrder: sortOrder ?? 'desc',
+			},
 		};
 	}
 
 	return {
 		status,
 		page,
-		library: libraryData.data,
+		listings: listings.data!,
+		genres: genresList.data || [],
+		initialQuery: {
+			page,
+			itemsPerPage,
+			search: search ?? '',
+			genres,
+			genresMode: genresMode ?? 'any',
+			seasons,
+			years,
+			yearMin: yearMinStr ? Number(yearMinStr) : undefined,
+			yearMax: yearMaxStr ? Number(yearMaxStr) : undefined,
+			sortBy: sortBy ?? 'library_updated_at',
+			sortOrder: sortOrder ?? 'desc',
+		},
 	};
 };

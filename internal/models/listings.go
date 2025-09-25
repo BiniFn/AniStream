@@ -44,17 +44,19 @@ func (m *GenresMode) FromString(s string) error {
 type SortBy string
 
 const (
-	SortByEname     SortBy = "ename"
-	SortByJname     SortBy = "jname"
-	SortBySeason    SortBy = "season"
-	SortByYear      SortBy = "year"
-	SortByRelevance SortBy = "relevance"
-	SortByUpdatedAt SortBy = "updated_at"
+	SortByEname            SortBy = "ename"
+	SortByJname            SortBy = "jname"
+	SortBySeason           SortBy = "season"
+	SortByYear             SortBy = "year"
+	SortByRelevance        SortBy = "relevance"
+	SortByUpdatedAt        SortBy = "updated_at"
+	SortByAnimeUpdatedAt   SortBy = "anime_updated_at"
+	SortByLibraryUpdatedAt SortBy = "library_updated_at"
 )
 
 func (s SortBy) IsValid() bool {
 	switch s {
-	case SortByEname, SortByJname, SortBySeason, SortByYear, SortByRelevance, SortByUpdatedAt:
+	case SortByEname, SortByJname, SortBySeason, SortByYear, SortByRelevance, SortByUpdatedAt, SortByAnimeUpdatedAt, SortByLibraryUpdatedAt:
 		return true
 	default:
 		return false
@@ -79,6 +81,10 @@ func (s *SortBy) FromString(str string) error {
 		*s = SortByRelevance
 	case "updated_at":
 		*s = SortByUpdatedAt
+	case "anime_updated_at":
+		*s = SortByAnimeUpdatedAt
+	case "library_updated_at":
+		*s = SortByLibraryUpdatedAt
 	default:
 		return fmt.Errorf("invalid SortBy: %s", str)
 	}
@@ -118,17 +124,19 @@ func (o *SortOrder) FromString(s string) error {
 }
 
 type GetAnimeCatalogParams struct {
-	Page         int        `in:"query=page;default=1"`
-	ItemsPerPage int        `in:"query=itemsPerPage;default=30"`
-	Search       *string    `in:"query=search"`
-	Genres       []string   `in:"query=genres"`
-	GenresMode   GenresMode `in:"query=genresMode"`
-	Seasons      []string   `in:"query=seasons"`
-	Years        []int      `in:"query=years"`
-	YearMin      *int       `in:"query=yearMin"`
-	YearMax      *int       `in:"query=yearMax"`
-	SortBy       SortBy     `in:"query=sortBy"`
-	SortOrder    SortOrder  `in:"query=sortOrder"`
+	Page          int        `in:"query=page;default=1"`
+	ItemsPerPage  int        `in:"query=itemsPerPage;default=30"`
+	Search        *string    `in:"query=search"`
+	Genres        []string   `in:"query=genres"`
+	GenresMode    GenresMode `in:"query=genresMode"`
+	Seasons       []string   `in:"query=seasons"`
+	Years         []int      `in:"query=years"`
+	YearMin       *int       `in:"query=yearMin"`
+	YearMax       *int       `in:"query=yearMax"`
+	SortBy        SortBy     `in:"query=sortBy"`
+	SortOrder     SortOrder  `in:"query=sortOrder"`
+	InLibraryOnly *bool      `in:"query=inLibraryOnly"`
+	Status        *string    `in:"query=status"`
 }
 
 func (p GetAnimeCatalogParams) Normalize() GetAnimeCatalogParams {
@@ -211,35 +219,75 @@ func int4Opt(ptr *int) pgtype.Int4 {
 	return pgtype.Int4{Int32: int32(*ptr), Valid: true}
 }
 
-func (p GetAnimeCatalogParams) ToRepo(limit, offset int32) repository.GetAnimeCatalogParams {
+func libraryStatusOpt(ptr *string) repository.NullLibraryStatus {
+	if ptr == nil || strings.TrimSpace(*ptr) == "" {
+		return repository.NullLibraryStatus{Valid: false}
+	}
+
+	status := strings.TrimSpace(*ptr)
+	var libStatus repository.LibraryStatus
+
+	switch status {
+	case "planning":
+		libStatus = repository.LibraryStatusPlanning
+	case "watching":
+		libStatus = repository.LibraryStatusWatching
+	case "completed":
+		libStatus = repository.LibraryStatusCompleted
+	case "dropped":
+		libStatus = repository.LibraryStatusDropped
+	case "paused":
+		libStatus = repository.LibraryStatusPaused
+	default:
+		return repository.NullLibraryStatus{Valid: false}
+	}
+
+	return repository.NullLibraryStatus{LibraryStatus: libStatus, Valid: true}
+}
+
+func (p GetAnimeCatalogParams) ToRepo(limit, offset int32, userID *string) repository.GetAnimeCatalogParams {
 	n := p.Normalize()
 
+	var pgUserID pgtype.Text
+	if userID != nil {
+		pgUserID = pgtype.Text{String: *userID, Valid: true}
+	}
+
 	return repository.GetAnimeCatalogParams{
-		Limit:      int32(limit),
-		Offset:     int32(offset),
-		Search:     textOpt(n.Search),
-		Genres:     n.Genres,
-		GenresMode: textEnum(string(n.GenresMode), n.GenresMode.IsValid()),
-		Seasons:    n.Seasons,
-		Years:      n.toInt32s(n.Years),
-		YearMin:    int4Opt(n.YearMin),
-		YearMax:    int4Opt(n.YearMax),
-		SortBy:     textEnum(string(n.SortBy), n.SortBy.IsValid()),
-		SortOrder:  textEnum(string(n.SortOrder), n.SortOrder.IsValid()),
+		Limit:         int32(limit),
+		Offset:        int32(offset),
+		UserID:        pgUserID,
+		Search:        textOpt(n.Search),
+		Genres:        n.Genres,
+		GenresMode:    textEnum(string(n.GenresMode), n.GenresMode.IsValid()),
+		Seasons:       n.Seasons,
+		Years:         n.toInt32s(n.Years),
+		YearMin:       int4Opt(n.YearMin),
+		YearMax:       int4Opt(n.YearMax),
+		SortBy:        textEnum(string(n.SortBy), n.SortBy.IsValid()),
+		SortOrder:     textEnum(string(n.SortOrder), n.SortOrder.IsValid()),
+		LibraryStatus: libraryStatusOpt(n.Status),
 	}
 }
 
-func (p GetAnimeCatalogParams) ToRepoCount() repository.GetAnimeCatalogCountParams {
+func (p GetAnimeCatalogParams) ToRepoCount(userID *string) repository.GetAnimeCatalogCountParams {
 	n := p.Normalize()
 
+	var pgUserID pgtype.Text
+	if userID != nil {
+		pgUserID = pgtype.Text{String: *userID, Valid: true}
+	}
+
 	return repository.GetAnimeCatalogCountParams{
-		Search:     textOpt(n.Search),
-		Genres:     n.Genres,
-		GenresMode: textEnum(string(n.GenresMode), n.GenresMode.IsValid()),
-		Seasons:    n.Seasons,
-		Years:      n.toInt32s(n.Years),
-		YearMin:    int4Opt(n.YearMin),
-		YearMax:    int4Opt(n.YearMax),
+		UserID:        pgUserID,
+		Search:        textOpt(n.Search),
+		Genres:        n.Genres,
+		GenresMode:    textEnum(string(n.GenresMode), n.GenresMode.IsValid()),
+		Seasons:       n.Seasons,
+		Years:         n.toInt32s(n.Years),
+		YearMin:       int4Opt(n.YearMin),
+		YearMax:       int4Opt(n.YearMax),
+		LibraryStatus: libraryStatusOpt(n.Status),
 	}
 }
 

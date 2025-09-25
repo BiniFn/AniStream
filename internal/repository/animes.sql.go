@@ -434,33 +434,44 @@ const getAnimeCatalog = `-- name: GetAnimeCatalog :many
 WITH p AS (
   SELECT
     -- normalized/trimmed search
-    NULLIF(trim($7::text), '') AS q,
+    NULLIF(trim($9::text), '') AS q,
     -- normalized genres (lowercased, trimmed) or NULL
-    CASE WHEN $8::text[] IS NULL THEN
+    CASE WHEN $10::text[] IS NULL THEN
       NULL
     ELSE
       (
         SELECT
           array_agg(lower(trim(g)))
         FROM
-          unnest($8::text[]) AS u(g)
+          unnest($10::text[]) AS u(g)
         WHERE
           trim(g) <> '')
     END AS g,
-    $9::text AS gm,
-    $10::text AS sb,
-    $11::text AS so
+    $11::text AS gm,
+    $12::text AS sb,
+    $13::text AS so
 )
 SELECT
   a.id, a.ename, a.jname, a.image_url, a.genre, a.hi_anime_id, a.mal_id, a.anilist_id, a.last_episode, a.created_at, a.updated_at, a.search_vector, a.season, a.season_year, a.genres_arr,
+  l.id as library_id,
+  l.user_id as library_user_id,
+  l.anime_id as library_anime_id,
+  l.status as library_status,
+  l.watched_episodes as library_watched_episodes,
+  l.created_at as library_created_at,
+  l.updated_at as library_updated_at,
   CASE WHEN p.q IS NOT NULL THEN
     ts_rank(a.search_vector, plainto_tsquery('english', p.q))
   ELSE
     NULL
   END AS query_rank
 FROM
-  animes a,
-  p
+  animes a
+  -- Only JOIN library when user_id is provided
+  LEFT JOIN library l ON ($3::varchar IS NOT NULL
+      AND a.id = l.anime_id
+      AND l.user_id = $3::varchar)
+  CROSS JOIN p
 WHERE
   -- only MAL-linked rows
 (a.mal_id IS NOT NULL
@@ -471,16 +482,16 @@ WHERE
     OR a.jname % p.q
     OR a.search_vector @@ plainto_tsquery('english', p.q))
   -- seasons (skip when null)
-  AND ($3::text[] IS NULL
-    OR a.season = ANY ($3::season[]))
+  AND ($4::text[] IS NULL
+    OR a.season = ANY ($4::season[]))
   -- years list (skip when null)
-  AND ($4::int[] IS NULL
-    OR a.season_year = ANY ($4::int[]))
+  AND ($5::int[] IS NULL
+    OR a.season_year = ANY ($5::int[]))
   -- year range (skip each bound when null)
-  AND ($5::int IS NULL
-    OR a.season_year >= $5::int)
   AND ($6::int IS NULL
-    OR a.season_year <= $6::int)
+    OR a.season_year >= $6::int)
+  AND ($7::int IS NULL
+    OR a.season_year <= $7::int)
   -- genres ANY/ALL using generated genres_arr (skip when null/empty)
   AND (p.g IS NULL
     OR (
@@ -489,112 +500,147 @@ WHERE
       ELSE
         a.genres_arr && p.g
       END))
-ORDER BY
-  -- relevance
-  CASE WHEN p.sb = 'relevance'
-    AND p.so = 'asc' THEN
-    CASE WHEN p.q IS NOT NULL THEN
-      ts_rank(a.search_vector, plainto_tsquery('english', p.q))
-    END
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'relevance'
-    AND p.so = 'desc' THEN
-    CASE WHEN p.q IS NOT NULL THEN
-      ts_rank(a.search_vector, plainto_tsquery('english', p.q))
-    END
-  END DESC NULLS LAST,
-  -- ename
-  CASE WHEN p.sb = 'ename'
-    AND p.so = 'asc' THEN
-    a.ename
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'ename'
-    AND p.so = 'desc' THEN
-    a.ename
-  END DESC NULLS LAST,
-  -- jname
-  CASE WHEN p.sb = 'jname'
-    AND p.so = 'asc' THEN
-    a.jname
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'jname'
-    AND p.so = 'desc' THEN
-    a.jname
-  END DESC NULLS LAST,
-  -- season
-  CASE WHEN p.sb = 'season'
-    AND p.so = 'asc' THEN
-    a.season::text
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'season'
-    AND p.so = 'desc' THEN
-    a.season::text
-  END DESC NULLS LAST,
-  -- year
-  CASE WHEN p.sb = 'year'
-    AND p.so = 'asc' THEN
-    a.season_year
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'year'
-    AND p.so = 'desc' THEN
-    a.season_year
-  END DESC NULLS LAST,
-  -- updated_at
-  CASE WHEN p.sb = 'updated_at'
-    AND p.so = 'asc' THEN
-    a.updated_at
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'updated_at'
-    AND p.so = 'desc' THEN
-    a.updated_at
-  END DESC NULLS LAST,
-  -- stable tiebreakers (helpful for deterministic paging)
-  a.updated_at DESC,
-  a.id DESC
-LIMIT $1 OFFSET $2
+    -- Library-only filtering (when user_id provided, only show library entries)
+    AND ($3::varchar IS NULL -- catalog mode
+      OR l.user_id IS NOT NULL) -- library mode (must be in library)
+    -- Library status filtering
+    AND ($8::library_status IS NULL
+      OR l.status = $8::library_status)
+  ORDER BY
+    -- relevance
+    CASE WHEN p.sb = 'relevance'
+      AND p.so = 'asc' THEN
+      CASE WHEN p.q IS NOT NULL THEN
+        ts_rank(a.search_vector, plainto_tsquery('english', p.q))
+      END
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'relevance'
+      AND p.so = 'desc' THEN
+      CASE WHEN p.q IS NOT NULL THEN
+        ts_rank(a.search_vector, plainto_tsquery('english', p.q))
+      END
+    END DESC NULLS LAST,
+    -- ename
+    CASE WHEN p.sb = 'ename'
+      AND p.so = 'asc' THEN
+      a.ename
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'ename'
+      AND p.so = 'desc' THEN
+      a.ename
+    END DESC NULLS LAST,
+    -- jname
+    CASE WHEN p.sb = 'jname'
+      AND p.so = 'asc' THEN
+      a.jname
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'jname'
+      AND p.so = 'desc' THEN
+      a.jname
+    END DESC NULLS LAST,
+    -- season
+    CASE WHEN p.sb = 'season'
+      AND p.so = 'asc' THEN
+      a.season::text
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'season'
+      AND p.so = 'desc' THEN
+      a.season::text
+    END DESC NULLS LAST,
+    -- year
+    CASE WHEN p.sb = 'year'
+      AND p.so = 'asc' THEN
+      a.season_year
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'year'
+      AND p.so = 'desc' THEN
+      a.season_year
+    END DESC NULLS LAST,
+    -- anime updated_at
+    CASE WHEN p.sb = 'anime_updated_at'
+      AND p.so = 'asc' THEN
+      a.updated_at
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'anime_updated_at'
+      AND p.so = 'desc' THEN
+      a.updated_at
+    END DESC NULLS LAST,
+    -- library updated_at (only when library is joined)
+    CASE WHEN p.sb = 'library_updated_at'
+      AND p.so = 'asc' THEN
+      l.updated_at
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'library_updated_at'
+      AND p.so = 'desc' THEN
+      l.updated_at
+    END DESC NULLS LAST,
+    -- legacy updated_at (maps to anime_updated_at for backward compatibility)
+    CASE WHEN p.sb = 'updated_at'
+      AND p.so = 'asc' THEN
+      a.updated_at
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'updated_at'
+      AND p.so = 'desc' THEN
+      a.updated_at
+    END DESC NULLS LAST,
+    -- stable tiebreakers (helpful for deterministic paging)
+    a.updated_at DESC,
+    a.id DESC
+  LIMIT $1 OFFSET $2
 `
 
 type GetAnimeCatalogParams struct {
-	Limit      int32
-	Offset     int32
-	Seasons    []string
-	Years      []int32
-	YearMin    pgtype.Int4
-	YearMax    pgtype.Int4
-	Search     pgtype.Text
-	Genres     []string
-	GenresMode pgtype.Text
-	SortBy     pgtype.Text
-	SortOrder  pgtype.Text
+	Limit         int32
+	Offset        int32
+	UserID        pgtype.Text
+	Seasons       []string
+	Years         []int32
+	YearMin       pgtype.Int4
+	YearMax       pgtype.Int4
+	LibraryStatus NullLibraryStatus
+	Search        pgtype.Text
+	Genres        []string
+	GenresMode    pgtype.Text
+	SortBy        pgtype.Text
+	SortOrder     pgtype.Text
 }
 
 type GetAnimeCatalogRow struct {
-	ID           string
-	Ename        string
-	Jname        string
-	ImageUrl     string
-	Genre        string
-	HiAnimeID    string
-	MalID        pgtype.Int4
-	AnilistID    pgtype.Int4
-	LastEpisode  int32
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-	SearchVector string
-	Season       Season
-	SeasonYear   int32
-	GenresArr    []string
-	QueryRank    interface{}
+	ID                     string
+	Ename                  string
+	Jname                  string
+	ImageUrl               string
+	Genre                  string
+	HiAnimeID              string
+	MalID                  pgtype.Int4
+	AnilistID              pgtype.Int4
+	LastEpisode            int32
+	CreatedAt              pgtype.Timestamp
+	UpdatedAt              pgtype.Timestamp
+	SearchVector           string
+	Season                 Season
+	SeasonYear             int32
+	GenresArr              []string
+	LibraryID              pgtype.Text
+	LibraryUserID          pgtype.Text
+	LibraryAnimeID         pgtype.Text
+	LibraryStatus          NullLibraryStatus
+	LibraryWatchedEpisodes pgtype.Int4
+	LibraryCreatedAt       pgtype.Timestamp
+	LibraryUpdatedAt       pgtype.Timestamp
+	QueryRank              interface{}
 }
 
 func (q *Queries) GetAnimeCatalog(ctx context.Context, arg GetAnimeCatalogParams) ([]GetAnimeCatalogRow, error) {
 	rows, err := q.db.Query(ctx, getAnimeCatalog,
 		arg.Limit,
 		arg.Offset,
+		arg.UserID,
 		arg.Seasons,
 		arg.Years,
 		arg.YearMin,
 		arg.YearMax,
+		arg.LibraryStatus,
 		arg.Search,
 		arg.Genres,
 		arg.GenresMode,
@@ -624,6 +670,13 @@ func (q *Queries) GetAnimeCatalog(ctx context.Context, arg GetAnimeCatalogParams
 			&i.Season,
 			&i.SeasonYear,
 			&i.GenresArr,
+			&i.LibraryID,
+			&i.LibraryUserID,
+			&i.LibraryAnimeID,
+			&i.LibraryStatus,
+			&i.LibraryWatchedEpisodes,
+			&i.LibraryCreatedAt,
+			&i.LibraryUpdatedAt,
 			&i.QueryRank,
 		); err != nil {
 			return nil, err
@@ -639,64 +692,85 @@ func (q *Queries) GetAnimeCatalog(ctx context.Context, arg GetAnimeCatalogParams
 const getAnimeCatalogCount = `-- name: GetAnimeCatalogCount :one
 WITH p AS (
   SELECT
-    NULLIF(trim($5::text), '') AS q,
-    CASE WHEN $6::text[] IS NULL THEN
+    NULLIF(trim($7::text), '') AS q,
+    CASE WHEN $8::text[] IS NULL THEN
       NULL
     ELSE
       (
         SELECT
           array_agg(lower(trim(g)))
         FROM
-          unnest($6::text[]) AS u(g)
+          unnest($8::text[]) AS u(g)
         WHERE
           trim(g) <> '')
     END AS g,
-    $7::text AS gm
+    $9::text AS gm
 )
 SELECT
   COUNT(*)
 FROM
-  animes a,
-  p
-WHERE (a.mal_id IS NOT NULL
-  AND a.mal_id <> 0)
-AND (p.q IS NULL
-  OR a.ename % p.q
-  OR a.jname % p.q
-  OR a.search_vector @@ plainto_tsquery('english', p.q))
-AND ($1::text[] IS NULL
-  OR a.season = ANY ($1::season[]))
-AND ($2::int[] IS NULL
-  OR a.season_year = ANY ($2::int[]))
-AND ($3::int IS NULL
-  OR a.season_year >= $3::int)
-AND ($4::int IS NULL
-  OR a.season_year <= $4::int)
-AND (p.g IS NULL
-  OR (
-    CASE WHEN p.gm = 'all' THEN
-      a.genres_arr @> p.g
-    ELSE
-      a.genres_arr && p.g
-    END))
+  animes a
+  -- Only JOIN library when user_id is provided
+  LEFT JOIN library l ON ($1::varchar IS NOT NULL
+      AND a.id = l.anime_id
+      AND l.user_id = $1::varchar)
+  CROSS JOIN p
+WHERE
+  -- only MAL-linked rows
+(a.mal_id IS NOT NULL
+    AND a.mal_id <> 0)
+  -- search (skip when q is null)
+  AND (p.q IS NULL
+    OR a.ename % p.q
+    OR a.jname % p.q
+    OR a.search_vector @@ plainto_tsquery('english', p.q))
+  -- seasons (skip when null)
+  AND ($2::text[] IS NULL
+    OR a.season = ANY ($2::season[]))
+  -- years list (skip when null)
+  AND ($3::int[] IS NULL
+    OR a.season_year = ANY ($3::int[]))
+  -- year range (skip each bound when null)
+  AND ($4::int IS NULL
+    OR a.season_year >= $4::int)
+  AND ($5::int IS NULL
+    OR a.season_year <= $5::int)
+  -- genres ANY/ALL using generated genres_arr (skip when null/empty)
+  AND (p.g IS NULL
+    OR (
+      CASE WHEN p.gm = 'all' THEN
+        a.genres_arr @> p.g
+      ELSE
+        a.genres_arr && p.g
+      END))
+    -- Library-only filtering (when user_id provided, only show library entries)
+    AND ($1::varchar IS NULL -- catalog mode
+      OR l.user_id IS NOT NULL) -- library mode (must be in library)
+    -- Library status filtering
+    AND ($6::library_status IS NULL
+      OR l.status = $6::library_status)
 `
 
 type GetAnimeCatalogCountParams struct {
-	Seasons    []string
-	Years      []int32
-	YearMin    pgtype.Int4
-	YearMax    pgtype.Int4
-	Search     pgtype.Text
-	Genres     []string
-	GenresMode pgtype.Text
+	UserID        pgtype.Text
+	Seasons       []string
+	Years         []int32
+	YearMin       pgtype.Int4
+	YearMax       pgtype.Int4
+	LibraryStatus NullLibraryStatus
+	Search        pgtype.Text
+	Genres        []string
+	GenresMode    pgtype.Text
 }
 
 func (q *Queries) GetAnimeCatalogCount(ctx context.Context, arg GetAnimeCatalogCountParams) (int64, error) {
 	row := q.db.QueryRow(ctx, getAnimeCatalogCount,
+		arg.UserID,
 		arg.Seasons,
 		arg.Years,
 		arg.YearMin,
 		arg.YearMax,
+		arg.LibraryStatus,
 		arg.Search,
 		arg.Genres,
 		arg.GenresMode,
@@ -854,20 +928,23 @@ func (q *Queries) GetCountOfAnimes(ctx context.Context) (int64, error) {
 
 const getGenrePreviews = `-- name: GetGenrePreviews :many
 WITH g AS (
-  SELECT DISTINCT unnest(a.genres_arr) AS genre
-  FROM animes a
+  SELECT DISTINCT
+    unnest(a.genres_arr) AS genre
+  FROM
+    animes a
 )
 SELECT
   g.genre::text AS name,
-  COALESCE(ARRAY(
-      SELECT a2.image_url::text
+  COALESCE(ARRAY (
+      SELECT
+        a2.image_url::text
       FROM animes a2
-      WHERE a2.genres_arr @> ARRAY[g.genre]::text[]
-      ORDER BY a2.season_year DESC, a2.updated_at DESC, a2.id DESC
-      LIMIT 6
-  ), ARRAY[]::text[]) AS previews
-FROM g
-ORDER BY g.genre
+      WHERE
+        a2.genres_arr @> ARRAY[g.genre]::text[] ORDER BY a2.season_year DESC, a2.updated_at DESC, a2.id DESC LIMIT 6), ARRAY[]::text[]) AS previews
+FROM
+  g
+ORDER BY
+  g.genre
 `
 
 type GetGenrePreviewsRow struct {

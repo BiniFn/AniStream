@@ -309,14 +309,25 @@ WITH p AS (
 )
 SELECT
   a.*,
+  l.id AS library_id,
+  l.user_id AS library_user_id,
+  l.anime_id AS library_anime_id,
+  l.status AS library_status,
+  l.watched_episodes AS library_watched_episodes,
+  l.created_at AS library_created_at,
+  l.updated_at AS library_updated_at,
   CASE WHEN p.q IS NOT NULL THEN
     ts_rank(a.search_vector, plainto_tsquery('english', p.q))
   ELSE
     NULL
   END AS query_rank
 FROM
-  animes a,
-  p
+  animes a
+  -- Only JOIN library when user_id is provided
+  LEFT JOIN library l ON (sqlc.narg(user_id)::varchar IS NOT NULL
+      AND a.id = l.anime_id
+      AND l.user_id = sqlc.narg(user_id)::varchar)
+  CROSS JOIN p
 WHERE
   -- only MAL-linked rows
 (a.mal_id IS NOT NULL
@@ -345,69 +356,93 @@ WHERE
       ELSE
         a.genres_arr && p.g
       END))
-ORDER BY
-  -- relevance
-  CASE WHEN p.sb = 'relevance'
-    AND p.so = 'asc' THEN
-    CASE WHEN p.q IS NOT NULL THEN
-      ts_rank(a.search_vector, plainto_tsquery('english', p.q))
-    END
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'relevance'
-    AND p.so = 'desc' THEN
-    CASE WHEN p.q IS NOT NULL THEN
-      ts_rank(a.search_vector, plainto_tsquery('english', p.q))
-    END
-  END DESC NULLS LAST,
-  -- ename
-  CASE WHEN p.sb = 'ename'
-    AND p.so = 'asc' THEN
-    a.ename
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'ename'
-    AND p.so = 'desc' THEN
-    a.ename
-  END DESC NULLS LAST,
-  -- jname
-  CASE WHEN p.sb = 'jname'
-    AND p.so = 'asc' THEN
-    a.jname
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'jname'
-    AND p.so = 'desc' THEN
-    a.jname
-  END DESC NULLS LAST,
-  -- season
-  CASE WHEN p.sb = 'season'
-    AND p.so = 'asc' THEN
-    a.season::text
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'season'
-    AND p.so = 'desc' THEN
-    a.season::text
-  END DESC NULLS LAST,
-  -- year
-  CASE WHEN p.sb = 'year'
-    AND p.so = 'asc' THEN
-    a.season_year
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'year'
-    AND p.so = 'desc' THEN
-    a.season_year
-  END DESC NULLS LAST,
-  -- updated_at
-  CASE WHEN p.sb = 'updated_at'
-    AND p.so = 'asc' THEN
-    a.updated_at
-  END ASC NULLS LAST,
-  CASE WHEN p.sb = 'updated_at'
-    AND p.so = 'desc' THEN
-    a.updated_at
-  END DESC NULLS LAST,
-  -- stable tiebreakers (helpful for deterministic paging)
-  a.updated_at DESC,
-  a.id DESC
-LIMIT $1 OFFSET $2;
+    -- Library-only filtering (when user_id provided, only show library entries)
+    AND (sqlc.narg(user_id)::varchar IS NULL -- catalog mode
+      OR l.user_id IS NOT NULL) -- library mode (must be in library)
+    -- Library status filtering
+    AND (sqlc.narg(library_status)::library_status IS NULL
+      OR l.status = sqlc.narg(library_status)::library_status)
+  ORDER BY
+    -- relevance
+    CASE WHEN p.sb = 'relevance'
+      AND p.so = 'asc' THEN
+      CASE WHEN p.q IS NOT NULL THEN
+        ts_rank(a.search_vector, plainto_tsquery('english', p.q))
+      END
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'relevance'
+      AND p.so = 'desc' THEN
+      CASE WHEN p.q IS NOT NULL THEN
+        ts_rank(a.search_vector, plainto_tsquery('english', p.q))
+      END
+    END DESC NULLS LAST,
+    -- ename
+    CASE WHEN p.sb = 'ename'
+      AND p.so = 'asc' THEN
+      a.ename
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'ename'
+      AND p.so = 'desc' THEN
+      a.ename
+    END DESC NULLS LAST,
+    -- jname
+    CASE WHEN p.sb = 'jname'
+      AND p.so = 'asc' THEN
+      a.jname
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'jname'
+      AND p.so = 'desc' THEN
+      a.jname
+    END DESC NULLS LAST,
+    -- season
+    CASE WHEN p.sb = 'season'
+      AND p.so = 'asc' THEN
+      a.season::text
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'season'
+      AND p.so = 'desc' THEN
+      a.season::text
+    END DESC NULLS LAST,
+    -- year
+    CASE WHEN p.sb = 'year'
+      AND p.so = 'asc' THEN
+      a.season_year
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'year'
+      AND p.so = 'desc' THEN
+      a.season_year
+    END DESC NULLS LAST,
+    -- anime updated_at
+    CASE WHEN p.sb = 'anime_updated_at'
+      AND p.so = 'asc' THEN
+      a.updated_at
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'anime_updated_at'
+      AND p.so = 'desc' THEN
+      a.updated_at
+    END DESC NULLS LAST,
+    -- library updated_at (only when library is joined)
+    CASE WHEN p.sb = 'library_updated_at'
+      AND p.so = 'asc' THEN
+      l.updated_at
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'library_updated_at'
+      AND p.so = 'desc' THEN
+      l.updated_at
+    END DESC NULLS LAST,
+    -- legacy updated_at (maps to anime_updated_at for backward compatibility)
+    CASE WHEN p.sb = 'updated_at'
+      AND p.so = 'asc' THEN
+      a.updated_at
+    END ASC NULLS LAST,
+    CASE WHEN p.sb = 'updated_at'
+      AND p.so = 'desc' THEN
+      a.updated_at
+    END DESC NULLS LAST,
+    -- stable tiebreakers (helpful for deterministic paging)
+    a.updated_at DESC,
+    a.id DESC
+  LIMIT $1 OFFSET $2;
 
 -- name: GetAnimeCatalogCount :one
 WITH p AS (
@@ -429,29 +464,46 @@ WITH p AS (
 SELECT
   COUNT(*)
 FROM
-  animes a,
-  p
-WHERE (a.mal_id IS NOT NULL
-  AND a.mal_id <> 0)
-AND (p.q IS NULL
-  OR a.ename % p.q
-  OR a.jname % p.q
-  OR a.search_vector @@ plainto_tsquery('english', p.q))
-AND (sqlc.narg(seasons)::text[] IS NULL
-  OR a.season = ANY (sqlc.narg(seasons)::season[]))
-AND (sqlc.narg(years)::int[] IS NULL
-  OR a.season_year = ANY (sqlc.narg(years)::int[]))
-AND (sqlc.narg(year_min)::int IS NULL
-  OR a.season_year >= sqlc.narg(year_min)::int)
-AND (sqlc.narg(year_max)::int IS NULL
-  OR a.season_year <= sqlc.narg(year_max)::int)
-AND (p.g IS NULL
-  OR (
-    CASE WHEN p.gm = 'all' THEN
-      a.genres_arr @> p.g
-    ELSE
-      a.genres_arr && p.g
-    END));
+  animes a
+  -- Only JOIN library when user_id is provided
+  LEFT JOIN library l ON (sqlc.narg(user_id)::varchar IS NOT NULL
+      AND a.id = l.anime_id
+      AND l.user_id = sqlc.narg(user_id)::varchar)
+  CROSS JOIN p
+WHERE
+  -- only MAL-linked rows
+(a.mal_id IS NOT NULL
+    AND a.mal_id <> 0)
+  -- search (skip when q is null)
+  AND (p.q IS NULL
+    OR a.ename % p.q
+    OR a.jname % p.q
+    OR a.search_vector @@ plainto_tsquery('english', p.q))
+  -- seasons (skip when null)
+  AND (sqlc.narg(seasons)::text[] IS NULL
+    OR a.season = ANY (sqlc.narg(seasons)::season[]))
+  -- years list (skip when null)
+  AND (sqlc.narg(years)::int[] IS NULL
+    OR a.season_year = ANY (sqlc.narg(years)::int[]))
+  -- year range (skip each bound when null)
+  AND (sqlc.narg(year_min)::int IS NULL
+    OR a.season_year >= sqlc.narg(year_min)::int)
+  AND (sqlc.narg(year_max)::int IS NULL
+    OR a.season_year <= sqlc.narg(year_max)::int)
+  -- genres ANY/ALL using generated genres_arr (skip when null/empty)
+  AND (p.g IS NULL
+    OR (
+      CASE WHEN p.gm = 'all' THEN
+        a.genres_arr @> p.g
+      ELSE
+        a.genres_arr && p.g
+      END))
+    -- Library-only filtering (when user_id provided, only show library entries)
+    AND (sqlc.narg(user_id)::varchar IS NULL -- catalog mode
+      OR l.user_id IS NOT NULL) -- library mode (must be in library)
+    -- Library status filtering
+    AND (sqlc.narg(library_status)::library_status IS NULL
+      OR l.status = sqlc.narg(library_status)::library_status);
 
 -- name: GetGenrePreviews :many
 WITH g AS (

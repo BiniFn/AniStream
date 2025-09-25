@@ -1,5 +1,6 @@
 <script lang="ts">
 	import GenreCard from '$lib/components/anime/genre-card.svelte';
+	import { layoutState } from '$lib/context/layout.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -13,7 +14,8 @@
 
 <div class="min-h-screen bg-background">
 	<div
-		class="sticky top-17 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+		class="sticky z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+		style="top: {layoutState.navbarHeight}px"
 	>
 		<div class="container mx-auto px-4 py-4">
 			<h1 class="text-2xl font-bold tracking-tight">Browse by Genre</h1>
