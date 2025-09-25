@@ -13,17 +13,17 @@
 
 	let { data }: PageProps = $props();
 
-	let searchQuery = $state(data.initialQuery.search);
-	let selectedGenres = $state(data.initialQuery.genres);
-	let genresMode = $state(data.initialQuery.genresMode);
-	let selectedSeasons = $state(data.initialQuery.seasons);
-	let selectedYears = $state(data.initialQuery.years);
-	let sortBy = $state(data.initialQuery.sortBy);
-	let sortOrder = $state(data.initialQuery.sortOrder);
-	let itemsPerPage = $state(data.initialQuery.itemsPerPage);
-	let currentPage = $state(data.initialQuery.page);
-	let yearMin = $state(data.initialQuery.yearMin);
-	let yearMax = $state(data.initialQuery.yearMax);
+	let searchQuery = $derived(data.initialQuery.search);
+	let selectedGenres = $derived(data.initialQuery.genres);
+	let genresMode = $derived(data.initialQuery.genresMode);
+	let selectedSeasons = $derived(data.initialQuery.seasons);
+	let selectedYears = $derived(data.initialQuery.years);
+	let sortBy = $derived(data.initialQuery.sortBy);
+	let sortOrder = $derived(data.initialQuery.sortOrder);
+	let itemsPerPage = $derived(data.initialQuery.itemsPerPage);
+	let currentPage = $derived(data.initialQuery.page);
+	let yearMin = $derived(data.initialQuery.yearMin);
+	let yearMax = $derived(data.initialQuery.yearMax);
 
 	let viewMode = $state<'grid' | 'list'>('grid');
 	let isLoading = $state(false);
