@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Footer from '$lib/components/layout/footer.svelte';
 	import NavBar from '$lib/components/layout/nav-bar.svelte';
+	import ImportPolling from '$lib/components/settings/import-polling.svelte';
+	import Sync from '$lib/components/settings/sync.svelte';
 	import Sonner from '$lib/components/ui/sonner/sonner.svelte';
 	import { layoutState } from '$lib/context/layout.svelte';
 	import { setSettings, setUser } from '$lib/context/state.svelte';
@@ -47,6 +49,7 @@
 	});
 </script>
 
+<ImportPolling />
 <div class="sticky top-0 z-50" bind:this={navbarElement}>
 	<NavBar />
 </div>
@@ -57,3 +60,4 @@
 	<Footer />
 </div>
 <Sonner richColors />
+<Sync />

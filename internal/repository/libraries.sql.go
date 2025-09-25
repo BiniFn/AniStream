@@ -11,6 +11,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const clearLibrary = `-- name: ClearLibrary :exec
+DELETE FROM library
+WHERE user_id = $1
+`
+
+func (q *Queries) ClearLibrary(ctx context.Context, userID string) error {
+	_, err := q.db.Exec(ctx, clearLibrary, userID)
+	return err
+}
+
 const deleteLibrary = `-- name: DeleteLibrary :exec
 DELETE FROM library
 WHERE user_id = $1

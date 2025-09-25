@@ -863,7 +863,7 @@ paths:
             type: string
             enum:
               - anilist
-              - mal
+              - myanimelist
         - description: Redirect URL after authentication
           in: query
           name: redirect
@@ -901,7 +901,7 @@ paths:
             type: string
             enum:
               - anilist
-              - mal
+              - myanimelist
         - description: OAuth authorization code
           in: query
           name: code
@@ -1067,6 +1067,22 @@ paths:
       tags:
         - Authentication
   /library:
+    delete:
+      description: Clear user's library
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Clear user's library
+      tags:
+        - Library
     get:
       description: Get user's anime library
       parameters:
@@ -2016,7 +2032,7 @@ components:
           type: string
         status:
           allOf:
-            - $ref: "#/components/schemas/models.LibraryStatus"
+            - $ref: "#/components/schemas/models.LibraryImportStatus"
           example: pending
         updatedAt:
           example: 2023-01-01T00:00:00Z
@@ -2032,6 +2048,18 @@ components:
         - updatedAt
         - userId
       type: object
+    models.LibraryImportStatus:
+      enum:
+        - pending
+        - in_progress
+        - completed
+        - failed
+      type: string
+      x-enum-varnames:
+        - LibraryImportStatusPending
+        - LibraryImportStatusInProgress
+        - LibraryImportStatusCompleted
+        - LibraryImportStatusFailed
     models.LibraryInfo:
       properties:
         id:

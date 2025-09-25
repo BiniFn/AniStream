@@ -22,7 +22,7 @@ func LibraryImportJobFromRepository(j repository.LibraryImportJob) models.Librar
 	return models.LibraryImportJobResponse{
 		ID:          j.ID,
 		UserID:      j.UserID,
-		Status:      models.LibraryStatus(j.Status),
+		Status:      models.LibraryImportStatus(j.Status),
 		CreatedAt:   j.CreatedAt.Time,
 		UpdatedAt:   j.UpdatedAt.Time,
 		CompletedAt: j.CompletedAt.Time,

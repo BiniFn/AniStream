@@ -1403,7 +1403,7 @@ export interface paths {
 				header?: never;
 				path: {
 					/** @description OAuth provider */
-					provider: 'anilist' | 'mal';
+					provider: 'anilist' | 'myanimelist';
 				};
 				cookie?: never;
 			};
@@ -1466,7 +1466,7 @@ export interface paths {
 				header?: never;
 				path: {
 					/** @description OAuth provider */
-					provider: 'anilist' | 'mal';
+					provider: 'anilist' | 'myanimelist';
 				};
 				cookie?: never;
 			};
@@ -1812,7 +1812,37 @@ export interface paths {
 		};
 		put?: never;
 		post?: never;
-		delete?: never;
+		/**
+		 * Clear user's library
+		 * @description Clear user's library
+		 */
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
 		options?: never;
 		head?: never;
 		patch?: never;
@@ -2885,12 +2915,14 @@ export interface components {
 			/** @example V1StGXR8Z5jdHi6B */
 			id: string;
 			/** @example pending */
-			status: components['schemas']['models.LibraryStatus'];
+			status: components['schemas']['models.LibraryImportStatus'];
 			/** @example 2023-01-01T00:00:00Z */
 			updatedAt: string;
 			/** @example V1StGXR8Z5jdHi6B */
 			userId: string;
 		};
+		/** @enum {string} */
+		'models.LibraryImportStatus': 'pending' | 'in_progress' | 'completed' | 'failed';
 		'models.LibraryInfo': {
 			/** @example V1StGXR8Z5jdHi6B */
 			id: string;

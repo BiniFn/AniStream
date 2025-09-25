@@ -19,11 +19,29 @@ func (s LibraryStatus) IsValid() bool {
 	}
 }
 
+type LibraryImportStatus string
+
+const (
+	LibraryImportStatusPending    LibraryImportStatus = "pending"
+	LibraryImportStatusInProgress LibraryImportStatus = "in_progress"
+	LibraryImportStatusCompleted  LibraryImportStatus = "completed"
+	LibraryImportStatusFailed     LibraryImportStatus = "failed"
+)
+
+func (s LibraryImportStatus) IsValid() bool {
+	switch s {
+	case LibraryImportStatusPending, LibraryImportStatusInProgress, LibraryImportStatusCompleted, LibraryImportStatusFailed:
+		return true
+	default:
+		return false
+	}
+}
+
 type OAuthProvider string
 
 const (
 	OAuthProviderAnilist OAuthProvider = "anilist"
-	OAuthProviderMAL     OAuthProvider = "mal"
+	OAuthProviderMAL     OAuthProvider = "myanimelist"
 )
 
 func (p OAuthProvider) IsValid() bool {

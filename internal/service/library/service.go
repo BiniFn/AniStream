@@ -325,3 +325,7 @@ func (s *LibraryService) GetImportLibraryStatus(ctx context.Context, jobID strin
 
 	return mappers.LibraryImportJobFromRepository(status), nil
 }
+
+func (s *LibraryService) ClearLibrary(ctx context.Context, userID string) error {
+	return s.repo.ClearLibrary(ctx, userID)
+}

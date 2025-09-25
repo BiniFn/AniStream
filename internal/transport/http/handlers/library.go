@@ -12,6 +12,7 @@ import (
 func (h *Handler) LibraryRoutes() {
 	h.r.With(middleware.RequireUser).Route("/library", func(r chi.Router) {
 		r.Get("/", h.getLibrary)
+		r.Delete("/", h.clearLibrary)
 		r.Get("/{animeID}", h.getAnimeStatus)
 		r.Get("/continue-watching", h.getContinueWatching)
 		r.Get("/planning", h.getPlanning)
@@ -361,4 +362,27 @@ func (h *Handler) getLibraryImportStatus(w http.ResponseWriter, r *http.Request)
 		log.Error("failed to get library import status", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to get library import status")
 	}
+}
+
+// @Summary Clear user's library
+// @Description Clear user's library
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Success 200
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library [delete]
+func (h *Handler) clearLibrary(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+	user := middleware.GetUser(r)
+
+	err := h.libraryService.ClearLibrary(r.Context(), user.ID)
+	if err != nil {
+		log.Error("failed to clear library", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to clear library")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

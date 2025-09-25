@@ -123,3 +123,7 @@ WHERE
   AND user_id = sqlc.arg(user_id)
   AND animes.last_episode > library.watched_episodes;
 
+-- name: ClearLibrary :exec
+DELETE FROM library
+WHERE user_id = sqlc.arg(user_id);
+

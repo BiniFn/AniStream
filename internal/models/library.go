@@ -23,12 +23,12 @@ type LibraryResponse struct {
 }
 
 type LibraryImportJobResponse struct {
-	ID          string        `json:"id" validate:"required" example:"V1StGXR8Z5jdHi6B"`
-	UserID      string        `json:"userId" validate:"required" example:"V1StGXR8Z5jdHi6B"`
-	Status      LibraryStatus `json:"status" validate:"required" example:"pending"`
-	CreatedAt   time.Time     `json:"createdAt" validate:"required" example:"2023-01-01T00:00:00Z"`
-	UpdatedAt   time.Time     `json:"updatedAt" validate:"required" example:"2023-01-01T00:00:00Z"`
-	CompletedAt time.Time     `json:"completedAt" validate:"required" example:"2023-01-01T00:00:00Z"`
+	ID          string              `json:"id" validate:"required" example:"V1StGXR8Z5jdHi6B"`
+	UserID      string              `json:"userId" validate:"required" example:"V1StGXR8Z5jdHi6B"`
+	Status      LibraryImportStatus `json:"status" validate:"required" example:"pending"`
+	CreatedAt   time.Time           `json:"createdAt" validate:"required" example:"2023-01-01T00:00:00Z"`
+	UpdatedAt   time.Time           `json:"updatedAt" validate:"required" example:"2023-01-01T00:00:00Z"`
+	CompletedAt time.Time           `json:"completedAt" validate:"required" example:"2023-01-01T00:00:00Z"`
 }
 
 type LibraryListResponse = Pagination[LibraryResponse]
