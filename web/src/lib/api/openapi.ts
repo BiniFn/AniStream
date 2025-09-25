@@ -1714,7 +1714,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': components['schemas']['models.UserResponse'];
+						'application/json': components['schemas']['models.ChangePasswordTokenResponse'];
 					};
 				};
 				/** @description Bad Request */
@@ -2860,6 +2860,11 @@ export interface components {
 		'models.BannerResponse': {
 			/** @example https://example.com/banner.jpg */
 			url: string;
+		};
+		'models.ChangePasswordTokenResponse': {
+			/** @example 1700000000 */
+			expires_at?: number;
+			user?: components['schemas']['models.UserResponse'];
 		};
 		'models.CreateUserRequest': {
 			/** @example john@example.com */

@@ -1,42 +1,36 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import * as Form from '$lib/components/ui/form';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { cn } from '$lib/utils';
 	import { type } from 'arktype';
-	import { ArrowRight, Eye, EyeOff, LoaderCircle, Lock, Mail, Sparkles } from 'lucide-svelte';
+	import { ArrowRight, LoaderCircle, Mail, Sparkles } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, setError, superForm } from 'sveltekit-superforms';
 	import { arktype, arktypeClient } from 'sveltekit-superforms/adapters';
 
-	const loginFormSchema = type({
+	const forgotPasswordSchema = type({
 		email: type('string.email').describe('a valid email address'),
-		password: type('string'),
 	});
 
-	const sf = superForm(defaults(arktype(loginFormSchema)), {
+	const sf = superForm(defaults(arktype(forgotPasswordSchema)), {
 		SPA: true,
-		validators: arktypeClient(loginFormSchema),
+		validators: arktypeClient(forgotPasswordSchema),
 		onUpdate: async ({ form, cancel }) => {
 			if (!form.valid) return;
 			try {
-				const res = await apiClient.POST('/auth/login', {
-					body: form.data,
+				const res = await apiClient.POST('/auth/forget-password', {
+					body: {
+						email: form.data.email,
+					},
 				});
-
-				if (res.response.status === 200 && res.data) {
-					await goto('/', { invalidateAll: true });
-					toast.success('Successfully logged in');
-					return;
-				}
 
 				if (res.response.status === 400) {
 					const error = res.error as components['schemas']['models.ValidationErrorResponse'];
 					if (error?.details) {
 						Object.entries(error.details).forEach(([field, messages]) => {
-							setError(form, field as 'email' | 'password', messages);
+							setError(form, field as 'email', messages);
 						});
 						toast.error('Please fix the errors in the form and try again.');
 						cancel();
@@ -44,30 +38,25 @@
 					}
 				}
 
-				if (res.response.status === 401) {
-					toast.error('Invalid email or password. Please try again.');
-					cancel();
-					return;
-				}
-
-				throw new Error('Unexpected response from server');
+				toast.success(
+					'If an account with this email exists, a password reset link has been sent. Check your inbox.',
+				);
 			} catch (error) {
-				console.error('Login error:', error);
-				toast.error('Login failed. Please check your credentials and try again.');
+				console.error('Forgot password error:', error);
+				toast.error('Failed to send reset email. Please try again.');
 				cancel();
 			}
 		},
 	});
 
 	const { form, enhance, submitting, errors } = sf;
-	let showPassword = $state(false);
 </script>
 
 <svelte:head>
-	<title>Sign In - Aniways</title>
+	<title>Forgot Password - Aniways</title>
 	<meta
 		name="description"
-		content="Sign in to your Aniways account to access your personalized anime experience."
+		content="Reset your Aniways password. Enter your email address to receive a password reset link."
 	/>
 </svelte:head>
 
@@ -90,11 +79,13 @@
 				<div class="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
 					<Sparkles class="h-4 w-4 text-primary" />
 					<span class="text-sm font-semibold tracking-wider text-primary uppercase">
-						Welcome Back
+						Password Reset
 					</span>
 				</div>
-				<h1 class="mb-2 text-3xl font-bold tracking-tight">Sign In</h1>
-				<p class="text-muted-foreground">Continue your anime journey with Aniways</p>
+				<h1 class="mb-2 text-3xl font-bold tracking-tight">Forgot Password?</h1>
+				<p class="text-muted-foreground">
+					No worries! Enter your email address and we'll send you a reset link.
+				</p>
 			</div>
 
 			<div class="rounded-2xl border border-primary/10 bg-card/80 p-8 shadow-2xl backdrop-blur-sm">
@@ -121,61 +112,18 @@
 								</div>
 							{/snippet}
 						</Form.Control>
-						<Form.FieldErrors />
-					</Form.Field>
-
-					<Form.Field form={sf} name="password">
-						<Form.Control>
-							{#snippet children({ props })}
-								<div class="flex items-center justify-between">
-									<Form.Label>Password</Form.Label>
-									<a 
-										href="/forgot-password" 
-										class="text-sm text-primary hover:underline"
-									>
-										Forgot password?
-									</a>
-								</div>
-								<div class="relative">
-									<Lock
-										class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-									/>
-									<Input
-										{...props}
-										type={showPassword ? 'text' : 'password'}
-										bind:value={$form.password}
-										placeholder="Enter your password"
-										class={cn(
-											'pr-10 pl-10',
-											$errors.password &&
-												$errors.password.length > 0 &&
-												'border-destructive focus-visible:ring-destructive',
-										)}
-									/>
-									<button
-										type="button"
-										onclick={() => (showPassword = !showPassword)}
-										class="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-										disabled={$submitting}
-									>
-										{#if showPassword}
-											<EyeOff class="h-4 w-4" />
-										{:else}
-											<Eye class="h-4 w-4" />
-										{/if}
-									</button>
-								</div>
-							{/snippet}
-						</Form.Control>
+						<Form.Description>
+							We'll send a password reset link to this email address
+						</Form.Description>
 						<Form.FieldErrors />
 					</Form.Field>
 
 					<Form.Button size="lg" class="group w-full gap-2" disabled={$submitting}>
 						{#if $submitting}
 							<LoaderCircle class="size-4 animate-spin" />
-							Signing In...
+							Sending Reset Link...
 						{:else}
-							Sign In
+							Send Reset Link
 							<ArrowRight class="size-4 transition group-hover:translate-x-1" />
 						{/if}
 					</Form.Button>
@@ -189,9 +137,9 @@
 
 				<div class="text-center">
 					<p class="text-sm text-muted-foreground">
-						Don't have an account?
-						<a href="/register" class="font-medium text-primary transition-colors hover:underline">
-							Create Account
+						Remember your password?
+						<a href="/login" class="font-medium text-primary transition-colors hover:underline">
+							Sign In
 						</a>
 					</p>
 				</div>

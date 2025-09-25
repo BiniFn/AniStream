@@ -12,3 +12,8 @@ type ForgetPasswordRequest struct {
 type ResetPasswordRequest struct {
 	Password string `json:"password" validate:"required,min=6" example:"newpassword123"`
 }
+
+type ChangePasswordTokenResponse struct {
+	User      UserResponse `json:"user"`
+	ExpiresAt int64        `json:"expires_at" example:"1700000000"`
+}

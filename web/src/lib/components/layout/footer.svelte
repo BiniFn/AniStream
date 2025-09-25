@@ -81,6 +81,14 @@
 								Register
 							</a>
 						</li>
+						<li>
+							<a
+								href="/forgot-password"
+								class="text-muted-foreground transition-colors hover:text-primary"
+							>
+								Forgot Password
+							</a>
+						</li>
 					{/if}
 				</ul>
 			</div>
@@ -88,11 +96,6 @@
 			<div>
 				<h4 class="mb-4 text-sm font-semibold tracking-wide text-foreground uppercase">More</h4>
 				<ul class="space-y-3 text-sm">
-					<li>
-						<a href="/about" class="text-muted-foreground transition-colors hover:text-primary">
-							About
-						</a>
-					</li>
 					<li>
 						<a
 							href="https://github.com/coeeter/aniways"

@@ -40,29 +40,8 @@ func (q *Queries) DeleteResetPasswordToken(ctx context.Context, token string) er
 
 const getResetPasswordToken = `-- name: GetResetPasswordToken :one
 SELECT
-  token, user_id, created_at, expires_at
-FROM
-  reset_password_tokens
-WHERE
-  token = $1
-  AND expires_at > NOW()
-`
-
-func (q *Queries) GetResetPasswordToken(ctx context.Context, token string) (ResetPasswordToken, error) {
-	row := q.db.QueryRow(ctx, getResetPasswordToken, token)
-	var i ResetPasswordToken
-	err := row.Scan(
-		&i.Token,
-		&i.UserID,
-		&i.CreatedAt,
-		&i.ExpiresAt,
-	)
-	return i, err
-}
-
-const getUserByResetPasswordToken = `-- name: GetUserByResetPasswordToken :one
-SELECT
-  users.id, users.username, users.email, users.password_hash, users.profile_picture, users.created_at, users.updated_at
+  users.id, users.username, users.email, users.password_hash, users.profile_picture, users.created_at, users.updated_at,
+  reset_password_tokens.token, reset_password_tokens.user_id, reset_password_tokens.created_at, reset_password_tokens.expires_at
 FROM
   reset_password_tokens
   INNER JOIN users ON users.id = reset_password_tokens.user_id
@@ -71,17 +50,26 @@ WHERE
   AND reset_password_tokens.expires_at > NOW()
 `
 
-func (q *Queries) GetUserByResetPasswordToken(ctx context.Context, token string) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByResetPasswordToken, token)
-	var i User
+type GetResetPasswordTokenRow struct {
+	User               User
+	ResetPasswordToken ResetPasswordToken
+}
+
+func (q *Queries) GetResetPasswordToken(ctx context.Context, token string) (GetResetPasswordTokenRow, error) {
+	row := q.db.QueryRow(ctx, getResetPasswordToken, token)
+	var i GetResetPasswordTokenRow
 	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Email,
-		&i.PasswordHash,
-		&i.ProfilePicture,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.User.ID,
+		&i.User.Username,
+		&i.User.Email,
+		&i.User.PasswordHash,
+		&i.User.ProfilePicture,
+		&i.User.CreatedAt,
+		&i.User.UpdatedAt,
+		&i.ResetPasswordToken.Token,
+		&i.ResetPasswordToken.UserID,
+		&i.ResetPasswordToken.CreatedAt,
+		&i.ResetPasswordToken.ExpiresAt,
 	)
 	return i, err
 }

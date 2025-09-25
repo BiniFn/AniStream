@@ -63,27 +63,27 @@ func (s *AuthService) SendForgetPasswordEmail(ctx context.Context, email string)
 	return nil
 }
 
-func (s *AuthService) GetUserByForgetPasswordToken(ctx context.Context, token string) (models.UserResponse, error) {
-	user, err := s.repo.GetUserByResetPasswordToken(ctx, token)
+func (s *AuthService) GetUserByForgetPasswordToken(ctx context.Context, token string) (models.ChangePasswordTokenResponse, error) {
+	t, err := s.repo.GetResetPasswordToken(ctx, token)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return models.UserResponse{}, users.ErrUserDoesNotExist
+		return models.ChangePasswordTokenResponse{}, users.ErrUserDoesNotExist
 	}
 	if err != nil {
-		return models.UserResponse{}, err
+		return models.ChangePasswordTokenResponse{}, err
 	}
 
-	return mappers.UserFromRepository(user), nil
+	return mappers.TokenFromRepository(t), nil
 }
 
 var ErrInvalidToken = errors.New("invalid token")
 
 func (s *AuthService) ResetPassword(ctx context.Context, userService *users.UserService, token, password string) error {
-	user, err := s.GetUserByForgetPasswordToken(ctx, token)
+	t, err := s.GetUserByForgetPasswordToken(ctx, token)
 	if err != nil {
 		return ErrInvalidToken
 	}
 
-	if err := userService.ResetPassword(ctx, user.ID, password); err != nil {
+	if err := userService.ResetPassword(ctx, t.User.ID, password); err != nil {
 		return err
 	}
 

@@ -179,7 +179,7 @@ func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param token path string true "Password reset token"
-// @Success 200 {object} models.UserResponse
+// @Success 200 {object} models.ChangePasswordTokenResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 401 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse

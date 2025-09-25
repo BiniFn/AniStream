@@ -4,22 +4,14 @@ INSERT INTO reset_password_tokens(user_id)
 RETURNING
   *;
 
--- name: GetResetPasswordToken :one
-SELECT
-  *
-FROM
-  reset_password_tokens
-WHERE
-  token = sqlc.arg(token)
-  AND expires_at > NOW();
-
 -- name: DeleteResetPasswordToken :exec
 DELETE FROM reset_password_tokens
 WHERE token = sqlc.arg(token);
 
--- name: GetUserByResetPasswordToken :one
+-- name: GetResetPasswordToken :one
 SELECT
-  users.*
+  sqlc.embed(users),
+  sqlc.embed(reset_password_tokens)
 FROM
   reset_password_tokens
   INNER JOIN users ON users.id = reset_password_tokens.user_id

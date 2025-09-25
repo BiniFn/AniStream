@@ -1044,7 +1044,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/models.UserResponse"
+                $ref: "#/components/schemas/models.ChangePasswordTokenResponse"
         "400":
           description: Bad Request
           content:
@@ -1921,6 +1921,14 @@ components:
           type: string
       required:
         - url
+      type: object
+    models.ChangePasswordTokenResponse:
+      properties:
+        expires_at:
+          example: 1700000000
+          type: integer
+        user:
+          $ref: "#/components/schemas/models.UserResponse"
       type: object
     models.CreateUserRequest:
       properties:
