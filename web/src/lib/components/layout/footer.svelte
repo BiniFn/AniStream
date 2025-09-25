@@ -107,8 +107,13 @@
 						</a>
 					</li>
 					<li>
-						<a href="/status" class="text-muted-foreground transition-colors hover:text-primary">
-							Status
+						<a
+							href="https://github.com/coeeter/aniways/issues"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="text-muted-foreground transition-colors hover:text-primary"
+						>
+							Report Bug
 						</a>
 					</li>
 				</ul>

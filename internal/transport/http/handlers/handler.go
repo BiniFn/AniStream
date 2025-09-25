@@ -66,8 +66,8 @@ func New(deps *app.Deps, r *chi.Mux) *Handler {
 
 func (h *Handler) RegisterRoutes() {
 	h.r.Get("/", h.home)
-	h.r.Get("/healthz", h.healthz)
 
+	h.HealthRoutes()
 	h.AnimeDetailsRoutes()
 	h.AnimeListingRoutes()
 	h.AnimeEpisodeRoutes()
@@ -101,10 +101,6 @@ func (h *Handler) RegisterOpenAPIRoutes() {
 
 func (h *Handler) home(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte("AniWays API\n"))
-}
-
-func (h *Handler) healthz(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) Router() *chi.Mux {

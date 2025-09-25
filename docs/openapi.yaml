@@ -1066,6 +1066,38 @@ paths:
       summary: Get user by password reset token
       tags:
         - Authentication
+  /health:
+    get:
+      description: Check if the API service is running
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/handlers.HealthCheckResponse"
+      summary: Simple health check
+      tags:
+        - health
+  /health/z:
+    get:
+      description: Check the health of all services and external APIs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/handlers.HealthResponse"
+        "503":
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/handlers.HealthResponse"
+      summary: Comprehensive health check
+      tags:
+        - health
   /library:
     delete:
       description: Clear user's library
@@ -1692,6 +1724,34 @@ components:
       name: aniways_session
       type: apiKey
   schemas:
+    handlers.HealthCheckResponse:
+      properties:
+        service:
+          example: api
+          type: string
+        status:
+          example: healthy
+          type: string
+        timestamp:
+          example: 2023-01-01T00:00:00Z
+          type: string
+      type: object
+    handlers.HealthResponse:
+      properties:
+        services:
+          additionalProperties:
+            type: string
+          type: object
+        status:
+          example: healthy
+          type: string
+        timestamp:
+          example: 2023-01-01T00:00:00Z
+          type: string
+        version:
+          example: 1.0.0
+          type: string
+      type: object
     models.AnimeListResponse:
       properties:
         items:
