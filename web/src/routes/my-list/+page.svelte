@@ -330,7 +330,6 @@
 														anime: item,
 													}
 												: null}
-											showLibraryInfo={true}
 										/>
 									</div>
 								{/each}

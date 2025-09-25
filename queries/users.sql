@@ -51,3 +51,11 @@ SET
 WHERE
   id = sqlc.arg(id);
 
+-- name: RemoveProfilePicture :exec
+UPDATE
+  users
+SET
+  profile_picture = NULL
+WHERE
+  id = sqlc.arg(id);
+

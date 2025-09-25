@@ -1572,6 +1572,22 @@ paths:
       tags:
         - Users
   /users/image:
+    delete:
+      description: Remove user profile picture
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Remove user profile picture
+      tags:
+        - Users
     put:
       description: Update user profile picture
       requestBody:

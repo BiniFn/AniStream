@@ -103,6 +103,20 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 	return i, err
 }
 
+const removeProfilePicture = `-- name: RemoveProfilePicture :exec
+UPDATE
+  users
+SET
+  profile_picture = NULL
+WHERE
+  id = $1
+`
+
+func (q *Queries) RemoveProfilePicture(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, removeProfilePicture, id)
+	return err
+}
+
 const updatePassword = `-- name: UpdatePassword :exec
 UPDATE
   users

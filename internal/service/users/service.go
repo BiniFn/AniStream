@@ -228,3 +228,14 @@ func (s *UserService) UpdateProfilePicture(ctx context.Context, id string, image
 	}
 	return nil
 }
+
+func (s *UserService) RemoveProfilePicture(ctx context.Context, id string) error {
+	if _, err := s.repo.GetUserByID(ctx, id); err != nil {
+		return ErrUserDoesNotExist
+	}
+
+	if err := s.repo.RemoveProfilePicture(ctx, id); err != nil {
+		return fmt.Errorf("db remove profile picture: %w", err)
+	}
+	return nil
+}

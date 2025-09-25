@@ -2602,7 +2602,37 @@ export interface paths {
 			};
 		};
 		post?: never;
-		delete?: never;
+		/**
+		 * Remove user profile picture
+		 * @description Remove user profile picture
+		 */
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
 		options?: never;
 		head?: never;
 		patch?: never;

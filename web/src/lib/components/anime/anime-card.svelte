@@ -12,14 +12,18 @@
 		index?: number;
 		topLeftBadge?: Snippet;
 		libraryEntry?: LibraryResponse | null;
-		showLibraryInfo?: boolean;
+		episodeLink?: number | null;
 	}
 
-	let { anime, index = 0, topLeftBadge, libraryEntry, showLibraryInfo = false }: Props = $props();
+	let { anime, index = 0, topLeftBadge, libraryEntry, episodeLink = null }: Props = $props();
+
+	let linkUrl = $derived(
+		episodeLink ? `/anime/${anime.id}/watch?ep=${episodeLink}` : `/anime/${anime.id}`,
+	);
 </script>
 
 <a
-	href="/anime/{anime.id}"
+	href={linkUrl}
 	class="group block transform transition-all duration-500 hover:-translate-y-2 hover:scale-105"
 	style="animation-delay: {index * 100}ms"
 	onclick={(e) => {
@@ -60,7 +64,7 @@
 			</div>
 		{/if}
 
-		{#if showLibraryInfo && libraryEntry}
+		{#if libraryEntry}
 			<div class="absolute top-3 left-3 z-10">
 				<LibraryBtn animeId={anime.id} {libraryEntry} iconOnly={true} />
 			</div>
@@ -93,7 +97,11 @@
 		>
 			{anime.jname || anime.ename}
 		</h3>
-		{#if showLibraryInfo && libraryEntry}
+		{#if episodeLink}
+			<div class="text-xs text-muted-foreground">
+				<span class="font-medium text-primary">Episode {episodeLink}</span>
+			</div>
+		{:else if libraryEntry}
 			<div class="text-xs text-muted-foreground">
 				<span class="capitalize">{libraryEntry.status.replace('_', ' ')}</span>
 				<span class="font-bold">{libraryEntry.watchedEpisodes}</span> of

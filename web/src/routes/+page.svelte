@@ -1,12 +1,29 @@
 <script lang="ts">
 	import AnimeCard from '$lib/components/anime/anime-card.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { Calendar, ChevronRight, CircleAlert, Play, Star, TrendingUp } from 'lucide-svelte';
+	import {
+		Calendar,
+		ChevronRight,
+		CircleAlert,
+		Clock,
+		Play,
+		Star,
+		TrendingUp,
+	} from 'lucide-svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
-	const { trending, popular, recentlyUpdated, seasonal, featuredAnime } = data;
+	const {
+		trending,
+		popular,
+		recentlyUpdated,
+		seasonal,
+		featuredAnime,
+		user,
+		continueWatching,
+		planning,
+	} = data;
 
 	const hasData =
 		trending.length > 0 || popular.length > 0 || recentlyUpdated.length > 0 || seasonal.length > 0;
@@ -14,6 +31,8 @@
 	let popularAnime = $derived.by(() => {
 		return popular.slice(0, 8);
 	});
+
+	let isLoggedIn = $derived(!!user);
 </script>
 
 <svelte:head>
@@ -173,6 +192,55 @@
 								{/snippet}
 							</AnimeCard>
 						</div>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
+		{#if isLoggedIn && continueWatching.length > 0}
+			<section>
+				<div class="mb-8 flex items-center justify-between">
+					<div class="flex items-center gap-3">
+						<Play class="h-6 w-6 text-primary" />
+						<h2 class="text-2xl font-bold sm:text-3xl">Continue Watching</h2>
+					</div>
+					<Button variant="ghost" class="gap-2" href="/continue-watching">
+						View All
+						<ChevronRight class="h-4 w-4" />
+					</Button>
+				</div>
+				<div
+					class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+				>
+					{#each continueWatching as item, index (item.id)}
+						<AnimeCard
+							anime={item.anime}
+							{index}
+							libraryEntry={item}
+							episodeLink={item.watchedEpisodes + 1}
+						/>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
+		{#if isLoggedIn && planning.length > 0}
+			<section>
+				<div class="mb-8 flex items-center justify-between">
+					<div class="flex items-center gap-3">
+						<Clock class="h-6 w-6 text-primary" />
+						<h2 class="text-2xl font-bold sm:text-3xl">Planning</h2>
+					</div>
+					<Button variant="ghost" class="gap-2" href="/planning">
+						View All
+						<ChevronRight class="h-4 w-4" />
+					</Button>
+				</div>
+				<div
+					class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+				>
+					{#each planning as item, index (item.id)}
+						<AnimeCard anime={item.anime} {index} libraryEntry={item} episodeLink={1} />
 					{/each}
 				</div>
 			</section>
@@ -344,7 +412,7 @@
 				</div>
 				<div class="mb-4 grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
 					{#each recentlyUpdated as anime, index (anime.id)}
-						<AnimeCard {anime} {index}>
+						<AnimeCard {anime} {index} episodeLink={anime.lastEpisode || 1}>
 							{#snippet topLeftBadge()}
 								<div
 									class="animate-pulse rounded-full bg-red-500/90 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"

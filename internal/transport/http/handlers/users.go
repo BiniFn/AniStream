@@ -18,6 +18,7 @@ func (h *Handler) UserRoutes() {
 			r.Delete("/", h.deleteUser)
 			r.Put("/password", h.updatePassword)
 			r.Put("/image", h.updateImage)
+			r.Delete("/image", h.removeImage)
 		})
 	})
 }
@@ -204,6 +205,28 @@ func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	default:
 		log.Error("user image update failed", "id", user.ID, "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "internal error")
+	}
+}
+
+// @Summary Remove user profile picture
+// @Description Remove user profile picture
+// @Tags Users
+// @Produce json
+// @Security cookieAuth
+// @Success 200
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users/image [delete]
+func (h *Handler) removeImage(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+	user := middleware.GetUser(r)
+
+	err := h.userService.RemoveProfilePicture(r.Context(), user.ID)
+	switch err {
+	case nil:
+		w.WriteHeader(http.StatusOK)
+	default:
+		log.Error("user image removal failed", "id", user.ID, "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "internal error")
 	}
 }

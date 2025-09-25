@@ -453,13 +453,13 @@ WITH p AS (
 )
 SELECT
   a.id, a.ename, a.jname, a.image_url, a.genre, a.hi_anime_id, a.mal_id, a.anilist_id, a.last_episode, a.created_at, a.updated_at, a.search_vector, a.season, a.season_year, a.genres_arr,
-  l.id as library_id,
-  l.user_id as library_user_id,
-  l.anime_id as library_anime_id,
-  l.status as library_status,
-  l.watched_episodes as library_watched_episodes,
-  l.created_at as library_created_at,
-  l.updated_at as library_updated_at,
+  l.id AS library_id,
+  l.user_id AS library_user_id,
+  l.anime_id AS library_anime_id,
+  l.status AS library_status,
+  l.watched_episodes AS library_watched_episodes,
+  l.created_at AS library_created_at,
+  l.updated_at AS library_updated_at,
   CASE WHEN p.q IS NOT NULL THEN
     ts_rank(a.search_vector, plainto_tsquery('english', p.q))
   ELSE

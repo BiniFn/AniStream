@@ -72,7 +72,7 @@
 						<div class="flex justify-between">
 							<span class="text-muted-foreground">Start Date</span>
 							<span class="font-medium">
-								{formatDate(anime.metadata.airingStartDate, '14/09/2025')}
+								{formatDate(anime.metadata.airingStartDate, 'dd/MM/yyyy')}
 							</span>
 						</div>
 					{/if}
@@ -80,7 +80,11 @@
 						<div class="flex justify-between">
 							<span class="text-muted-foreground">End Date</span>
 							<span class="font-medium">
-								{formatDate(anime.metadata.airingStartDate, '14/09/2025')}
+								{#if !anime.metadata.airingEndDate}
+									???
+								{:else}
+									{formatDate(anime.metadata.airingEndDate, 'dd/MM/yyyy')}
+								{/if}
 							</span>
 						</div>
 					{/if}

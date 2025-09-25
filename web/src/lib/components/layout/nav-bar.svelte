@@ -11,6 +11,7 @@
 	import { appState } from '$lib/context/state.svelte';
 	import { cn } from '$lib/utils';
 	import {
+		Dice6,
 		Heart,
 		House,
 		Library,
@@ -31,6 +32,7 @@
 			{ label: 'Home', link: '/', Icon: House },
 			{ label: 'Catalog', link: '/catalog', Icon: Library },
 			{ label: 'Genres', link: '/genres', Icon: Swords },
+			{ label: 'Random', link: '/random', Icon: Dice6 },
 		];
 
 		if (isLoggedIn) {
