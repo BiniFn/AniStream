@@ -123,9 +123,15 @@
 		<div
 			class="mt-12 flex flex-col items-center justify-between border-t border-border pt-8 md:flex-row"
 		>
-			<p class="text-sm text-muted-foreground">
-				© {new Date().getFullYear()} Aniways. Open source project.
-			</p>
+			<div class="text-center md:text-left">
+				<p class="text-sm text-muted-foreground">
+					© {new Date().getFullYear()} Aniways. Open source project.
+				</p>
+				<p class="mt-2 text-xs text-muted-foreground">
+					AniWays is for educational purposes only. All content is sourced from third-party sites. 
+					We do not host or store any copyrighted material. Use at your own risk.
+				</p>
+			</div>
 			<div class="mt-4 flex items-center gap-1 text-sm text-muted-foreground md:mt-0">
 				<span>Made with</span>
 				<Heart class="h-4 w-4 fill-red-500 text-red-500" />
