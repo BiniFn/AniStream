@@ -9,11 +9,23 @@ if [ -n "$ENV_FILE_PATH" ] && [ -f "$ENV_FILE_PATH" ]; then
   set +a
 fi
 
-echo "Waiting for Postgres..."
-until nc -z db 5432; do sleep 1; done
+DB_HOST=$(echo "$DATABASE_URL" | sed -E 's|^[^@]+@([^:/]+).*|\1|')
+DB_PORT=$(echo "$DATABASE_URL" | sed -E 's|.*:([0-9]+)/.*|\1|')
 
-echo "Waiting for Redis..."
-until nc -z redis 6379; do sleep 1; done
+REDIS_HOST=$(echo "$REDIS_ADDR" | cut -d: -f1)
+REDIS_PORT=$(echo "$REDIS_ADDR" | cut -d: -f2)
 
-echo "Starting API..."
+# Fallbacks
+DB_HOST=${DB_HOST:-localhost}
+DB_PORT=${DB_PORT:-5432}
+REDIS_HOST=${REDIS_HOST:-localhost}
+REDIS_PORT=${REDIS_PORT:-6379}
+
+echo "Waiting for Postgres at $DB_HOST:$DB_PORT..."
+until nc -z "$DB_HOST" "$DB_PORT"; do sleep 1; done
+
+echo "Waiting for Redis at $REDIS_HOST:$REDIS_PORT..."
+until nc -z "$REDIS_HOST" "$REDIS_PORT"; do sleep 1; done
+
+echo "Starting application..."
 exec "$@"
