@@ -15,5 +15,5 @@ if [ -z "$MIGRATION_NAME" ]; then
     exit 1
 fi
 
-migrate create -seq -dir migrations -ext sql "$MIGRATION_NAME"
+migrate create -seq -dir ./internal/infra/database/migrations -ext sql "$MIGRATION_NAME"
 echo "Migration files created for: $MIGRATION_NAME"

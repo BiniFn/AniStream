@@ -9,7 +9,7 @@ overrides:
 
 sql:
   - engine: "postgresql"
-    schema: "./migrations/"
+    schema: "./internal/infra/database/migrations/"
     queries: "./queries/"
     gen:
       go:

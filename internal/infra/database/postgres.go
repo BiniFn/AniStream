@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log/slog"
 	"time"
@@ -9,9 +10,12 @@ import (
 	"github.com/coeeter/aniways/internal/config"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+//go:embed migrations/*.sql
+var migrationFS embed.FS
 
 func New(env *config.Env, log *slog.Logger) (*pgxpool.Pool, error) {
 	log.Info("initialising database connection")
@@ -36,11 +40,19 @@ func New(env *config.Env, log *slog.Logger) (*pgxpool.Pool, error) {
 	}
 	log.Info("database ping OK")
 
-	m, err := migrate.New("file://migrations", env.DatabaseURL)
+	d, err := iofs.New(migrationFS, "migrations")
+	if err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("migrate source init: %w", err)
+	}
+
+	m, err := migrate.NewWithSourceInstance("iofs", d, env.DatabaseURL)
 	if err != nil {
 		pool.Close()
 		return nil, fmt.Errorf("migrate init: %w", err)
 	}
+	defer m.Close()
+
 	switch err := m.Up(); err {
 	case nil:
 		log.Info("migrations applied")
