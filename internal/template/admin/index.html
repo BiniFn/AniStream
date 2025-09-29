@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aniways Admin Panel</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          "Work Sans",
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          "Helvetica Neue",
+          Arial,
+          "Noto Sans";
+        background: oklch(0.141 0.005 285.823);
+        color: oklch(0.985 0 0);
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        color: oklch(0.541 0.281 293.009);
+        margin-bottom: 0.5rem;
+      }
+
+      .header p {
+        color: oklch(0.705 0.015 286.067);
+        font-size: 1.1rem;
+      }
+
+      .auth-section {
+        background: oklch(0.21 0.006 285.885);
+        border: 1px solid oklch(1 0 0 / 10%);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      .auth-section h2 {
+        color: oklch(0.541 0.281 293.009);
+        margin-bottom: 1rem;
+      }
+
+      .auth-section p {
+        color: oklch(0.705 0.015 286.067);
+        margin-bottom: 1.5rem;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .input-group input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid oklch(1 0 0 / 15%);
+        border-radius: 8px;
+        background: oklch(0.274 0.006 286.033);
+        color: oklch(0.985 0 0);
+        font-size: 1rem;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: oklch(0.541 0.281 293.009);
+        box-shadow: 0 0 0 2px oklch(0.541 0.281 293.009 / 20%);
+      }
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: oklch(0.541 0.281 293.009);
+        color: oklch(0.969 0.016 293.756);
+      }
+
+      .btn-primary:hover {
+        background: oklch(0.606 0.25 292.717);
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: oklch(0.274 0.006 286.033);
+        color: oklch(0.985 0 0);
+      }
+
+      .btn-secondary:hover {
+        background: oklch(0.21 0.006 285.885);
+      }
+
+      .btn-danger {
+        background: oklch(0.704 0.191 22.216);
+        color: oklch(0.985 0 0);
+      }
+
+      .btn-danger:hover {
+        background: oklch(0.577 0.245 27.325);
+      }
+
+      .admin-panel {
+        display: none;
+        background: oklch(0.21 0.006 285.885);
+        border: 1px solid oklch(1 0 0 / 10%);
+        border-radius: 12px;
+        padding: 2rem;
+      }
+
+      .admin-panel.show {
+        display: block;
+      }
+
+      .section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: oklch(0.274 0.006 286.033);
+        border-radius: 8px;
+        border: 1px solid oklch(1 0 0 / 10%);
+      }
+
+      .section h3 {
+        color: oklch(0.541 0.281 293.009);
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+      }
+
+      .upload-area {
+        border: 2px dashed oklch(0.705 0.015 286.067);
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+
+      .upload-area:hover {
+        border-color: oklch(0.541 0.281 293.009);
+        background: oklch(0.541 0.281 293.009 / 5%);
+      }
+
+      .upload-area.dragover {
+        border-color: oklch(0.541 0.281 293.009);
+        background: oklch(0.541 0.281 293.009 / 10%);
+      }
+
+      .file-input {
+        display: none;
+      }
+
+      .progress-section {
+        display: none;
+      }
+
+      .progress-section.show {
+        display: block;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: oklch(0.274 0.006 286.033);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 1rem 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          oklch(0.541 0.281 293.009),
+          oklch(0.606 0.25 292.717)
+        );
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .job-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .info-card {
+        background: oklch(0.21 0.006 285.885);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .info-card .label {
+        color: oklch(0.705 0.015 286.067);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .info-card .value {
+        color: oklch(0.541 0.281 293.009);
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .results-section {
+        display: none;
+      }
+
+      .results-section.show {
+        display: block;
+      }
+
+      .download-buttons {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+        flex-wrap: wrap;
+      }
+
+      .status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .status.pending {
+        background: oklch(0.769 0.188 70.08);
+        color: oklch(0.141 0.005 285.823);
+      }
+
+      .status.running {
+        background: oklch(0.696 0.17 162.48);
+        color: oklch(0.985 0 0);
+      }
+
+      .status.completed {
+        background: oklch(0.541 0.281 293.009);
+        color: oklch(0.969 0.016 293.756);
+      }
+
+      .status.failed {
+        background: oklch(0.704 0.191 22.216);
+        color: oklch(0.985 0 0);
+      }
+
+      .error {
+        background: oklch(0.21 0.006 285.885);
+        border: 1px solid oklch(0.704 0.191 22.216);
+        color: oklch(0.704 0.191 22.216);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+      }
+
+      .success {
+        background: oklch(0.21 0.006 285.885);
+        border: 1px solid oklch(0.541 0.281 293.009);
+        color: oklch(0.541 0.281 293.009);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid oklch(0.274 0.006 286.033);
+        border-radius: 50%;
+        border-top-color: oklch(0.541 0.281 293.009);
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #333;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🛠️ Aniways Admin Panel</h1>
+        <p>Bulk anime reprocessing and management</p>
+      </div>
+
+      <!-- Authentication Section -->
+      <div class="auth-section" id="auth-section">
+        <h2>🔐 Admin Authentication</h2>
+        <p>Enter your admin key to access the admin panel</p>
+        <div class="input-group">
+          <input
+            type="password"
+            id="admin-key"
+            placeholder="Enter admin key..."
+          />
+          <button class="btn btn-primary" onclick="authenticate()">
+            Authenticate
+          </button>
+        </div>
+        <div id="auth-error" class="error" style="display: none"></div>
+      </div>
+
+      <!-- Admin Panel -->
+      <div class="admin-panel" id="admin-panel">
+        <!-- Bulk Reprocessing Section -->
+        <div class="section">
+          <h3>📤 Bulk Anime Reprocessing</h3>
+          <div
+            class="upload-area"
+            onclick="document.getElementById('file-input').click()"
+          >
+            <div>
+              <p>📁 Click to select JSON file or drag & drop</p>
+              <p
+                style="
+                  color: oklch(0.705 0.015 286.067);
+                  font-size: 0.9rem;
+                  margin-top: 0.5rem;
+                "
+              >
+                Upload a JSON array of anime IDs (max 10,000)
+              </p>
+            </div>
+            <input
+              type="file"
+              id="file-input"
+              class="file-input"
+              accept=".json"
+              onchange="handleFileSelect(event)"
+            />
+          </div>
+          <div id="file-info" style="margin-top: 1rem"></div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section" id="progress-section">
+          <h3>📊 Job Progress</h3>
+          <div class="job-info">
+            <div class="info-card">
+              <div class="label">Status</div>
+              <div class="value">
+                <span id="job-status" class="status pending">Pending</span>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="label">Progress</div>
+              <div class="value" id="job-progress">0%</div>
+            </div>
+            <div class="info-card">
+              <div class="label">Total</div>
+              <div class="value" id="job-total">0</div>
+            </div>
+            <div class="info-card">
+              <div class="label">Processed</div>
+              <div class="value" id="job-processed">0</div>
+            </div>
+            <div class="info-card">
+              <div class="label">Success</div>
+              <div class="value" id="job-success">0</div>
+            </div>
+            <div class="info-card">
+              <div class="label">Failed</div>
+              <div class="value" id="job-failed">0</div>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p id="job-message" style="text-align: center; color: #888"></p>
+        </div>
+
+        <div class="results-section" id="results-section">
+          <h3>📥 Download Results</h3>
+          <div class="download-buttons">
+            <button class="btn btn-primary" onclick="downloadResult()">
+              📄 Download Complete Result
+            </button>
+            <button class="btn btn-secondary" onclick="downloadFailedIds()">
+              🔄 Download Failed IDs
+            </button>
+            <button class="btn btn-danger" onclick="retryFailed()">
+              🔁 Auto Retry Failed IDs
+            </button>
+          </div>
+        </div>
+
+        <!-- Future Admin Functions Section -->
+        <div class="section">
+          <h3>🔧 Additional Admin Functions</h3>
+          <p style="color: oklch(0.705 0.015 286.067); margin-bottom: 1rem">
+            More admin functions will be added here in the future
+          </p>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+            <button class="btn btn-secondary" disabled>
+              🗄️ Database Maintenance
+            </button>
+            <button class="btn btn-secondary" disabled>
+              📊 Analytics Dashboard
+            </button>
+            <button class="btn btn-secondary" disabled>
+              ⚙️ System Settings
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Aniways Admin Panel - Secure & Maintainable</p>
+      </div>
+    </div>
+
+    <script>
+      let adminKey = "";
+      let currentJobId = "";
+      let pollInterval = null;
+
+      function authenticate() {
+        const key = document.getElementById("admin-key").value.trim();
+        if (!key) {
+          showError("Please enter an admin key");
+          return;
+        }
+
+        fetch("/__admin/bulk-job/test", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${key}`,
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              adminKey = key;
+              document.getElementById("auth-section").style.display = "none";
+              document.getElementById("admin-panel").classList.add("show");
+            } else {
+              showError("Invalid admin key");
+            }
+          })
+          .catch((error) => {
+            showError("Authentication failed: " + error.message);
+          });
+      }
+
+      function showError(message) {
+        const errorDiv = document.getElementById("auth-error");
+        errorDiv.textContent = message;
+        errorDiv.style.display = "block";
+        setTimeout(() => {
+          errorDiv.style.display = "none";
+        }, 5000);
+      }
+
+      // File handling
+      function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.name.endsWith(".json")) {
+          showError("Please select a JSON file");
+          return;
+        }
+
+        const fileInfo = document.getElementById("file-info");
+        fileInfo.innerHTML = `
+                <div class="success">
+                    ✅ Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)
+                    <button class="btn btn-primary" onclick="uploadFile()" style="margin-left: 1rem;">
+                        🚀 Start Processing
+                    </button>
+                </div>
+            `;
+      }
+
+      function uploadFile() {
+        const fileInput = document.getElementById("file-input");
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch("/__admin/bulk-reprocess-anime-file", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${adminKey}`,
+          },
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.jobId) {
+              currentJobId = data.jobId;
+              document.getElementById("progress-section").classList.add("show");
+              startPolling();
+            } else {
+              showError(
+                "Failed to start job: " + (data.error || "Unknown error"),
+              );
+            }
+          })
+          .catch((error) => {
+            showError("Upload failed: " + error.message);
+          });
+      }
+
+      function startPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+
+        pollInterval = setInterval(() => {
+          fetch(`/__admin/bulk-job/${currentJobId}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${adminKey}`,
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              updateProgress(data);
+
+              if (data.status === "completed" || data.status === "failed") {
+                clearInterval(pollInterval);
+                pollInterval = null;
+                document
+                  .getElementById("results-section")
+                  .classList.add("show");
+              }
+            })
+            .catch((error) => {
+              console.error("Polling error:", error);
+            });
+        }, 2000);
+      }
+
+      function updateProgress(data) {
+        document.getElementById("job-status").textContent = data.status;
+        document.getElementById("job-status").className =
+          `status ${data.status}`;
+        document.getElementById("job-progress").textContent =
+          data.progress.toFixed(1) + "%";
+        document.getElementById("job-total").textContent = data.total;
+        document.getElementById("job-processed").textContent = data.processed;
+        document.getElementById("job-success").textContent = data.success;
+        document.getElementById("job-failed").textContent = data.failed;
+        document.getElementById("progress-fill").style.width =
+          data.progress + "%";
+        document.getElementById("job-message").textContent = data.message;
+      }
+
+      function downloadResult() {
+        fetch(`/__admin/bulk-job/${currentJobId}/download`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${adminKey}`,
+          },
+        })
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `bulk-job-${currentJobId}-result.json`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+          })
+          .catch((error) => {
+            showError("Download failed: " + error.message);
+          });
+      }
+
+      function downloadFailedIds() {
+        fetch(`/__admin/bulk-job/${currentJobId}/failed-ids`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${adminKey}`,
+          },
+        })
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `bulk-job-${currentJobId}-failed-ids.json`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+          })
+          .catch((error) => {
+            showError("Download failed: " + error.message);
+          });
+      }
+
+      function retryFailed() {
+        fetch(`/__admin/bulk-job/${currentJobId}/retry`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${adminKey}`,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.jobId) {
+              currentJobId = data.jobId;
+              document.getElementById("progress-section").classList.add("show");
+              document
+                .getElementById("results-section")
+                .classList.remove("show");
+              startPolling();
+
+              const fileInfo = document.getElementById("file-info");
+              fileInfo.innerHTML = `
+                  <div class="success">
+                      ✅ Retry job started! Processing ${data.message.split(" ")[3]} failed IDs.
+                  </div>
+              `;
+            } else {
+              showError(
+                "Failed to start retry job: " + (data.error || "Unknown error"),
+              );
+            }
+          })
+          .catch((error) => {
+            showError("Failed to start retry job: " + error.message);
+          });
+      }
+
+      const uploadArea = document.querySelector(".upload-area");
+
+      uploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadArea.classList.add("dragover");
+      });
+
+      uploadArea.addEventListener("dragleave", () => {
+        uploadArea.classList.remove("dragover");
+      });
+
+      uploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove("dragover");
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          document.getElementById("file-input").files = files;
+          handleFileSelect({ target: { files: files } });
+        }
+      });
+    </script>
+  </body>
+</html>
+

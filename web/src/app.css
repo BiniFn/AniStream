@@ -1,4 +1,4 @@
-@import 'https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&family=Open+Sans:wght@400;500;600&display=swap';
+@import 'https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&family=Open+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap';
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -43,6 +43,9 @@
 		Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
 	--font-open-sans:
 		'Open Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+		Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
+	--font-space-grotesk:
+		'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
 		Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
 }
 
@@ -118,6 +121,7 @@
 	--color-sidebar-ring: var(--sidebar-ring);
 	--font-sans: var(--font-work-sans);
 	--font-serif: var(--font-open-sans);
+	--font-grotesk: var(--font-space-grotesk);
 }
 
 @layer base {

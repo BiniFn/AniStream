@@ -5,6 +5,7 @@
 	import type { components } from '$lib/api/openapi';
 	import UserProfileDropdown from '$lib/components/layout/user-profile-dropdown.svelte';
 	import * as Avatar from '$lib/components/ui/avatar';
+	import { BrandText } from '$lib/components/ui/brand-text';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
@@ -135,9 +136,9 @@
 	<div class="container mx-auto p-4">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center space-x-8">
-				<h1 class="tracking-light font-serif text-3xl font-extrabold text-primary uppercase">
-					<a href="/">Aniways</a>
-				</h1>
+				<a href="/" class="flex items-center">
+					<BrandText size="lg" variant="anime" />
+				</a>
 
 				<nav class="hidden space-x-6 lg:flex">
 					{#each links as link (link.link)}

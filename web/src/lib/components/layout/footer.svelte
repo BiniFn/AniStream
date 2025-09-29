@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { appState } from '$lib/context/state.svelte';
+	import { BrandText } from '$lib/components/ui/brand-text';
 	import { Heart } from 'lucide-svelte';
 
 	let isLoggedIn = $derived(appState.user != null);
@@ -9,9 +10,9 @@
 	<div class="container mx-auto px-6 py-12">
 		<div class="grid grid-cols-1 gap-8 md:grid-cols-4">
 			<div class="md:col-span-1">
-				<h3 class="mb-4 font-serif text-2xl font-bold tracking-tight text-primary uppercase">
-					Aniways
-				</h3>
+				<div class="mb-4">
+					<BrandText size="md" variant="anime" />
+				</div>
 				<p class="text-sm leading-relaxed text-muted-foreground">
 					Discover, track, and organize your favorite anime series. Built by fans, for fans.
 				</p>
@@ -128,7 +129,7 @@
 					© {new Date().getFullYear()} Aniways. Open source project.
 				</p>
 				<p class="mt-2 text-xs text-muted-foreground">
-					AniWays is for educational purposes only. All content is sourced from third-party sites. 
+					AniWays is for educational purposes only. All content is sourced from third-party sites.
 					We do not host or store any copyrighted material. Use at your own risk.
 				</p>
 			</div>

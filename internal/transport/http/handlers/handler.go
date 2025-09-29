@@ -10,6 +10,7 @@ import (
 	"github.com/coeeter/aniways/docs"
 	"github.com/coeeter/aniways/internal/app"
 	"github.com/coeeter/aniways/internal/models"
+	"github.com/coeeter/aniways/internal/service/admin"
 	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/coeeter/aniways/internal/service/auth"
 	"github.com/coeeter/aniways/internal/service/auth/oauth"
@@ -34,6 +35,7 @@ type Handler struct {
 	authService     *auth.AuthService
 	settingsService *settings.SettingsService
 	libraryService  *library.LibraryService
+	adminService    *admin.AdminService
 	providerMap     map[string]oauth.Provider
 }
 
@@ -44,6 +46,7 @@ func New(deps *app.Deps, r *chi.Mux) *Handler {
 	authService := auth.NewAuthService(deps.Repo, deps.EmailClient, deps.Env.FrontendURL)
 	settingsService := settings.NewSettingsService(deps.Repo)
 	libraryService := library.NewLibraryService(deps.Repo, refresher)
+	adminService := admin.NewAdminService(deps.Repo, deps.Scraper)
 
 	providerMap := make(map[string]oauth.Provider)
 	for _, provider := range deps.Providers {
@@ -60,12 +63,14 @@ func New(deps *app.Deps, r *chi.Mux) *Handler {
 		authService:     authService,
 		settingsService: settingsService,
 		libraryService:  libraryService,
+		adminService:    adminService,
 		providerMap:     providerMap,
 	}
 }
 
 func (h *Handler) RegisterRoutes() {
 	h.r.Get("/", h.home)
+	h.r.Get("/admin", h.serveAdminPage)
 
 	h.HealthRoutes()
 	h.AnimeDetailsRoutes()
@@ -76,6 +81,7 @@ func (h *Handler) RegisterRoutes() {
 	h.UserRoutes()
 	h.LibraryRoutes()
 	h.SettingsRoutes()
+	h.AdminRoutes()
 
 	h.RegisterOpenAPIRoutes()
 
