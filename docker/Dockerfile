@@ -15,7 +15,9 @@ FROM alpine:3.20 AS api
 WORKDIR /app
 COPY --from=builder /out/api /app/api
 COPY --chmod=755 docker/entrypoint.sh /app/entrypoint.sh
-RUN adduser -D aniways
+RUN adduser -D aniways - \
+    && mkdir -p /app/tmp \
+    && chown -R aniways:aniways /app/tmp
 USER aniways
 CMD ["/app/entrypoint.sh", "/app/api"]
 
