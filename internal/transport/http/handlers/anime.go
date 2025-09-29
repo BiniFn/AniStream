@@ -77,6 +77,10 @@ func (h *Handler) getAnimeTrailer(w http.ResponseWriter, r *http.Request) {
 		log.Warn("anime not found", "id", id, "err", err)
 		h.jsonError(w, http.StatusNotFound, "anime not found")
 		return
+	case anime.TrailerNotFound:
+		log.Warn("trailer not found", "id", id, "err", err)
+		h.jsonError(w, http.StatusNotFound, "trailer not found")
+		return
 	case nil:
 		h.jsonOK(w, resp)
 		return
@@ -109,6 +113,10 @@ func (h *Handler) getAnimeBanner(w http.ResponseWriter, r *http.Request) {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)
 		h.jsonError(w, http.StatusNotFound, "anime not found")
+		return
+	case anime.BannerNotFound:
+		log.Warn("banner not found", "id", id, "err", err)
+		h.jsonError(w, http.StatusNotFound, "banner not found")
 		return
 	case nil:
 		h.jsonOK(w, resp)

@@ -15,7 +15,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-var ErrAnimeNotFound = errors.New("anime not found")
+var (
+	ErrAnimeNotFound = errors.New("anime not found")
+	TrailerNotFound  = errors.New("trailer not found")
+	BannerNotFound   = errors.New("banner not found")
+)
 
 func (s *AnimeService) GetAnimeByID(
 	ctx context.Context,
@@ -71,7 +75,7 @@ func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*models.
 
 	t, err := s.malClient.GetTrailer(ctx, int(malID))
 	if err != nil || t == "" {
-		return nil, fmt.Errorf("failed to fetch trailer for MAL ID %d: %v", malID, err)
+		return nil, TrailerNotFound
 	}
 
 	a.Metadata.TrailerEmbedURL = t
@@ -99,6 +103,10 @@ func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (models.Ba
 		anime, err := s.anilistClient.GetAnimeDetails(ctx, int(a.MalID.Int32))
 		if err != nil {
 			return "", fmt.Errorf("failed to fetch anime details from Anilist for MAL ID %d: %v", a.MalID.Int32, err)
+		}
+
+		if anime.Media.BannerImage == "" {
+			return "", BannerNotFound
 		}
 
 		return anime.Media.BannerImage, nil
