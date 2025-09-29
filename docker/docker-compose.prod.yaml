@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: aniways
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api:
+    image: ${DOCKER_USERNAME}/aniways-api:latest
+    environment:
+      - APP_ENV=production
+      - APP_PORT=8080
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/aniways
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MYANIMELIST_CLIENT_ID=${MYANIMELIST_CLIENT_ID}
+      - MYANIMELIST_CLIENT_SECRET=${MYANIMELIST_CLIENT_SECRET}
+      - ANILIST_CLIENT_ID=${ANILIST_CLIENT_ID}
+      - ANILIST_CLIENT_SECRET=${ANILIST_CLIENT_SECRET}
+      - CLOUDINARY_NAME=${CLOUDINARY_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - API_URL=${API_URL}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  proxy:
+    image: ${DOCKER_USERNAME}/aniways-proxy:latest
+    ports:
+      - "1234:1234"
+    restart: unless-stopped
+
+  worker:
+    image: ${DOCKER_USERNAME}/aniways-worker:latest
+    environment:
+      - APP_ENV=production
+      - APP_PORT=8080
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/aniways
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MYANIMELIST_CLIENT_ID=${MYANIMELIST_CLIENT_ID}
+      - MYANIMELIST_CLIENT_SECRET=${MYANIMELIST_CLIENT_SECRET}
+      - ANILIST_CLIENT_ID=${ANILIST_CLIENT_ID}
+      - ANILIST_CLIENT_SECRET=${ANILIST_CLIENT_SECRET}
+      - CLOUDINARY_NAME=${CLOUDINARY_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - API_URL=${API_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
