@@ -83,7 +83,7 @@ WHERE
   AND user_id = sqlc.arg(user_id)
   AND animes.last_episode > library.watched_episodes
 ORDER BY
-  animes.updated_at DESC
+  library.updated_at DESC
 LIMIT $1 OFFSET $2;
 
 -- name: GetContinueWatchingAnimeCount :one
@@ -109,7 +109,7 @@ WHERE
   AND user_id = sqlc.arg(user_id)
   AND animes.last_episode > library.watched_episodes
 ORDER BY
-  animes.updated_at DESC
+  library.updated_at DESC
 LIMIT $1 OFFSET $2;
 
 -- name: GetPlanToWatchAnimeCount :one

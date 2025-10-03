@@ -49,7 +49,7 @@ WHERE
   AND user_id = $3
   AND animes.last_episode > library.watched_episodes
 ORDER BY
-  animes.updated_at DESC
+  library.updated_at DESC
 LIMIT $1 OFFSET $2
 `
 
@@ -333,7 +333,7 @@ WHERE
   AND user_id = $3
   AND animes.last_episode > library.watched_episodes
 ORDER BY
-  animes.updated_at DESC
+  library.updated_at DESC
 LIMIT $1 OFFSET $2
 `
 
