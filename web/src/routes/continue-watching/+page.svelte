@@ -15,7 +15,7 @@
 
 <div class="min-h-screen bg-background">
 	<div
-		class="sticky z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+		class="z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:sticky"
 		style="top: {layoutState.navbarHeight}px"
 	>
 		<div class="container mx-auto px-4 py-4">
