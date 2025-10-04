@@ -5,10 +5,10 @@
 	export let variant: 'default' | 'gradient' | 'anime' = 'default';
 
 	const sizeClasses = {
-		sm: 'text-lg',
-		md: 'text-2xl',
-		lg: 'text-4xl',
-		xl: 'text-6xl',
+		sm: 'md:text-lg text-sm',
+		md: 'md:text-2xl text-base',
+		lg: 'md:text-4xl text-2xl',
+		xl: 'md:text-6xl text-3xl',
 	};
 
 	const variantClasses = {
@@ -27,4 +27,3 @@
 >
 	ANIWAYS
 </span>
-

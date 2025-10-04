@@ -83,7 +83,7 @@
 					query: {
 						q: query,
 						page: 1,
-						itemsPerPage: 5,
+						itemsPerPage: 3,
 					},
 				},
 			});
@@ -219,7 +219,7 @@
 				<a
 					href={link.link}
 					class={cn(
-						'flex items-center font-medium text-muted-foreground transition-colors hover:text-primary',
+						'flex items-center font-medium text-muted-foreground transition-colors',
 						page.url.pathname === link.link && 'text-foreground',
 					)}
 				>
@@ -229,7 +229,7 @@
 			{/each}
 		</div>
 
-		<div class="flex flex-col gap-2 px-4">
+		<div class="mt-auto mb-4 flex flex-col gap-2 px-4">
 			<Button
 				variant="outline"
 				class="w-full"

@@ -139,7 +139,7 @@
 
 <div class="min-h-screen bg-background">
 	<div
-		class="sticky z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+		class="z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:sticky"
 		style="top: {layoutState.navbarHeight}px"
 	>
 		<div class="container mx-auto px-4 py-4">
@@ -176,14 +176,14 @@
 								<Dropdown.Trigger
 									class={cn(
 										buttonVariants({ size: 'icon' }),
-										'absolute right-0 bottom-0 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full',
+										'absolute right-0 bottom-0 flex size-8 -translate-x-1/2 -translate-y-1/2 rounded-full',
 									)}
 									disabled={isUploadingImage}
 								>
 									{#if isUploadingImage}
-										<LoaderCircle class="h-4 w-4 animate-spin" />
+										<LoaderCircle class="size-4 animate-spin" />
 									{:else}
-										<Pencil class="h-4 w-4" />
+										<Pencil class="size-4" />
 									{/if}
 								</Dropdown.Trigger>
 								<Dropdown.Content align="end" class="w-48">

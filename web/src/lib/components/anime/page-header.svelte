@@ -84,7 +84,7 @@
 
 <div
 	bind:this={headerElement}
-	class="sticky z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+	class="z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:sticky"
 	style="top: {layoutState.navbarHeight}px"
 >
 	<div class="container mx-auto px-3 py-3 sm:px-4 sm:py-4">

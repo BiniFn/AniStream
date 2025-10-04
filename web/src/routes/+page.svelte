@@ -3,6 +3,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Calendar, ChevronRight, Clock, Play, Star, TrendingUp } from 'lucide-svelte';
 	import type { PageProps } from './$types';
+	import { cn } from '$lib/utils';
 
 	let { data }: PageProps = $props();
 
@@ -49,7 +50,7 @@
 		<div class="absolute inset-0 z-20 flex items-center">
 			<div class="container mx-auto px-6">
 				<div
-					class="flex flex-col-reverse items-center gap-8 lg:flex-row lg:justify-between lg:gap-16 xl:gap-20"
+					class="flex flex-col-reverse items-center md:gap-8 lg:flex-row lg:justify-between lg:gap-16 xl:gap-20"
 				>
 					<div class="max-w-3xl flex-1">
 						<div class="mb-6 flex items-center gap-3 md:pt-0">
@@ -63,36 +64,44 @@
 							</div>
 						</div>
 						<h1
-							class="mb-4 line-clamp-3 text-4xl leading-none font-black tracking-tight text-white sm:mb-6 sm:text-6xl md:text-8xl"
+							class="mb-3 line-clamp-3 text-4xl leading-none font-black tracking-tight text-foreground sm:mb-6 sm:text-6xl md:text-8xl"
 						>
 							{featuredAnime.jname || featuredAnime.ename}
 						</h1>
 						{#if featuredAnime.ename && featuredAnime.jname}
-							<p class="mb-4 hidden text-2xl font-light text-gray-300 sm:mb-6 sm:block">
+							<p class="mb-4 hidden text-4xl font-light text-muted-foreground sm:mb-6 sm:block">
 								{featuredAnime.ename}
 							</p>
 						{/if}
 						<div
-							class="mb-6 flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-gray-300 backdrop-blur-sm"
+							class="mb-3 hidden w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-gray-300 backdrop-blur-sm sm:mb-6 sm:flex"
 						>
 							<Calendar class="h-4 w-4" />
-							<span class="font-medium capitalize"
-								>{featuredAnime.season} {featuredAnime.seasonYear}</span
-							>
+							<span class="font-medium capitalize">
+								{featuredAnime.season}
+								{featuredAnime.seasonYear}
+							</span>
 						</div>
-						<div class="mb-4 flex flex-wrap items-center gap-6 sm:mb-8">
+						<div class="mb-4 flex flex-wrap items-center gap-6 sm:mb-6">
 							<div class="flex flex-wrap gap-2">
-								{#each featuredAnime.genre.split(', ') as genre (genre)}
-									<Button size="sm" variant="outline" href="/catalog?genres={genre}">
+								{#each featuredAnime.genre.split(', ') as genre, i (genre)}
+									<Button
+										size="sm"
+										class={cn(
+											'rounded-full text-xs md:text-sm',
+											i > 3 ? 'hidden md:inline-flex' : '',
+										)}
+										variant="outline"
+										href="/catalog?genres={genre}"
+									>
 										{genre}
 									</Button>
 								{/each}
 							</div>
 						</div>
-						<div class="flex flex-col gap-4 sm:flex-row">
+						<div class="mt-6 flex flex-col gap-3 sm:mt-0 sm:flex-row sm:gap-4">
 							<Button
-								size="lg"
-								class="gap-3 bg-primary px-8 py-4 text-lg shadow-xl shadow-primary/25 hover:bg-primary/90"
+								class="gap-3 shadow-xl shadow-primary/25 hover:bg-primary/90"
 								href={`/anime/${featuredAnime.id}/watch`}
 							>
 								<Play class="h-6 w-6" />
@@ -100,8 +109,7 @@
 							</Button>
 							<Button
 								variant="outline"
-								size="lg"
-								class="gap-3 border-white/30 bg-white/10 px-8 py-4 text-lg text-white shadow-xl backdrop-blur-sm hover:bg-white/20"
+								class="gap-3 backdrop-blur-lg"
 								href={`/anime/${featuredAnime.id}`}
 							>
 								More Info
@@ -116,13 +124,13 @@
 								<img
 									src={featuredAnime.metadata?.mainPictureUrl || featuredAnime.imageUrl}
 									alt={featuredAnime.ename || featuredAnime.jname}
-									class="h-96 w-72 rounded-2xl object-cover lg:h-[550px] lg:w-96"
+									class="h-fit w-[45vw] rounded-2xl object-cover lg:h-[550px] lg:w-96"
 								/>
 							</div>
 							<div
 								class="absolute -right-4 -bottom-4 rounded-xl border border-white/20 bg-black/80 px-4 py-3 backdrop-blur-sm"
 							>
-								<div class="flex items-center gap-2 text-white">
+								<div class="flex items-center gap-2">
 									<Star class="h-4 w-4 fill-yellow-400 text-yellow-400" />
 									<span class="font-semibold">#1 Trending</span>
 								</div>
@@ -133,9 +141,9 @@
 			</div>
 		</div>
 
-		<div class="absolute bottom-4 left-1/2 z-30 -translate-x-1/2 transform sm:bottom-8">
+		<div class="absolute bottom-2 left-1/2 z-30 -translate-x-1/2 transform sm:bottom-8">
 			<div class="animate-bounce">
-				<ChevronRight class="h-6 w-6 rotate-90 text-white/60" />
+				<ChevronRight class="size-6 rotate-90 text-muted-foreground" />
 			</div>
 		</div>
 	</section>

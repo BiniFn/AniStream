@@ -26,92 +26,111 @@
 			<div class="border-b pb-3">
 				<dt class="mb-2 font-semibold text-muted-foreground">Media</dt>
 				<div class="space-y-2">
-					{#if anime.metadata?.mediaType}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Type</span>
-							<span class="font-medium">{mediaType}</span>
-						</div>
-					{/if}
-					{#if anime.metadata?.totalEpisodes}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Episodes</span>
-							<span class="font-medium">{anime.metadata.totalEpisodes}</span>
-						</div>
-					{/if}
-					{#if anime.metadata?.avgEpisodeDuration}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Duration</span>
-							<span class="font-medium">
-								{Math.ceil(anime.metadata.avgEpisodeDuration / 60)} min
-							</span>
-						</div>
-					{/if}
-					{#if anime.metadata?.airingStatus}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Status</span>
-							<span class={cn('font-medium')}>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Type</span>
+						<span class="font-medium">{mediaType}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Episodes</span>
+						<span class="font-medium">{anime.metadata?.totalEpisodes || '???'}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Duration</span>
+						<span class="font-medium">
+							{#if !anime.metadata?.avgEpisodeDuration}
+								???
+							{:else if anime.metadata.avgEpisodeDuration < 60}
+								{anime.metadata.avgEpisodeDuration} sec
+							{:else if anime.metadata.avgEpisodeDuration < 3600}
+								{Math.floor(anime.metadata.avgEpisodeDuration / 60)} min {anime.metadata
+									.avgEpisodeDuration % 60} sec
+							{:else}
+								{Math.floor(anime.metadata.avgEpisodeDuration / 3600)} hr
+							{/if}
+						</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Status</span>
+						<span class={cn('font-medium')}>
+							{#if !anime.metadata?.airingStatus}
+								???
+							{:else}
 								{anime.metadata.airingStatus
 									.replace(/_/g, ' ')
 									.replace(/\b\w/g, (l) => l.toUpperCase())}
-							</span>
-						</div>
-					{/if}
+							{/if}
+						</span>
+					</div>
 				</div>
 			</div>
 
 			<div class="border-b pb-3">
 				<dt class="mb-2 font-semibold text-muted-foreground">Airing</dt>
 				<div class="space-y-2">
-					{#if anime.season && anime.seasonYear}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Season</span>
-							<span class="font-medium capitalize">{anime.season} {anime.seasonYear}</span>
-						</div>
-					{/if}
-					{#if anime.metadata?.airingStartDate}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Start Date</span>
-							<span class="font-medium">
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Season</span>
+						<span class="font-medium capitalize">
+							{#if anime.metadata?.season && anime.metadata?.seasonYear}
+								{anime.metadata.season} {anime.metadata.seasonYear}
+							{:else if anime.metadata?.season}
+								{anime.metadata.season} ???
+							{:else if anime.metadata?.seasonYear}
+								??? {anime.metadata.seasonYear}
+							{:else}
+								???
+							{/if}
+						</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Start Date</span>
+						<span class="font-medium">
+							{#if anime.metadata?.airingStartDate}
 								{formatDate(anime.metadata.airingStartDate, 'dd/MM/yyyy')}
-							</span>
-						</div>
-					{/if}
-					{#if anime.metadata?.airingEndDate}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">End Date</span>
-							<span class="font-medium">
-								{#if !anime.metadata.airingEndDate}
-									???
-								{:else}
-									{formatDate(anime.metadata.airingEndDate, 'dd/MM/yyyy')}
-								{/if}
-							</span>
-						</div>
-					{/if}
+							{:else}
+								???
+							{/if}
+						</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">End Date</span>
+						<span class="font-medium">
+							{#if !anime.metadata?.airingEndDate}
+								???
+							{:else}
+								{formatDate(anime.metadata.airingEndDate, 'dd/MM/yyyy')}
+							{/if}
+						</span>
+					</div>
 				</div>
 			</div>
 
 			<div class="border-b pb-3">
 				<dt class="mb-2 font-semibold text-muted-foreground">Production</dt>
 				<div class="space-y-2">
-					{#if anime.metadata?.studio}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Studio</span>
-							<span class="font-medium capitalize">{anime.metadata.studio}</span>
-						</div>
-					{/if}
-					{#if anime.metadata?.source}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Source</span>
-							<span class="font-medium capitalize">{anime.metadata.source}</span>
-						</div>
-					{/if}
-					{#if anime.metadata?.rating}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Rating</span>
-							<span class="font-medium">{ratingLabel}</span>
-						</div>
-					{/if}
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Studio</span>
+						<span class="font-medium capitalize">
+							{#if anime.metadata?.studio}
+								{anime.metadata.studio}
+							{:else}
+								???
+							{/if}
+						</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Source</span>
+						<span class="font-medium capitalize">
+							{#if anime.metadata?.source}
+								{anime.metadata.source.replace(/_/g, ' ').toLowerCase()}
+							{:else}
+								???
+							{/if}
+						</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Rating</span>
+						<span class="font-medium">{ratingLabel}</span>
+					</div>
 				</div>
 			</div>
 

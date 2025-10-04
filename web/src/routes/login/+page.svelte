@@ -129,10 +129,7 @@
 							{#snippet children({ props })}
 								<div class="flex items-center justify-between">
 									<Form.Label>Password</Form.Label>
-									<a 
-										href="/forgot-password" 
-										class="text-sm text-primary hover:underline"
-									>
+									<a href="/forgot-password" class="text-sm text-primary hover:underline">
 										Forgot password?
 									</a>
 								</div>
