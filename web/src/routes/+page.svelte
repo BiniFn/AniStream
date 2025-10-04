@@ -124,7 +124,7 @@
 								<img
 									src={featuredAnime.metadata?.mainPictureUrl || featuredAnime.imageUrl}
 									alt={featuredAnime.ename || featuredAnime.jname}
-									class="h-fit w-[45vw] rounded-2xl object-cover lg:h-[550px] lg:w-96"
+									class="aspect-[2/3] w-[45vw] overflow-hidden rounded-2xl object-cover lg:h-[550px] lg:w-96"
 								/>
 							</div>
 							<div
