@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
+	import type { FilterState } from '$lib/utils/filters';
 
 	interface SortOption {
 		value: string;
@@ -8,10 +9,10 @@
 	}
 
 	interface Props {
-		sortBy: string;
+		sortBy: FilterState['sortBy'];
 		sortOrder: 'asc' | 'desc';
 		sortOptions: SortOption[];
-		onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
+		onSortChange: (sortBy: FilterState['sortBy'], sortOrder: 'asc' | 'desc') => void;
 		class?: string;
 		selectClass?: string;
 	}
@@ -25,7 +26,7 @@
 		selectClass = '',
 	}: Props = $props();
 
-	function handleSortByChange(value: string | undefined) {
+	function handleSortByChange(value: FilterState['sortBy'] | undefined) {
 		if (value) {
 			sortBy = value;
 			onSortChange(sortBy, sortOrder);
@@ -39,7 +40,11 @@
 </script>
 
 <div class="flex items-center gap-2 {className}">
-	<Select.Root type="single" value={sortBy} onValueChange={handleSortByChange}>
+	<Select.Root
+		type="single"
+		value={sortBy}
+		onValueChange={(value) => handleSortByChange(value as FilterState['sortBy'])}
+	>
 		<Select.Trigger class={selectClass}>
 			<span>{sortOptions.find((o) => o.value === sortBy)?.label || 'Sort by'}</span>
 		</Select.Trigger>

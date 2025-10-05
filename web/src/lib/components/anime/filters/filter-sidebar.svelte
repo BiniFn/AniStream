@@ -7,42 +7,16 @@
 	import { layoutState } from '$lib/context/layout.svelte';
 	import { cn } from '$lib/utils';
 	import { X } from 'lucide-svelte';
+	import type { FilterState, FilterActions } from '$lib/utils/filters';
 
 	interface Props {
 		genres: string[];
-		selectedGenres: string[];
-		selectedSeasons: string[];
-		selectedYears: number[];
-		yearMin?: number;
-		yearMax?: number;
-		genresMode: 'any' | 'all';
-		itemsPerPage: number;
-		onGenreToggle: (genre: string) => void;
-		onSeasonToggle: (season: string) => void;
-		onYearToggle: (year: number) => void;
-		onYearRangeChange: (min?: number, max?: number) => void;
-		onGenresModeChange: (mode: 'any' | 'all') => void;
-		onItemsPerPageChange: (count: number) => void;
+		filters: FilterState;
+		filterActions: FilterActions;
 		showItemsPerPage?: boolean;
 	}
 
-	let {
-		genres,
-		selectedGenres,
-		selectedSeasons,
-		selectedYears,
-		yearMin,
-		yearMax,
-		genresMode,
-		itemsPerPage,
-		onGenreToggle,
-		onSeasonToggle,
-		onYearToggle,
-		onYearRangeChange,
-		onGenresModeChange,
-		onItemsPerPageChange,
-		showItemsPerPage = true,
-	}: Props = $props();
+	let { genres, filters, filterActions, showItemsPerPage = true }: Props = $props();
 
 	const sidebarTop = $derived(layoutState.navbarHeight + layoutState.headerHeight + 16);
 
@@ -61,7 +35,7 @@
 
 		clearTimeout(yearMinTimeout);
 		yearMinTimeout = setTimeout(() => {
-			onYearRangeChange(newMin, yearMax);
+			filterActions.setYearRange(newMin, filters.yearMax);
 		}, 800);
 	}
 
@@ -72,7 +46,7 @@
 
 		clearTimeout(yearMaxTimeout);
 		yearMaxTimeout = setTimeout(() => {
-			onYearRangeChange(yearMin, newMax);
+			filterActions.setYearRange(filters.yearMin, newMax);
 		}, 800);
 	}
 </script>
@@ -85,19 +59,19 @@
 		<div class="space-y-3">
 			<div class="flex items-center justify-between">
 				<Label class="text-base font-semibold">Genres</Label>
-				{#if selectedGenres.length > 0}
+				{#if filters.genres.length > 0}
 					<Badge variant="secondary" class="text-xs">
-						{selectedGenres.length}
+						{filters.genres.length}
 					</Badge>
 				{/if}
 			</div>
 			<div class="filter-scroll max-h-60 space-y-1 overflow-y-auto pr-2">
 				{#each genres as genre (genre)}
-					{@const isSelected = selectedGenres
+					{@const isSelected = filters.genres
 						.map((g) => g.toLowerCase())
 						.includes(genre.toLowerCase())}
 					<button
-						onclick={() => onGenreToggle(genre)}
+						onclick={() => filterActions.toggleGenre(genre)}
 						class={cn(
 							'flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
 							isSelected ? 'bg-accent font-medium' : '',
@@ -110,20 +84,20 @@
 					</button>
 				{/each}
 			</div>
-			{#if selectedGenres.length > 1}
+			{#if filters.genres.length > 1}
 				<div class="flex gap-2 pt-2">
 					<Button
-						variant={genresMode === 'any' ? 'default' : 'outline'}
+						variant={filters.genresMode === 'any' ? 'default' : 'outline'}
 						size="sm"
-						onclick={() => onGenresModeChange('any')}
+						onclick={() => filterActions.setGenresMode('any')}
 						class="flex-1"
 					>
 						Any
 					</Button>
 					<Button
-						variant={genresMode === 'all' ? 'default' : 'outline'}
+						variant={filters.genresMode === 'all' ? 'default' : 'outline'}
 						size="sm"
-						onclick={() => onGenresModeChange('all')}
+						onclick={() => filterActions.setGenresMode('all')}
 						class="flex-1"
 					>
 						All
@@ -138,9 +112,9 @@
 		<div class="flex flex-wrap gap-2">
 			{#each seasons as season (season)}
 				<Button
-					variant={selectedSeasons.includes(season) ? 'default' : 'outline'}
+					variant={filters.seasons.includes(season) ? 'default' : 'outline'}
 					size="sm"
-					onclick={() => onSeasonToggle(season)}
+					onclick={() => filterActions.toggleSeason(season)}
 					class="capitalize"
 				>
 					{season}
@@ -154,9 +128,9 @@
 		<div class="filter-scroll flex max-h-32 flex-wrap gap-2 overflow-y-auto pr-2">
 			{#each years.slice(0, 15) as year (year)}
 				<Button
-					variant={selectedYears.includes(year) ? 'default' : 'outline'}
+					variant={filters.years.includes(year) ? 'default' : 'outline'}
 					size="sm"
-					onclick={() => onYearToggle(year)}
+					onclick={() => filterActions.toggleYear(year)}
 					class="h-8 px-3 text-xs"
 				>
 					{year}
@@ -173,7 +147,7 @@
 				placeholder="From year"
 				min="1970"
 				max={currentYear}
-				value={yearMin || ''}
+				value={filters.yearMin || ''}
 				oninput={handleYearMinChange}
 			/>
 			<Input
@@ -181,7 +155,7 @@
 				placeholder="To year"
 				min="1970"
 				max={currentYear}
-				value={yearMax || ''}
+				value={filters.yearMax || ''}
 				oninput={handleYearMaxChange}
 			/>
 		</div>
@@ -192,15 +166,15 @@
 			<Label class="text-base font-semibold">Items per page</Label>
 			<Select.Root
 				type="single"
-				value={itemsPerPage.toString()}
+				value={filters.itemsPerPage.toString()}
 				onValueChange={(value) => {
 					if (value) {
-						onItemsPerPageChange(Number(value));
+						filterActions.setItemsPerPage(Number(value));
 					}
 				}}
 			>
 				<Select.Trigger class="w-full">
-					<span>{itemsPerPage} items</span>
+					<span>{filters.itemsPerPage} items</span>
 				</Select.Trigger>
 				<Select.Content>
 					{#each itemsPerPageOptions as option (option)}

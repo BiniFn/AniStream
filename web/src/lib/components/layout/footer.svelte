@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { appState } from '$lib/context/state.svelte';
-	import { BrandText } from '$lib/components/ui/brand-text';
+	import BrandText from './brand-text.svelte';
 	import { Heart } from 'lucide-svelte';
 
 	let isLoggedIn = $derived(appState.user != null);

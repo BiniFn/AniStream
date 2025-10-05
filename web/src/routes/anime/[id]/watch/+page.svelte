@@ -2,7 +2,7 @@
 	import { goto, invalidate, preloadData } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
-	import LibraryBtn from '$lib/components/anime/library-btn.svelte';
+	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
 	import Player from '$lib/components/anime/player/index.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import Button from '$lib/components/ui/button/button.svelte';

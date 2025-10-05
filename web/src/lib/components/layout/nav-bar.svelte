@@ -4,7 +4,6 @@
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import UserProfileDropdown from '$lib/components/layout/user-profile-dropdown.svelte';
-	import { BrandText } from '$lib/components/ui/brand-text';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
@@ -23,6 +22,7 @@
 		User,
 	} from 'lucide-svelte';
 	import ProfilePicture from './profile-picture.svelte';
+	import BrandText from './brand-text.svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 

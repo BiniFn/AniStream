@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { components } from '$lib/api/openapi';
-	import LibraryBtn from '$lib/components/anime/library-btn.svelte';
+	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
 	import { CirclePlay, Play, Share2, Star } from 'lucide-svelte';

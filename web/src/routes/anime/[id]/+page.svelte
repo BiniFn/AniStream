@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import HeroSection from '$lib/components/anime/hero-section.svelte';
-	import InfoSidebar from '$lib/components/anime/info-sidebar.svelte';
-	import TabContent from '$lib/components/anime/tab-content.svelte';
+	import HeroSection from '$lib/components/anime/layout/hero-section.svelte';
+	import InfoSidebar from '$lib/components/anime/layout/info-sidebar.svelte';
+	import TabContent from '$lib/components/anime/layout/tab-content.svelte';
 	import { cn } from '$lib/utils';
 	import type { PageProps } from './$types';
 

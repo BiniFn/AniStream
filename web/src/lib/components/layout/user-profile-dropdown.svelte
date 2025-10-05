@@ -3,7 +3,7 @@
 	import { buttonVariants } from '$lib/components/ui/button/button.svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { cn } from '$lib/utils';
-	import { Heart, LogOut, Settings, User } from 'lucide-svelte';
+	import { ChevronDown, Heart, LogOut, Settings, User } from 'lucide-svelte';
 	import ProfilePicture from './profile-picture.svelte';
 
 	interface Props {
@@ -24,7 +24,7 @@
 	>
 		<span class="hidden text-sm font-medium lg:block">{user.username}</span>
 		<ProfilePicture class="size-8" />
-		hevronDown class="h-4 w-4 opacity-50" />
+		<ChevronDown class="h-4 w-4 opacity-50" />
 	</DropdownMenu.Trigger>
 
 	<DropdownMenu.Content class="w-56" align="end">

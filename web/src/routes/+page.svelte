@@ -1,5 +1,5 @@
 <script lang="ts">
-	import AnimeCard from '$lib/components/anime/anime-card.svelte';
+	import AnimeCard from '$lib/components/anime/display/anime-card.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Calendar, ChevronRight, Clock, Play, Star, TrendingUp } from 'lucide-svelte';
 	import type { PageProps } from './$types';

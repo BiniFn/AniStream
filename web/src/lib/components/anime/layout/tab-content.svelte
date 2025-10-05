@@ -14,8 +14,8 @@
 		Heart,
 	} from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
-	import { Button } from '../ui/button';
-	import { Badge } from '../ui/badge';
+	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
 	type EpisodeResponse = components['schemas']['models.EpisodeResponse'];

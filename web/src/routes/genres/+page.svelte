@@ -1,7 +1,7 @@
 <script lang="ts">
-	import GenreCard from '$lib/components/anime/genre-card.svelte';
+	import GenreCard from '$lib/components/anime/display/genre-card.svelte';
+	import PageHeader from '$lib/components/layout/page-header.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { layoutState } from '$lib/context/layout.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -18,20 +18,11 @@
 </svelte:head>
 
 <div class="min-h-screen bg-background">
-	<div
-		class="z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:sticky"
-		style="top: {layoutState.navbarHeight}px"
-	>
-		<div
-			class="container mx-auto flex w-full flex-col justify-between gap-4 px-4 py-4 md:flex-row md:items-center"
-		>
-			<div>
-				<h1 class="text-2xl font-bold tracking-tight">Browse by Genre</h1>
-				<p class="text-sm text-muted-foreground">Pick a genre to explore the catalog</p>
-			</div>
+	<PageHeader title="Browse by Genre" description="Pick a genre to explore the catalog">
+		{#snippet actions()}
 			<Input type="search" bind:value={query} placeholder="Search genres..." class="max-w-sm" />
-		</div>
-	</div>
+		{/snippet}
+	</PageHeader>
 
 	<div class="container mx-auto px-4 py-8">
 		{#if genres.length === 0}

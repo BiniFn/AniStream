@@ -2,7 +2,7 @@
 	import type { components } from '$lib/api/openapi';
 	import { Play } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
-	import LibraryBtn from './library-btn.svelte';
+	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 	type LibraryResponse = components['schemas']['models.LibraryResponse'];

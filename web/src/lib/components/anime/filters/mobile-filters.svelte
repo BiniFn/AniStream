@@ -5,44 +5,25 @@
 	import { Label } from '$lib/components/ui/label';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import type { Snippet } from 'svelte';
+	import type { FilterState, FilterActions } from '$lib/utils/filters';
 
 	interface Props {
 		open: boolean;
 		genres: string[];
-		selectedGenres: string[];
-		selectedSeasons: string[];
-		selectedYears: number[];
-		yearMin?: number;
-		yearMax?: number;
-		genresMode: 'any' | 'all';
+		filters: FilterState;
+		filterActions: FilterActions;
 		totalFilters: number;
 		onOpenChange: (open: boolean) => void;
-		onGenreToggle: (genre: string) => void;
-		onSeasonToggle: (season: string) => void;
-		onYearToggle: (year: number) => void;
-		onYearRangeChange: (min?: number, max?: number) => void;
-		onGenresModeChange: (mode: 'any' | 'all') => void;
-		onClearAll: () => void;
 		children?: Snippet;
 	}
 
 	let {
 		open = $bindable(),
 		genres,
-		selectedGenres,
-		selectedSeasons,
-		selectedYears,
-		yearMin,
-		yearMax,
-		genresMode,
+		filters,
+		filterActions,
 		totalFilters,
 		onOpenChange,
-		onGenreToggle,
-		onSeasonToggle,
-		onYearToggle,
-		onYearRangeChange,
-		onGenresModeChange,
-		onClearAll,
 		children,
 	}: Props = $props();
 
@@ -60,7 +41,7 @@
 
 		clearTimeout(yearMinTimeout);
 		yearMinTimeout = setTimeout(() => {
-			onYearRangeChange(newMin, yearMax);
+			filterActions.setYearRange(newMin, filters.yearMax);
 		}, 800);
 	}
 
@@ -71,7 +52,7 @@
 
 		clearTimeout(yearMaxTimeout);
 		yearMaxTimeout = setTimeout(() => {
-			onYearRangeChange(yearMin, newMax);
+			filterActions.setYearRange(filters.yearMin, newMax);
 		}, 800);
 	}
 </script>
@@ -91,30 +72,30 @@
 						<div class="flex max-h-32 flex-wrap gap-1.5 overflow-y-auto pr-2">
 							{#each genres as genre (genre)}
 								<Badge
-									variant={selectedGenres.map((g) => g.toLowerCase()).includes(genre.toLowerCase())
+									variant={filters.genres.map((g) => g.toLowerCase()).includes(genre.toLowerCase())
 										? 'default'
 										: 'outline'}
 									class="h-6 cursor-pointer px-2 py-0.5 text-xs"
-									onclick={() => onGenreToggle(genre)}
+									onclick={() => filterActions.toggleGenre(genre)}
 								>
 									{genre}
 								</Badge>
 							{/each}
 						</div>
-						{#if selectedGenres.length > 1}
+						{#if filters.genres.length > 1}
 							<div class="flex gap-2 pt-1">
 								<Button
-									variant={genresMode === 'any' ? 'default' : 'outline'}
+									variant={filters.genresMode === 'any' ? 'default' : 'outline'}
 									size="sm"
-									onclick={() => onGenresModeChange('any')}
+									onclick={() => filterActions.setGenresMode('any')}
 									class="h-7 flex-1 text-xs"
 								>
 									Any
 								</Button>
 								<Button
-									variant={genresMode === 'all' ? 'default' : 'outline'}
+									variant={filters.genresMode === 'all' ? 'default' : 'outline'}
 									size="sm"
-									onclick={() => onGenresModeChange('all')}
+									onclick={() => filterActions.setGenresMode('all')}
 									class="h-7 flex-1 text-xs"
 								>
 									All
@@ -129,9 +110,9 @@
 					<div class="flex flex-wrap gap-1.5">
 						{#each seasons as season (season)}
 							<Button
-								variant={selectedSeasons.includes(season) ? 'default' : 'outline'}
+								variant={filters.seasons.includes(season) ? 'default' : 'outline'}
 								size="sm"
-								onclick={() => onSeasonToggle(season)}
+								onclick={() => filterActions.toggleSeason(season)}
 								class="h-7 px-3 text-xs capitalize"
 							>
 								{season}
@@ -145,9 +126,9 @@
 					<div class="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto pr-2">
 						{#each years.slice(0, 20) as year (year)}
 							<Button
-								variant={selectedYears.includes(year) ? 'default' : 'outline'}
+								variant={filters.years.includes(year) ? 'default' : 'outline'}
 								size="sm"
-								onclick={() => onYearToggle(year)}
+								onclick={() => filterActions.toggleYear(year)}
 								class="h-6 px-2 text-[10px]"
 							>
 								{year}
@@ -164,7 +145,7 @@
 							placeholder="From"
 							min="1970"
 							max={currentYear}
-							value={yearMin || ''}
+							value={filters.yearMin || ''}
 							class="h-8 text-xs"
 							oninput={handleYearMinChange}
 						/>
@@ -173,7 +154,7 @@
 							placeholder="To"
 							min="1970"
 							max={currentYear}
-							value={yearMax || ''}
+							value={filters.yearMax || ''}
 							class="h-8 text-xs"
 							oninput={handleYearMaxChange}
 						/>
@@ -186,7 +167,7 @@
 			<div class="border-t px-4 py-3">
 				<div class="flex gap-2">
 					{#if totalFilters > 0}
-						<Button variant="outline" size="sm" class="flex-1" onclick={onClearAll}>
+						<Button variant="outline" size="sm" class="flex-1" onclick={filterActions.clearAll}>
 							Clear All
 						</Button>
 					{/if}
