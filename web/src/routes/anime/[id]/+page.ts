@@ -3,18 +3,26 @@ import type { PageLoad } from './$types';
 import { redirectToErrorPage } from '$lib/errors';
 
 export const load: PageLoad = async ({ fetch, params }) => {
-	const [anime, banner, trailer, episodes, franchise, libraryStatus] = await Promise.allSettled([
-		apiClient.GET('/anime/{id}', { fetch, params: { path: params } }),
-		apiClient.GET('/anime/{id}/banner', { fetch, params: { path: params } }),
-		apiClient.GET('/anime/{id}/trailer', { fetch, params: { path: params } }),
-		apiClient.GET('/anime/{id}/episodes', { fetch, params: { path: params } }),
-		apiClient.GET('/anime/{id}/franchise', { fetch, params: { path: params } }),
-		apiClient.GET('/library/{animeID}', { fetch, params: { path: { animeID: params.id } } }),
-	]);
+	const [anime, banner, trailer, episodes, franchise, libraryStatus, characters] =
+		await Promise.allSettled([
+			apiClient.GET('/anime/{id}', { fetch, params: { path: params } }),
+			apiClient.GET('/anime/{id}/banner', { fetch, params: { path: params } }),
+			apiClient.GET('/anime/{id}/trailer', { fetch, params: { path: params } }),
+			apiClient.GET('/anime/{id}/episodes', { fetch, params: { path: params } }),
+			apiClient.GET('/anime/{id}/franchise', { fetch, params: { path: params } }),
+			apiClient.GET('/library/{animeID}', { fetch, params: { path: { animeID: params.id } } }),
+			apiClient.GET('/anime/{id}/characters', { fetch, params: { path: params } }),
+		]);
 
-	const isAnyRejected = [anime, banner, trailer, episodes, franchise, libraryStatus].some(
-		(result) => result.status === 'rejected',
-	);
+	const isAnyRejected = [
+		anime,
+		banner,
+		trailer,
+		episodes,
+		franchise,
+		libraryStatus,
+		characters,
+	].some((result) => result.status === 'rejected');
 	if (isAnyRejected) {
 		console.error('One or more API requests failed:', {
 			anime,
@@ -22,6 +30,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 			trailer,
 			episodes,
 			franchise,
+			characters,
 		});
 	}
 
@@ -49,5 +58,6 @@ export const load: PageLoad = async ({ fetch, params }) => {
 		episodes: episodes.status === 'fulfilled' ? episodes.value : null,
 		franchise: franchise.status === 'fulfilled' ? franchise.value : null,
 		libraryStatus: libraryStatus.status === 'fulfilled' ? libraryStatus.value : null,
+		characters: characters.status === 'fulfilled' ? characters.value : null,
 	};
 };

@@ -142,6 +142,75 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/anime/{id}/characters': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get anime characters
+		 * @description Get anime characters
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Anime ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.CharacterResponse'][];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Not Found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/anime/{id}/episodes': {
 		parameters: {
 			query?: never;
@@ -1754,6 +1823,144 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/characters/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get character by ID
+		 * @description Get detailed character information by MAL ID
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Character MAL ID */
+					id: number;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.CharacterFullResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Not Found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/characters/va/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get person by ID
+		 * @description Get detailed person (voice actor) information by MAL ID
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Person MAL ID */
+					id: number;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.PersonFullResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Not Found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/health': {
 		parameters: {
 			query?: never;
@@ -2972,6 +3179,57 @@ export interface components {
 			expires_at?: number;
 			user?: components['schemas']['models.UserResponse'];
 		};
+		'models.CharacterAnimeResponse': {
+			anime: components['schemas']['models.AnimeResponse'];
+			/** @example Main */
+			role: string;
+		};
+		'models.CharacterFullResponse': {
+			/** @example A determined young man who seeks freedom... */
+			about?: string;
+			anime: components['schemas']['models.CharacterAnimeResponse'][];
+			/** @example 10000 */
+			favorites: number;
+			/** @example https://example.com/character.jpg */
+			image: string;
+			/** @example 1 */
+			malId: number;
+			/** @example Eren Yeager */
+			name: string;
+			/** @example エレン・イェーガー */
+			nameKanji?: string;
+			/** @example [
+			 *       "Eren",
+			 *       "Tatakae"
+			 *     ] */
+			nicknames?: string[];
+			voices: components['schemas']['models.CharacterVoiceResponse'][];
+		};
+		'models.CharacterResponse': {
+			/** @example 10000 */
+			favorites: number;
+			/** @example https://example.com/character.jpg */
+			image: string;
+			/** @example 1 */
+			malId: number;
+			/** @example Eren Yeager */
+			name: string;
+			/** @example Main */
+			role: string;
+		};
+		'models.CharacterVoicePersonResponse': {
+			/** @example https://example.com/voice-actor.jpg */
+			image?: string;
+			/** @example 123 */
+			malId: number;
+			/** @example Yuki Kaji */
+			name: string;
+		};
+		'models.CharacterVoiceResponse': {
+			/** @example Japanese */
+			language: string;
+			person: components['schemas']['models.CharacterVoicePersonResponse'];
+		};
 		'models.CreateUserRequest': {
 			/** @example john@example.com */
 			email: string;
@@ -3084,6 +3342,41 @@ export interface components {
 			hasNextPage: boolean;
 			hasPrevPage: boolean;
 			totalPages: number;
+		};
+		'models.PersonAnimeResponse': {
+			anime: components['schemas']['models.AnimeResponse'];
+			/** @example Main */
+			position: string;
+		};
+		'models.PersonCharacterResponse': {
+			anime: components['schemas']['models.AnimeResponse'];
+			character: components['schemas']['models.CharacterResponse'];
+			/** @example Main */
+			role: string;
+		};
+		'models.PersonFullResponse': {
+			/** @example Birthplace: Chiba Prefecture, Japan... */
+			about?: string;
+			/** @example [
+			 *       "Wakayama Shion"
+			 *     ] */
+			alternateNames?: string[];
+			anime: components['schemas']['models.PersonAnimeResponse'][];
+			/** @example 1998-02-10T00:00:00+00:00 */
+			birthday?: string;
+			characters: components['schemas']['models.PersonCharacterResponse'][];
+			/** @example 若山 */
+			familyName?: string;
+			/** @example 1502 */
+			favorites: number;
+			/** @example 詩音 */
+			givenName?: string;
+			/** @example https://example.com/person.jpg */
+			image: string;
+			/** @example 35511 */
+			malId: number;
+			/** @example Shion Wakayama */
+			name: string;
 		};
 		'models.RelationsResponse': {
 			related: components['schemas']['models.AnimeResponse'][];

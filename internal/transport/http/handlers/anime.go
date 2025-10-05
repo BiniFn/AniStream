@@ -18,6 +18,7 @@ func (h *Handler) AnimeDetailsRoutes() {
 		r.Get("/trailer", h.getAnimeTrailer)
 		r.Get("/banner", h.getAnimeBanner)
 		r.Get("/franchise", h.getAnimeFranchise)
+		r.Get("/characters", h.getAnimeCharacters)
 	})
 }
 
@@ -146,6 +147,39 @@ func (h *Handler) getAnimeFranchise(w http.ResponseWriter, r *http.Request) {
 	id := input.ID
 
 	resp, err := h.animeService.GetAnimeRelations(r.Context(), id)
+	switch err {
+	case anime.ErrAnimeNotFound:
+		log.Warn("anime not found", "id", id, "err", err)
+		h.jsonError(w, http.StatusNotFound, "anime not found")
+		return
+	case nil:
+		h.jsonOK(w, resp)
+		return
+	default:
+		log.Error("failed to fetch anime details", "id", id, "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to fetch anime details")
+		return
+	}
+}
+
+// @Summary Get anime characters
+// @Description Get anime characters
+// @Tags Anime
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Success 200 {object} models.CharactersResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id}/characters [get]
+func (h *Handler) getAnimeCharacters(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	input := h.getHttpInput(r).(*GetAnimeByIDInput)
+	id := input.ID
+
+	resp, err := h.animeService.GetAnimeCharacters(r.Context(), id)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)

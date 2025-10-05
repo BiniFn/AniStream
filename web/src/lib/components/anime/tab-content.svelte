@@ -3,26 +3,43 @@
 	import type { components } from '$lib/api/openapi';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { cn } from '$lib/utils';
-	import { ArrowRight, BookOpen, Check, ChevronDown, Film, Play, Users } from 'lucide-svelte';
+	import {
+		ArrowRight,
+		BookOpen,
+		Check,
+		ChevronDown,
+		Film,
+		Play,
+		Users,
+		Heart,
+	} from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
 	import { Button } from '../ui/button';
+	import { Badge } from '../ui/badge';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
 	type EpisodeResponse = components['schemas']['models.EpisodeResponse'];
 	type RelationsResponse = components['schemas']['models.RelationsResponse'];
+	type Character = components['schemas']['models.CharacterResponse'];
 
 	interface Props {
 		selectedTab: 'overview' | 'episodes' | 'relations';
 		anime: AnimeResponse;
 		episodes: EpisodeResponse[];
 		franchise: RelationsResponse | null;
+		characters: Character[] | null;
 	}
 
-	let { selectedTab, anime, episodes, franchise }: Props = $props();
+	let { selectedTab, anime, episodes, franchise, characters }: Props = $props();
 
 	let showFullDescription = $state(false);
+	let showAllCharacters = $state(false);
 	const onToggleDescription = () => {
 		showFullDescription = !showFullDescription;
+	};
+
+	const onToggleAllCharacters = () => {
+		showAllCharacters = !showAllCharacters;
 	};
 
 	onNavigate((params) => {
@@ -30,6 +47,7 @@
 		if (params.from?.params?.id !== params.to?.params?.id) {
 			selectedTab = 'overview';
 			showFullDescription = false;
+			showAllCharacters = false;
 		}
 	});
 
@@ -87,10 +105,55 @@
 
 		<section class="space-y-4">
 			<h3 class="text-xl font-bold">Main Characters</h3>
-			<div class="rounded-lg border bg-muted/30 p-8 text-center">
-				<Users class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-				<p class="text-sm text-muted-foreground">Character information coming soon</p>
-			</div>
+			{#if characters && characters.length > 0}
+				<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+					{#each showAllCharacters ? characters : characters.slice(0, 6) as character (character.malId)}
+						<a
+							href="/characters/{character.malId}"
+							class="group flex gap-3 rounded-lg border bg-card p-4 transition-all hover:border-primary/50 hover:bg-accent"
+						>
+							<img
+								src={character.image}
+								alt={character.name}
+								class="h-16 w-12 flex-shrink-0 rounded object-cover"
+								loading="lazy"
+							/>
+							<div class="min-w-0 flex-1">
+								<h4 class="line-clamp-2 font-semibold group-hover:text-primary">
+									{character.name}
+								</h4>
+								<div class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+									<Badge
+										variant={character.role.toLowerCase() === 'main' ? 'default' : 'outline'}
+										class="text-xs"
+									>
+										{character.role}
+									</Badge>
+									{#if character.favorites > 0}
+										<span class="flex items-center gap-1 text-xs">
+											<Heart class="h-3 w-3" />
+											{character.favorites.toLocaleString()}
+										</span>
+									{/if}
+								</div>
+							</div>
+						</a>
+					{/each}
+				</div>
+				{#if characters.length > 6}
+					<div class="flex justify-center">
+						<Button variant="outline" size="sm" class="gap-2" onclick={onToggleAllCharacters}>
+							<Users class="h-4 w-4" />
+							{showAllCharacters ? 'Show Less' : `View All Characters (${characters.length})`}
+						</Button>
+					</div>
+				{/if}
+			{:else}
+				<div class="rounded-lg border bg-muted/30 p-8 text-center">
+					<Users class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+					<p class="text-sm text-muted-foreground">No character information available</p>
+				</div>
+			{/if}
 		</section>
 	{:else if selectedTab === 'episodes'}
 		<section class="space-y-4">

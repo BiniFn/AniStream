@@ -64,6 +64,7 @@
 			anime={data.anime}
 			episodes={data.episodes?.data ?? []}
 			franchise={data.franchise?.data ?? null}
+			characters={data.characters?.data ?? null}
 		/>
 
 		<InfoSidebar anime={data.anime} ratingLabel={data.ratingLabel} {selectedTab} />

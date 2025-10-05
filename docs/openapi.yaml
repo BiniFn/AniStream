@@ -83,6 +83,46 @@ paths:
       summary: Get anime banner
       tags:
         - Anime
+  "/anime/{id}/characters":
+    get:
+      description: Get anime characters
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.CharacterResponse"
+                type: array
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime characters
+      tags:
+        - Anime
   "/anime/{id}/episodes":
     get:
       description: Get anime episodes
@@ -1066,6 +1106,84 @@ paths:
       summary: Get user by password reset token
       tags:
         - Authentication
+  "/characters/{id}":
+    get:
+      description: Get detailed character information by MAL ID
+      parameters:
+        - description: Character MAL ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.CharacterFullResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get character by ID
+      tags:
+        - Characters
+  "/characters/va/{id}":
+    get:
+      description: Get detailed person (voice actor) information by MAL ID
+      parameters:
+        - description: Person MAL ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.PersonFullResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get person by ID
+      tags:
+        - Characters
   /health:
     get:
       description: Check if the API service is running
@@ -1990,6 +2108,110 @@ components:
         user:
           $ref: "#/components/schemas/models.UserResponse"
       type: object
+    models.CharacterAnimeResponse:
+      properties:
+        anime:
+          $ref: "#/components/schemas/models.AnimeResponse"
+        role:
+          example: Main
+          type: string
+      required:
+        - anime
+        - role
+      type: object
+    models.CharacterFullResponse:
+      properties:
+        about:
+          example: A determined young man who seeks freedom...
+          type: string
+        anime:
+          items:
+            $ref: "#/components/schemas/models.CharacterAnimeResponse"
+          type: array
+        favorites:
+          example: 10000
+          type: integer
+        image:
+          example: https://example.com/character.jpg
+          type: string
+        malId:
+          example: 1
+          type: integer
+        name:
+          example: Eren Yeager
+          type: string
+        nameKanji:
+          example: エレン・イェーガー
+          type: string
+        nicknames:
+          example:
+            - Eren
+            - Tatakae
+          items:
+            type: string
+          type: array
+        voices:
+          items:
+            $ref: "#/components/schemas/models.CharacterVoiceResponse"
+          type: array
+      required:
+        - anime
+        - favorites
+        - image
+        - malId
+        - name
+        - voices
+      type: object
+    models.CharacterResponse:
+      properties:
+        favorites:
+          example: 10000
+          type: integer
+        image:
+          example: https://example.com/character.jpg
+          type: string
+        malId:
+          example: 1
+          type: integer
+        name:
+          example: Eren Yeager
+          type: string
+        role:
+          example: Main
+          type: string
+      required:
+        - favorites
+        - image
+        - malId
+        - name
+        - role
+      type: object
+    models.CharacterVoicePersonResponse:
+      properties:
+        image:
+          example: https://example.com/voice-actor.jpg
+          type: string
+        malId:
+          example: 123
+          type: integer
+        name:
+          example: Yuki Kaji
+          type: string
+      required:
+        - malId
+        - name
+      type: object
+    models.CharacterVoiceResponse:
+      properties:
+        language:
+          example: Japanese
+          type: string
+        person:
+          $ref: "#/components/schemas/models.CharacterVoicePersonResponse"
+      required:
+        - language
+        - person
+      type: object
     models.CreateUserRequest:
       properties:
         email:
@@ -2253,6 +2475,79 @@ components:
         - hasNextPage
         - hasPrevPage
         - totalPages
+      type: object
+    models.PersonAnimeResponse:
+      properties:
+        anime:
+          $ref: "#/components/schemas/models.AnimeResponse"
+        position:
+          example: Main
+          type: string
+      required:
+        - anime
+        - position
+      type: object
+    models.PersonCharacterResponse:
+      properties:
+        anime:
+          $ref: "#/components/schemas/models.AnimeResponse"
+        character:
+          $ref: "#/components/schemas/models.CharacterResponse"
+        role:
+          example: Main
+          type: string
+      required:
+        - anime
+        - character
+        - role
+      type: object
+    models.PersonFullResponse:
+      properties:
+        about:
+          example: "Birthplace: Chiba Prefecture, Japan..."
+          type: string
+        alternateNames:
+          example:
+            - Wakayama Shion
+          items:
+            type: string
+          type: array
+        anime:
+          items:
+            $ref: "#/components/schemas/models.PersonAnimeResponse"
+          type: array
+        birthday:
+          example: 1998-02-10T00:00:00+00:00
+          type: string
+        characters:
+          items:
+            $ref: "#/components/schemas/models.PersonCharacterResponse"
+          type: array
+        familyName:
+          example: 若山
+          type: string
+        favorites:
+          example: 1502
+          type: integer
+        givenName:
+          example: 詩音
+          type: string
+        image:
+          example: https://example.com/person.jpg
+          type: string
+        malId:
+          example: 35511
+          type: integer
+        name:
+          example: Shion Wakayama
+          type: string
+      required:
+        - anime
+        - characters
+        - favorites
+        - image
+        - malId
+        - name
       type: object
     models.RelationsResponse:
       properties:

@@ -41,7 +41,7 @@ type Handler struct {
 
 func New(deps *app.Deps, r *chi.Mux) *Handler {
 	refresher := anime.NewRefresher(deps.Repo, deps.MAL)
-	animeService := anime.NewAnimeService(deps.Repo, refresher, deps.MAL, deps.Anilist, deps.Shiki, deps.Cache)
+	animeService := anime.NewAnimeService(deps.Repo, refresher, deps.MAL, deps.Jikan, deps.Anilist, deps.Shiki, deps.Cache)
 	userService := users.NewUserService(deps.Repo, deps.Cld)
 	authService := auth.NewAuthService(deps.Repo, deps.EmailClient, deps.Env.FrontendURL)
 	settingsService := settings.NewSettingsService(deps.Repo)
@@ -76,6 +76,7 @@ func (h *Handler) RegisterRoutes() {
 	h.AnimeDetailsRoutes()
 	h.AnimeListingRoutes()
 	h.AnimeEpisodeRoutes()
+	h.CharacterRoutes()
 	h.AuthRoutes()
 	h.OauthRoutes()
 	h.UserRoutes()

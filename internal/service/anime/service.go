@@ -4,6 +4,7 @@ import (
 	"github.com/coeeter/aniways/internal/infra/cache"
 	"github.com/coeeter/aniways/internal/infra/client/anilist"
 	"github.com/coeeter/aniways/internal/infra/client/hianime"
+	"github.com/coeeter/aniways/internal/infra/client/jikan"
 	"github.com/coeeter/aniways/internal/infra/client/myanimelist"
 	"github.com/coeeter/aniways/internal/infra/client/shikimori"
 	"github.com/coeeter/aniways/internal/repository"
@@ -14,6 +15,7 @@ type AnimeService struct {
 	refresher       *MetadataRefresher
 	scraper         *hianime.HianimeScraper
 	malClient       *myanimelist.Client
+	jikanClient     *jikan.Client
 	anilistClient   *anilist.Client
 	shikimoriClient *shikimori.Client
 	redis           *cache.RedisClient
@@ -23,6 +25,7 @@ func NewAnimeService(
 	repo *repository.Queries,
 	refresher *MetadataRefresher,
 	malClient *myanimelist.Client,
+	jikanClient *jikan.Client,
 	anilistClient *anilist.Client,
 	shikimoriClient *shikimori.Client,
 	redis *cache.RedisClient,
@@ -31,6 +34,7 @@ func NewAnimeService(
 		repo:            repo,
 		refresher:       refresher,
 		malClient:       malClient,
+		jikanClient:     jikanClient,
 		anilistClient:   anilistClient,
 		shikimoriClient: shikimoriClient,
 		scraper:         hianime.NewHianimeScraper(),

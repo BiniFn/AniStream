@@ -10,6 +10,7 @@ import (
 	"github.com/coeeter/aniways/internal/infra/cache"
 	"github.com/coeeter/aniways/internal/infra/client/anilist"
 	"github.com/coeeter/aniways/internal/infra/client/hianime"
+	"github.com/coeeter/aniways/internal/infra/client/jikan"
 	"github.com/coeeter/aniways/internal/infra/client/myanimelist"
 	"github.com/coeeter/aniways/internal/infra/client/shikimori"
 	"github.com/coeeter/aniways/internal/infra/database"
@@ -27,6 +28,7 @@ type Deps struct {
 	Cache       *cache.RedisClient
 	Scraper     *hianime.HianimeScraper
 	MAL         *myanimelist.Client
+	Jikan       *jikan.Client
 	Anilist     *anilist.Client
 	Shiki       *shikimori.Client
 	Cld         *cloudinary.Cloudinary
@@ -56,6 +58,7 @@ func InitDeps(ctx context.Context, svcName string) (*Deps, error) {
 	repo := repository.New(db)
 	scraper := hianime.NewHianimeScraper()
 	malClient := myanimelist.NewClient(env.MyAnimeListClientID)
+	jikanClient := jikan.NewClient()
 	anilistClient := anilist.New()
 	shiki := shikimori.NewClient(cache)
 	emailClient := email.NewClient(env.ResendAPIKey, env.ResendFromEmail)
@@ -88,6 +91,7 @@ func InitDeps(ctx context.Context, svcName string) (*Deps, error) {
 		Cache:       cache,
 		Scraper:     scraper,
 		MAL:         malClient,
+		Jikan:       jikanClient,
 		Anilist:     anilistClient,
 		Shiki:       shiki,
 		Cld:         cld,

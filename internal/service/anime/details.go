@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sort"
 	"time"
 
 	"github.com/coeeter/aniways/internal/infra/cache"
@@ -16,9 +17,11 @@ import (
 )
 
 var (
-	ErrAnimeNotFound = errors.New("anime not found")
-	TrailerNotFound  = errors.New("trailer not found")
-	BannerNotFound   = errors.New("banner not found")
+	ErrAnimeNotFound     = errors.New("anime not found")
+	ErrCharacterNotFound = errors.New("character not found")
+	ErrPersonNotFound    = errors.New("person not found")
+	TrailerNotFound      = errors.New("trailer not found")
+	BannerNotFound       = errors.New("banner not found")
 )
 
 func (s *AnimeService) GetAnimeByID(
@@ -200,5 +203,203 @@ func (s *AnimeService) GetAnimeRelations(ctx context.Context, id string) (models
 		}
 
 		return relations, nil
+	})
+}
+
+func (s *AnimeService) GetAnimeCharacters(ctx context.Context, id string) (models.CharactersResponse, error) {
+	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("anime_characters:%s", id), 7*24*time.Hour, func(ctx context.Context) (models.CharactersResponse, error) {
+		a, err := s.repo.GetAnimeById(ctx, id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.CharactersResponse{}, ErrAnimeNotFound
+		}
+		if err != nil {
+			return models.CharactersResponse{}, fmt.Errorf("failed to fetch anime by ID %s: %v", id, err)
+		}
+
+		if !a.MalID.Valid || a.MalID.Int32 <= 0 {
+			return models.CharactersResponse{}, fmt.Errorf("invalid MAL ID for anime ID %s", id)
+		}
+
+		characters, err := s.jikanClient.GetAnimeCharacters(ctx, int(a.MalID.Int32))
+		if err != nil {
+			return models.CharactersResponse{}, fmt.Errorf("failed to fetch characters from MAL for MAL ID %d: %v", a.MalID.Int32, err)
+		}
+
+		var dto models.CharactersResponse
+		for _, c := range characters {
+			dto = append(dto, models.CharacterResponse{
+				MalID:     int32(c.MalID),
+				Name:      c.Name,
+				Role:      c.Role,
+				Favorites: int32(c.Favorites),
+				Image:     c.Image.ImageURL,
+			})
+		}
+
+		sort.Slice(dto, func(i, j int) bool {
+			if dto[i].Role == dto[j].Role {
+				return dto[i].Favorites > dto[j].Favorites
+			}
+			return dto[i].Role < dto[j].Role
+		})
+
+		return dto, nil
+	})
+}
+
+func (s *AnimeService) GetCharacterFull(ctx context.Context, malID int32) (models.CharacterFullResponse, error) {
+	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("character_full:%d", malID), 7*24*time.Hour, func(ctx context.Context) (models.CharacterFullResponse, error) {
+		character, err := s.jikanClient.GetCharacterFull(ctx, int(malID))
+		if err != nil {
+			return models.CharacterFullResponse{}, fmt.Errorf("failed to fetch character from Jikan for MAL ID %d: %v", malID, err)
+		}
+
+		malIDs := make([]int32, 0, len(character.Anime))
+		for _, anime := range character.Anime {
+			malIDs = append(malIDs, int32(anime.Anime.MalID))
+		}
+
+		animeMap := make(map[int32]models.AnimeResponse)
+		if len(malIDs) > 0 {
+			animes, err := s.repo.GetAnimesByMalIds(ctx, malIDs)
+			if err != nil {
+				return models.CharacterFullResponse{}, fmt.Errorf("failed to fetch animes from database: %v", err)
+			}
+			for _, anime := range animes {
+				animeMap[anime.MalID.Int32] = mappers.AnimeFromRepository(anime)
+			}
+		}
+
+		var animeList []models.CharacterAnimeResponse
+		for _, anime := range character.Anime {
+			malID := int32(anime.Anime.MalID)
+			animeData, exists := animeMap[malID]
+			if exists {
+				animeList = append(animeList, models.CharacterAnimeResponse{
+					Role:  anime.Role,
+					Anime: animeData,
+				})
+			}
+		}
+
+		var voices []models.CharacterVoiceResponse
+		for _, voice := range character.Voices {
+			var image *string
+			if voice.Person.Images.JPG.ImageURL != "" {
+				image = &voice.Person.Images.JPG.ImageURL
+			}
+			voices = append(voices, models.CharacterVoiceResponse{
+				Person: models.CharacterVoicePersonResponse{
+					MalID: int32(voice.Person.MalID),
+					Name:  voice.Person.Name,
+					Image: image,
+				},
+				Language: voice.Language,
+			})
+		}
+
+		imageURL := character.Images.Webp.ImageURL
+		if imageURL == "" {
+			imageURL = character.Images.JPG.ImageURL
+		}
+
+		return models.CharacterFullResponse{
+			MalID:     int32(character.MalID),
+			Name:      character.Name,
+			NameKanji: &character.NameKanji,
+			Nicknames: character.Nicknames,
+			Favorites: int32(character.Favorites),
+			About:     &character.About,
+			Image:     imageURL,
+			Anime:     animeList,
+			Voices:    voices,
+		}, nil
+	})
+}
+
+func (s *AnimeService) GetPersonFull(ctx context.Context, malID int32) (models.PersonFullResponse, error) {
+	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("person:%d", malID), 7*24*time.Hour, func(ctx context.Context) (models.PersonFullResponse, error) {
+		person, err := s.jikanClient.GetPersonFull(ctx, int(malID))
+		if err != nil {
+			return models.PersonFullResponse{}, ErrPersonNotFound
+		}
+
+		var animeMalIDs []int32
+		malIDSet := make(map[int32]bool)
+
+		for _, anime := range person.Anime {
+			malID := int32(anime.Anime.MalID)
+			if !malIDSet[malID] {
+				animeMalIDs = append(animeMalIDs, malID)
+				malIDSet[malID] = true
+			}
+		}
+
+		for _, voice := range person.Voices {
+			malID := int32(voice.Anime.MalID)
+			if !malIDSet[malID] {
+				animeMalIDs = append(animeMalIDs, malID)
+				malIDSet[malID] = true
+			}
+		}
+
+		var animeList []models.PersonAnimeResponse
+		var characterList []models.PersonCharacterResponse
+		animeMap := make(map[int32]models.AnimeResponse)
+
+		if len(animeMalIDs) > 0 {
+			animes, err := s.repo.GetAnimesByMalIds(ctx, animeMalIDs)
+			if err != nil {
+				return models.PersonFullResponse{}, err
+			}
+
+			for _, anime := range animes {
+				animeMap[anime.MalID.Int32] = mappers.AnimeFromRepository(anime)
+			}
+
+			for _, anime := range person.Anime {
+				if animeResp, exists := animeMap[int32(anime.Anime.MalID)]; exists {
+					animeList = append(animeList, models.PersonAnimeResponse{
+						Position: anime.Position,
+						Anime:    animeResp,
+					})
+				}
+			}
+
+			for _, voice := range person.Voices {
+				if animeResp, exists := animeMap[int32(voice.Anime.MalID)]; exists {
+					characterList = append(characterList, models.PersonCharacterResponse{
+						Role:  voice.Role,
+						Anime: animeResp,
+						Character: models.CharacterResponse{
+							MalID:     int32(voice.Character.MalID),
+							Name:      voice.Character.Name,
+							Role:      voice.Role,
+							Favorites: 0,
+							Image:     voice.Character.Images.Webp.ImageURL,
+						},
+					})
+				}
+			}
+		}
+
+		imageURL := person.Images.JPG.ImageURL
+		if imageURL == "" {
+			imageURL = "https://via.placeholder.com/300x400?text=No+Image"
+		}
+
+		return models.PersonFullResponse{
+			MalID:          int32(person.MalID),
+			Name:           person.Name,
+			GivenName:      person.GivenName,
+			FamilyName:     person.FamilyName,
+			AlternateNames: person.AlternateNames,
+			Birthday:       person.Birthday,
+			Favorites:      int32(person.Favorites),
+			About:          person.About,
+			Image:          imageURL,
+			Anime:          animeList,
+			Characters:     characterList,
+		}, nil
 	})
 }
