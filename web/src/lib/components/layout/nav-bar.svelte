@@ -4,7 +4,6 @@
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import UserProfileDropdown from '$lib/components/layout/user-profile-dropdown.svelte';
-	import * as Avatar from '$lib/components/ui/avatar';
 	import { BrandText } from '$lib/components/ui/brand-text';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Command from '$lib/components/ui/command';
@@ -23,6 +22,7 @@
 		Swords,
 		User,
 	} from 'lucide-svelte';
+	import ProfilePicture from './profile-picture.svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 
@@ -195,17 +195,7 @@
 			<div class="px-4 pb-4">
 				<div class="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
 					<UserProfileDropdown user={user!} class="hidden" />
-					<Avatar.Root class="size-10">
-						<Avatar.Image src={user?.profilePicture} alt={user?.username} />
-						<Avatar.Fallback class="bg-primary/50 text-sm font-medium">
-							{user?.username
-								?.split(' ')
-								.map((n) => n.charAt(0))
-								.join('')
-								.toUpperCase()
-								.slice(0, 2)}
-						</Avatar.Fallback>
-					</Avatar.Root>
+					<ProfilePicture />
 					<div class="flex flex-col">
 						<p class="text-sm font-medium">{user?.username}</p>
 						<p class="text-xs text-muted-foreground">{user?.email}</p>

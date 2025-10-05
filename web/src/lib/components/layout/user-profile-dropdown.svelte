@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { components } from '$lib/api/openapi';
-	import * as Avatar from '$lib/components/ui/avatar';
 	import { buttonVariants } from '$lib/components/ui/button/button.svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { cn } from '$lib/utils';
-	import { ChevronDown, Heart, LogOut, Settings, User } from 'lucide-svelte';
+	import { Heart, LogOut, Settings, User } from 'lucide-svelte';
+	import ProfilePicture from './profile-picture.svelte';
 
 	interface Props {
 		user: components['schemas']['models.UserResponse'];
@@ -12,15 +12,6 @@
 	}
 
 	let { user, class: className }: Props = $props();
-
-	function getInitials(username: string): string {
-		return username
-			.split(' ')
-			.map((name) => name.charAt(0))
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 </script>
 
 <DropdownMenu.Root>
@@ -32,13 +23,8 @@
 		)}
 	>
 		<span class="hidden text-sm font-medium lg:block">{user.username}</span>
-		<Avatar.Root class="size-8">
-			<Avatar.Image src={user.profilePicture} alt={user.username} />
-			<Avatar.Fallback class="bg-primary/50 text-xs font-medium">
-				{getInitials(user.username)}
-			</Avatar.Fallback>
-		</Avatar.Root>
-		<ChevronDown class="h-4 w-4 opacity-50" />
+		<ProfilePicture class="size-8" />
+		hevronDown class="h-4 w-4 opacity-50" />
 	</DropdownMenu.Trigger>
 
 	<DropdownMenu.Content class="w-56" align="end">
