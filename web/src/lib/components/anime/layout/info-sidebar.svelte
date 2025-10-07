@@ -15,7 +15,12 @@
 	let { anime, ratingLabel, selectedTab }: Props = $props();
 	let mediaType = $derived.by(() => {
 		const type = anime.metadata?.mediaType || 'tv';
-		return type === 'tv' ? 'TV' : type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+		return type === 'tv'
+			? 'TV'
+			: type
+					.split('_')
+					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+					.join(' ');
 	});
 </script>
 
