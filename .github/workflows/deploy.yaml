@@ -5,19 +5,12 @@ on:
   push:
     branches: ["main"]
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   build-and-push-images:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service:
-          - { name: api, target: api, tag: aniways-api }
-          - { name: proxy, target: proxy, tag: aniways-proxy }
-          - { name: worker, target: worker, tag: aniways-worker }
+        service: [api, proxy, worker]
     steps:
       - uses: actions/checkout@v4
 
@@ -29,15 +22,15 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - name: Build & push ${{ matrix.service.name }}
+      - name: Build & push ${{ matrix.service }}
         uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
-          target: ${{ matrix.service.target }}
+          target: ${{ matrix.service }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service.tag }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service.tag }}:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/aniways-${{ matrix.service }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/aniways-${{ matrix.service }}:${{ github.sha }}

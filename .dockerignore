@@ -1,0 +1,34 @@
+# Git and version control
+.git
+.gitignore
+.github/
+
+# Documentation
+README.md
+
+# Environment files
+.env.*
+
+# Development tools and configs
+.air.toml
+Makefile
+genqlient.yaml
+sqlc.yaml
+queries/
+*.graphql
+
+# Frontend
+web/
+
+# Docker files
+Dockerfile
+docker-compose.*.yaml
+.dockerignore
+
+# IDE and editor files
+.vscode/
+.idea/
+
+# Scripts and temporary files
+scripts/
+tmp/
