@@ -39,6 +39,16 @@ func (s *AnimeService) GetAnimeByID(
 	m, err := s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
 	switch {
 	case err == nil && time.Since(m.UpdatedAt.Time) < s.refresher.ttl:
+		if a.Season != m.Season || a.SeasonYear != m.SeasonYear.Int32 {
+			s.repo.UpdateAnimeSeasons(ctx, repository.UpdateAnimeSeasonsParams{
+				ID:         id,
+				Season:     m.Season,
+				SeasonYear: m.SeasonYear.Int32,
+			})
+			a.Season = m.Season
+			a.SeasonYear = m.SeasonYear.Int32
+		}
+
 		dto := mappers.AnimeWithMetadataFromRepository(a, m)
 		return &dto, nil
 
@@ -51,25 +61,7 @@ func (s *AnimeService) GetAnimeByID(
 		return nil, err
 	}
 
-	m, err = s.repo.GetAnimeMetadataByMalId(ctx, a.MalID.Int32)
-	if err != nil {
-		return nil, err
-	}
-
-	dto := mappers.AnimeWithMetadataFromRepository(a, m)
-
-	go func() {
-		if a.Season == m.Season && a.SeasonYear == m.SeasonYear.Int32 {
-			return
-		}
-
-		s.repo.UpdateAnimeSeasons(context.Background(), repository.UpdateAnimeSeasonsParams{
-			Season:     m.Season,
-			SeasonYear: m.SeasonYear.Int32,
-		})
-	}()
-
-	return &dto, nil
+	return s.GetAnimeByID(ctx, id)
 }
 
 func (s *AnimeService) GetAnimeTrailer(ctx context.Context, id string) (*models.TrailerResponse, error) {
