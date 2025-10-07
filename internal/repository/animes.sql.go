@@ -1361,6 +1361,30 @@ func (q *Queries) UpdateAnimeMetadataTrailer(ctx context.Context, arg UpdateAnim
 	return err
 }
 
+const updateAnimeSeasons = `-- name: UpdateAnimeSeasons :exec
+UPDATE
+  animes
+SET
+  season = $1,
+  season_year = $2,
+  updated_at = NOW()
+WHERE
+  id = $3
+RETURNING
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
+`
+
+type UpdateAnimeSeasonsParams struct {
+	Season     Season
+	SeasonYear int32
+	ID         string
+}
+
+func (q *Queries) UpdateAnimeSeasons(ctx context.Context, arg UpdateAnimeSeasonsParams) error {
+	_, err := q.db.Exec(ctx, updateAnimeSeasons, arg.Season, arg.SeasonYear, arg.ID)
+	return err
+}
+
 const upsertAnimeMetadata = `-- name: UpsertAnimeMetadata :exec
 INSERT INTO anime_metadata(mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringUsers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season)
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)

@@ -58,6 +58,17 @@ func (s *AnimeService) GetAnimeByID(
 
 	dto := mappers.AnimeWithMetadataFromRepository(a, m)
 
+	go func() {
+		if a.Season == m.Season && a.SeasonYear == m.SeasonYear.Int32 {
+			return
+		}
+
+		s.repo.UpdateAnimeSeasons(context.Background(), repository.UpdateAnimeSeasonsParams{
+			Season:     m.Season,
+			SeasonYear: m.SeasonYear.Int32,
+		})
+	}()
+
 	return &dto, nil
 }
 

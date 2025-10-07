@@ -194,6 +194,18 @@ WHERE
 RETURNING
   *;
 
+-- name: UpdateAnimeSeasons :exec
+UPDATE
+  animes
+SET
+  season = sqlc.arg(season),
+  season_year = sqlc.arg(season_year),
+  updated_at = NOW()
+WHERE
+  id = sqlc.arg(id)
+RETURNING
+  *;
+
 -- name: UpsertAnimeMetadata :exec
 INSERT INTO anime_metadata(mal_id, description, main_picture_url, media_type, rating, airing_status, avg_episode_duration, total_episodes, studio, rank, mean, scoringUsers, popularity, airing_start_date, airing_end_date, source, trailer_embed_url, season_year, season)
   VALUES (sqlc.arg(mal_id), sqlc.arg(description), sqlc.arg(main_picture_url), sqlc.arg(media_type), sqlc.arg(rating), sqlc.arg(airing_status), sqlc.arg(avg_episode_duration), sqlc.arg(total_episodes), sqlc.arg(studio), sqlc.arg(rank), sqlc.arg(mean), sqlc.arg(scoringUsers), sqlc.arg(popularity), sqlc.arg(airing_start_date), sqlc.arg(airing_end_date), sqlc.arg(source), sqlc.arg(trailer_embed_url), sqlc.arg(season_year), sqlc.arg(season))
