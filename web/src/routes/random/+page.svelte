@@ -7,10 +7,11 @@
 
 	$effect(() => {
 		props.data.stream.then((data) => {
-			if (data == null) {
-				goto('/catalog');
+			if (!data) {
+				goto('/anime/random', { replaceState: true });
 				return;
 			}
+
 			goto(`/anime/${data?.id}`, { replaceState: true });
 		});
 	});

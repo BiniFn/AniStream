@@ -58,6 +58,9 @@ SELECT
   *
 FROM
   animes
+WHERE
+  animes.mal_id IS NOT NULL
+  OR animes.mal_id != 0
 ORDER BY
   RANDOM()
 LIMIT 1;
@@ -69,6 +72,8 @@ FROM
   animes
 WHERE
   genre ILIKE '%' || sqlc.arg(genre) || '%'
+  AND (animes.mal_id IS NOT NULL
+    OR animes.mal_id != 0)
 ORDER BY
   RANDOM()
 LIMIT 1;

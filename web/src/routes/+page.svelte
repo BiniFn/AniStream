@@ -4,6 +4,7 @@
 	import { Calendar, ChevronRight, Clock, Play, Star, TrendingUp } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import { cn } from '$lib/utils';
+	import AnimeSection from '$lib/components/anime/layout/anime-section.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -150,254 +151,207 @@
 {/if}
 
 <div class="container mx-auto mt-[100vh] space-y-12 px-4">
-	{#if trending.length > 0}
-		<section>
-			<div class="mb-8 flex items-center gap-3">
-				<TrendingUp class="h-6 w-6 text-primary" />
-				<h2 class="text-2xl font-bold sm:text-3xl">Trending Anime</h2>
-			</div>
-			<div
-				class="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:pb-0 lg:grid-cols-6"
-			>
-				{#each trending.slice(1, 7) as anime, index (anime.id)}
-					<div class="w-40 flex-shrink-0 md:w-auto">
-						<AnimeCard {anime} {index}>
-							{#snippet topLeftBadge()}
-								<div
-									class="flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 text-xs font-semibold text-primary-foreground backdrop-blur-sm"
-								>
-									<Star class="h-3 w-3 fill-yellow-400 text-yellow-400" />
-									<span>#{index + 2}</span>
-								</div>
-							{/snippet}
-						</AnimeCard>
-					</div>
-				{/each}
-			</div>
-		</section>
-	{/if}
-
-	{#if isLoggedIn && continueWatching.length > 0}
-		<section>
-			<div class="mb-8 flex items-center justify-between">
-				<div class="flex items-center gap-3">
-					<Play class="h-6 w-6 text-primary" />
-					<h2 class="text-2xl font-bold sm:text-3xl">Continue Watching</h2>
-				</div>
-				<Button variant="ghost" class="gap-2" href="/continue-watching">
-					View All
-					<ChevronRight class="h-4 w-4" />
-				</Button>
-			</div>
-			<div
-				class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-			>
-				{#each continueWatching as item, index (item.id)}
-					<AnimeCard anime={item.anime} {index} episodeLink={item.watchedEpisodes + 1} />
-				{/each}
-			</div>
-		</section>
-	{/if}
-
-	{#if isLoggedIn && planning.length > 0}
-		<section>
-			<div class="mb-8 flex items-center justify-between">
-				<div class="flex items-center gap-3">
-					<Clock class="h-6 w-6 text-primary" />
-					<h2 class="text-2xl font-bold sm:text-3xl">Planning</h2>
-				</div>
-				<Button variant="ghost" class="gap-2" href="/planning">
-					View All
-					<ChevronRight class="h-4 w-4" />
-				</Button>
-			</div>
-			<div
-				class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-			>
-				{#each planning as item, index (item.id)}
-					<AnimeCard anime={item.anime} {index} episodeLink={1} />
-				{/each}
-			</div>
-		</section>
-	{/if}
-
-	{#if popularAnime.length > 0}
-		<section>
-			<div class="mb-8 flex items-center gap-3">
-				<Star class="h-6 w-6 text-primary" />
-				<h2 class="text-2xl font-bold sm:text-3xl">Popular Anime</h2>
-			</div>
-			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-				{#each popularAnime as anime, index (anime.id)}
-					<a
-						href="/anime/{anime.id}"
-						class="group block transform transition-all duration-300 hover:scale-[1.02]"
-					>
+	<AnimeSection icon={TrendingUp} title="Trending Anime" visible={trending.length > 0}>
+		{#each trending.slice(1, 7) as anime, index (anime.id)}
+			<div class="w-40 flex-shrink-0 md:w-auto">
+				<AnimeCard {anime} {index}>
+					{#snippet topLeftBadge()}
 						<div
-							class="flex gap-4 rounded-xl border bg-card/50 p-5 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/20 hover:bg-card hover:shadow-xl hover:shadow-primary/5"
+							class="flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 text-xs font-semibold text-primary-foreground backdrop-blur-sm"
 						>
-							<div
-								class="relative aspect-[3/4] w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-muted to-muted/50 shadow-md"
-							>
-								<img
-									src={anime.imageUrl}
-									alt={anime.ename || anime.jname}
-									class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-								/>
-								<div
-									class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-								></div>
+							<Star class="h-3 w-3 fill-yellow-400 text-yellow-400" />
+							<span>#{index + 2}</span>
+						</div>
+					{/snippet}
+				</AnimeCard>
+			</div>
+		{/each}
+	</AnimeSection>
 
-								<div class="absolute top-1 right-1">
-									<div
-										class="flex items-center gap-1 rounded-md bg-yellow-500/90 px-1.5 py-0.5 text-xs font-semibold text-white"
-									>
-										<Star class="h-2.5 w-2.5 fill-current" />
-										<span>#{index + 1}</span>
-									</div>
-								</div>
+	<AnimeSection
+		icon={Play}
+		title="Continue Watching"
+		viewAllHref="/continue-watching"
+		visible={isLoggedIn && continueWatching.length > 0}
+	>
+		{#each continueWatching as item, index (item.id)}
+			<AnimeCard anime={item.anime} {index} episodeLink={item.watchedEpisodes + 1} />
+		{/each}
+	</AnimeSection>
+
+	<AnimeSection
+		icon={Clock}
+		title="Planning"
+		viewAllHref="/planning"
+		visible={isLoggedIn && planning.length > 0}
+	>
+		{#each planning as item, index (item.id)}
+			<AnimeCard anime={item.anime} {index} episodeLink={1} />
+		{/each}
+	</AnimeSection>
+
+	<AnimeSection
+		icon={Star}
+		title="Popular Anime"
+		class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+		visible={popularAnime.length > 0}
+	>
+		{#each popularAnime as anime, index (anime.id)}
+			<a
+				href="/anime/{anime.id}"
+				class="group block transform transition-all duration-300 hover:scale-[1.02]"
+			>
+				<div
+					class="flex gap-4 rounded-xl border bg-card/50 p-5 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/20 hover:bg-card hover:shadow-xl hover:shadow-primary/5"
+				>
+					<div
+						class="relative aspect-[3/4] w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-muted to-muted/50 shadow-md"
+					>
+						<img
+							src={anime.imageUrl}
+							alt={anime.ename || anime.jname}
+							class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+						/>
+						<div
+							class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+						></div>
+
+						<div class="absolute top-1 right-1">
+							<div
+								class="flex items-center gap-1 rounded-md bg-yellow-500/90 px-1.5 py-0.5 text-xs font-semibold text-white"
+							>
+								<Star class="h-2.5 w-2.5 fill-current" />
+								<span>#{index + 1}</span>
 							</div>
-							<div class="min-w-0 flex-1 space-y-3">
-								<div>
-									<h3
-										class="mb-1 line-clamp-1 text-base font-semibold transition-colors duration-300 group-hover:text-primary"
-									>
-										{anime.ename || anime.jname}
-									</h3>
-									<div class="text-sm text-muted-foreground capitalize">
-										{anime.season}
-										{anime.seasonYear}
-									</div>
+						</div>
+					</div>
+					<div class="min-w-0 flex-1 space-y-3">
+						<div>
+							<h3
+								class="mb-1 line-clamp-1 text-base font-semibold transition-colors duration-300 group-hover:text-primary"
+							>
+								{anime.ename || anime.jname}
+							</h3>
+							<div class="text-sm text-muted-foreground capitalize">
+								{anime.season}
+								{anime.seasonYear}
+							</div>
+						</div>
+						<div class="flex flex-wrap gap-1">
+							{#each anime.genre.split(', ').slice(0, 2) as genre (genre)}
+								<span
+									class="rounded-full border bg-muted/80 px-2 py-1 text-xs text-muted-foreground"
+								>
+									{genre}
+								</span>
+							{/each}
+						</div>
+						{#if anime.lastEpisode}
+							<div class="text-xs font-medium text-primary">
+								Episode {anime.lastEpisode} Available
+							</div>
+						{/if}
+					</div>
+					<div
+						class="flex flex-shrink-0 items-center opacity-0 transition-all duration-300 group-hover:opacity-100"
+					>
+						<ChevronRight class="h-5 w-5 text-primary" />
+					</div>
+				</div>
+			</a>
+		{/each}
+	</AnimeSection>
+
+	<AnimeSection
+		icon={Star}
+		title="This Season"
+		class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
+		visible={seasonal.length > 0}
+	>
+		{#each seasonal.slice(0, 6) as seasonalAnime (seasonalAnime.id)}
+			<a
+				href="/anime/{seasonalAnime.anime.id}"
+				class="group block transform transition-all duration-300 hover:scale-[1.02]"
+			>
+				<div
+					class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/10"
+				>
+					<div class="relative h-48 overflow-hidden">
+						<img
+							src={seasonalAnime.bannerImageUrl}
+							alt={seasonalAnime.anime.ename || seasonalAnime.anime.jname}
+							class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+						/>
+						<div
+							class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
+						></div>
+
+						<div class="absolute top-4 right-4">
+							<span
+								class="rounded-md bg-primary/90 px-3 py-1 text-sm font-semibold text-primary-foreground backdrop-blur-sm"
+							>
+								{seasonalAnime.episodes} Episodes
+							</span>
+						</div>
+					</div>
+					<div class="p-6">
+						<div class="mb-4 flex items-start gap-4">
+							<div class="relative h-24 w-16 flex-shrink-0 overflow-hidden rounded-lg">
+								<img
+									src={seasonalAnime.anime.imageUrl}
+									alt={seasonalAnime.anime.ename || seasonalAnime.anime.jname}
+									class="h-full w-full object-cover"
+								/>
+							</div>
+
+							<div class="min-w-0 flex-1">
+								<h3
+									class="mb-2 line-clamp-1 text-lg font-bold transition-colors duration-300 group-hover:text-primary"
+								>
+									{seasonalAnime.anime.ename || seasonalAnime.anime.jname}
+								</h3>
+								<div class="mb-2 text-sm text-muted-foreground capitalize">
+									{seasonalAnime.anime.season}
+									{seasonalAnime.anime.seasonYear}
 								</div>
 								<div class="flex flex-wrap gap-1">
-									{#each anime.genre.split(', ').slice(0, 2) as genre (genre)}
-										<span
-											class="rounded-full border bg-muted/80 px-2 py-1 text-xs text-muted-foreground"
-										>
+									{#each seasonalAnime.anime.genre.split(', ').slice(0, 2) as genre (genre)}
+										<span class="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
 											{genre}
 										</span>
 									{/each}
 								</div>
-								{#if anime.lastEpisode}
-									<div class="text-xs font-medium text-primary">
-										Episode {anime.lastEpisode} Available
-									</div>
-								{/if}
-							</div>
-							<div
-								class="flex flex-shrink-0 items-center opacity-0 transition-all duration-300 group-hover:opacity-100"
-							>
-								<ChevronRight class="h-5 w-5 text-primary" />
 							</div>
 						</div>
-					</a>
-				{/each}
-			</div>
-		</section>
-	{/if}
 
-	{#if seasonal.length > 0}
-		<section>
-			<div class="mb-8 flex items-center gap-3">
-				<Star class="h-6 w-6 text-primary" />
-				<h2 class="text-2xl font-bold sm:text-3xl">This Season</h2>
-			</div>
-			<div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-				{#each seasonal.slice(0, 6) as seasonalAnime (seasonalAnime.id)}
-					<a
-						href="/anime/{seasonalAnime.anime.id}"
-						class="group block transform transition-all duration-300 hover:scale-[1.02]"
-					>
-						<div
-							class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-muted/50 shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/10"
-						>
-							<div class="relative h-48 overflow-hidden">
-								<img
-									src={seasonalAnime.bannerImageUrl}
-									alt={seasonalAnime.anime.ename || seasonalAnime.anime.jname}
-									class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-								/>
-								<div
-									class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
-								></div>
-
-								<div class="absolute top-4 right-4">
-									<span
-										class="rounded-md bg-primary/90 px-3 py-1 text-sm font-semibold text-primary-foreground backdrop-blur-sm"
-									>
-										{seasonalAnime.episodes} Episodes
-									</span>
-								</div>
-							</div>
-							<div class="p-6">
-								<div class="mb-4 flex items-start gap-4">
-									<div class="relative h-24 w-16 flex-shrink-0 overflow-hidden rounded-lg">
-										<img
-											src={seasonalAnime.anime.imageUrl}
-											alt={seasonalAnime.anime.ename || seasonalAnime.anime.jname}
-											class="h-full w-full object-cover"
-										/>
-									</div>
-
-									<div class="min-w-0 flex-1">
-										<h3
-											class="mb-2 line-clamp-1 text-lg font-bold transition-colors duration-300 group-hover:text-primary"
-										>
-											{seasonalAnime.anime.ename || seasonalAnime.anime.jname}
-										</h3>
-										<div class="mb-2 text-sm text-muted-foreground capitalize">
-											{seasonalAnime.anime.season}
-											{seasonalAnime.anime.seasonYear}
-										</div>
-										<div class="flex flex-wrap gap-1">
-											{#each seasonalAnime.anime.genre.split(', ').slice(0, 2) as genre (genre)}
-												<span class="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-													{genre}
-												</span>
-											{/each}
-										</div>
-									</div>
-								</div>
-
-								<p class="line-clamp-3 text-sm text-muted-foreground">
-									<!-- eslint-disable-next-line -->
-									{@html seasonalAnime.description?.replace(/<br\s*\/?>/gi, ' ') || ''}
-								</p>
-							</div>
-						</div>
-					</a>
-				{/each}
-			</div>
-		</section>
-	{/if}
-
-	{#if recentlyUpdated.length > 0}
-		<section>
-			<div class="mb-8 flex items-center justify-between">
-				<div class="flex items-center gap-3">
-					<Calendar class="h-6 w-6 text-primary" />
-					<h2 class="text-2xl font-bold sm:text-3xl">Recently Updated</h2>
+						<p class="line-clamp-3 text-sm text-muted-foreground">
+							<!-- eslint-disable-next-line -->
+							{@html seasonalAnime.description?.replace(/<br\s*\/?>/gi, ' ') || ''}
+						</p>
+					</div>
 				</div>
-				<Button variant="ghost" class="gap-2" href="/catalog?sortBy=updated_at&sortOrder=desc">
-					View All
-					<ChevronRight class="h-4 w-4" />
-				</Button>
-			</div>
-			<div class="mb-4 grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-				{#each recentlyUpdated as anime, index (anime.id)}
-					<AnimeCard {anime} {index} episodeLink={anime.lastEpisode || 1}>
-						{#snippet topLeftBadge()}
-							<div
-								class="animate-pulse rounded-full bg-red-500/90 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
-							>
-								NEW
-							</div>
-						{/snippet}
-					</AnimeCard>
-				{/each}
-			</div>
-		</section>
-	{/if}
+			</a>
+		{/each}
+	</AnimeSection>
+
+	<AnimeSection
+		icon={Calendar}
+		title="Recently Updated"
+		viewAllHref="/catalog?sortBy=updated_at&sortOrder=desc"
+		visible={recentlyUpdated.length > 0}
+	>
+		{#each recentlyUpdated as anime, index (anime.id)}
+			<AnimeCard {anime} {index} episodeLink={anime.lastEpisode || 1}>
+				{#snippet topLeftBadge()}
+					<div
+						class="animate-pulse rounded-full bg-red-500/90 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
+					>
+						NEW
+					</div>
+				{/snippet}
+			</AnimeCard>
+		{/each}
+	</AnimeSection>
 
 	{#if !data.isLoggedIn}
 		<section

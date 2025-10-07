@@ -977,6 +977,9 @@ SELECT
   id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
 FROM
   animes
+WHERE
+  animes.mal_id IS NOT NULL
+  OR animes.mal_id != 0
 ORDER BY
   RANDOM()
 LIMIT 1
@@ -1012,6 +1015,8 @@ FROM
   animes
 WHERE
   genre ILIKE '%' || $1 || '%'
+  AND (animes.mal_id IS NOT NULL
+    OR animes.mal_id != 0)
 ORDER BY
   RANDOM()
 LIMIT 1

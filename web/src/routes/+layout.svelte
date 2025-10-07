@@ -49,7 +49,6 @@
 	});
 </script>
 
-<ImportPolling />
 <div class="sticky top-0 z-50" bind:this={navbarElement}>
 	<NavBar />
 </div>
@@ -60,4 +59,7 @@
 	<Footer />
 </div>
 <Sonner richColors />
+
+<!-- script only components -->
+<ImportPolling />
 <Sync />
