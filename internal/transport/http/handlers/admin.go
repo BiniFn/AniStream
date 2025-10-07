@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/go-chi/chi/v5"
 )
@@ -18,6 +20,7 @@ func (h *Handler) AdminRoutes() {
 		r.Get("/bulk-job/{jobId}/download", h.downloadBulkJobResult)
 		r.Get("/bulk-job/{jobId}/failed-ids", h.downloadFailedIds)
 		r.Post("/bulk-job/{jobId}/retry", h.retryFailedIds)
+		r.Post("/unknown-season-fix", h.unknownSeasonFix)
 	})
 }
 
@@ -168,8 +171,8 @@ func (h *Handler) retryFailedIds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.jsonOK(w, map[string]interface{}{
-		"jobId": newJobID,
+	h.jsonOK(w, map[string]any{
+		"jobId":   newJobID,
 		"message": fmt.Sprintf("Retry job started with %d failed IDs", len(result.FailedIDs)),
 	})
 }
@@ -208,4 +211,50 @@ func (h *Handler) bulkReprocessAnimeFromFile(w http.ResponseWriter, r *http.Requ
 
 	log.Info("Bulk reprocessing job started from file", "jobId", result.JobID)
 	h.jsonOK(w, result)
+}
+
+func (h *Handler) unknownSeasonFix(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	count, err := h.deps.Repo.GetAnimeBySeasonCount(r.Context(), repository.SeasonUnknown)
+	if err != nil {
+		log.Error("Failed to get count of unknown season anime", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "Failed to get count of unknown season anime")
+		return
+	}
+
+	if count == 0 {
+		h.jsonOK(w, map[string]any{
+			"message": "No anime with unknown season found",
+			"count":   0,
+		})
+		return
+	}
+
+	animes, err := h.deps.Repo.GetAnimeBySeason(r.Context(), repository.GetAnimeBySeasonParams{
+		Season: repository.SeasonUnknown,
+		Limit:  int32(count),
+	})
+	if err != nil {
+		log.Error("Failed to get unknown season anime", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "Failed to get unknown season anime")
+		return
+	}
+
+	go func() {
+		fixedCount := 0
+		for _, anime := range animes {
+			_, err := h.animeService.GetAnimeByID(context.Background(), anime.ID)
+			if err != nil {
+				log.Error("Failed to reprocess anime for unknown season fix", "animeID", anime.ID, "err", err)
+				continue
+			}
+			fixedCount++
+		}
+	}()
+
+	h.jsonOK(w, map[string]any{
+		"message": fmt.Sprintf("Started reprocessing %d anime with unknown season", count),
+		"count":   count,
+	})
 }

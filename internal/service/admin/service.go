@@ -340,12 +340,12 @@ func (s *AdminService) processChunk(ctx context.Context, chunk []string, maxWork
 		wg.Add(1)
 		go func(id string) {
 			defer wg.Done()
-			
+
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
-			
+
 			result := s.processAnimeDetails(ctx, id)
-			
+
 			mu.Lock()
 			if result.Success {
 				successResults = append(successResults, result)
@@ -437,12 +437,12 @@ func (s *AdminService) processBulkJobFromIDs(jobID string, hiAnimeIDs []string) 
 	var errorResults []models.ReprocessError
 
 	chunks := s.chunkSlice(hiAnimeIDs, 100)
-	
+
 	for _, chunk := range chunks {
 		success, errors := s.processChunk(ctx, chunk, 10)
 		successResults = append(successResults, success...)
 		errorResults = append(errorResults, errors...)
-		
+
 		job.Mu.Lock()
 		job.Processed += len(chunk)
 		job.Success = len(successResults)
@@ -475,12 +475,12 @@ func (s *AdminService) processBulkJobFromIDsWithParent(jobID string, hiAnimeIDs 
 	var errorResults []models.ReprocessError
 
 	chunks := s.chunkSlice(hiAnimeIDs, 100)
-	
+
 	for _, chunk := range chunks {
 		success, errors := s.processChunk(ctx, chunk, 10)
 		successResults = append(successResults, success...)
 		errorResults = append(errorResults, errors...)
-		
+
 		job.Mu.Lock()
 		job.Processed += len(chunk)
 		job.Success = len(successResults)
@@ -504,10 +504,7 @@ func (s *AdminService) processBulkJobFromIDsWithParent(jobID string, hiAnimeIDs 
 func (s *AdminService) chunkSlice(slice []string, chunkSize int) [][]string {
 	var chunks [][]string
 	for i := 0; i < len(slice); i += chunkSize {
-		end := i + chunkSize
-		if end > len(slice) {
-			end = len(slice)
-		}
+		end := min(i+chunkSize, len(slice))
 		chunks = append(chunks, slice[i:end])
 	}
 	return chunks
