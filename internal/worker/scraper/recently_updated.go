@@ -1,4 +1,4 @@
-package worker
+package scraper
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func hourlyTask(
+func HourlyTask(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
@@ -145,3 +145,4 @@ func scrapeRecentlyUpdated(
 	)
 	return nil
 }
+

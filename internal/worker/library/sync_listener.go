@@ -1,4 +1,4 @@
-package worker
+package library
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type librarySyncPayload struct {
+type SyncPayload struct {
 	UserID   string          `json:"user_id"`
 	AnimeID  string          `json:"anime_id"`
 	Provider string          `json:"provider"`
@@ -26,7 +26,7 @@ type SyncData struct {
 	WatchedEpisodes *int32  `json:"watched_episodes"`
 }
 
-func startLibrarySyncListener(
+func StartLibrarySyncListener(
 	ctx context.Context,
 	db *pgxpool.Pool,
 	repo *repository.Queries,
@@ -57,7 +57,7 @@ func startLibrarySyncListener(
 			continue
 		}
 
-		var payload librarySyncPayload
+		var payload SyncPayload
 		if err := json.Unmarshal([]byte(notification.Payload), &payload); err != nil {
 			log.Error("Invalid library sync payload", "err", err)
 			continue
@@ -67,7 +67,7 @@ func startLibrarySyncListener(
 	}
 }
 
-func retryFailedLibrarySyncs(
+func RetryFailedLibrarySyncs(
 	ctx context.Context,
 	repo *repository.Queries,
 	malClient *myanimelist.Client,
@@ -82,7 +82,7 @@ func retryFailedLibrarySyncs(
 
 	sem := make(chan struct{}, 5)
 	for _, entry := range entries {
-		payload := librarySyncPayload{
+		payload := SyncPayload{
 			UserID:   entry.UserID,
 			AnimeID:  entry.AnimeID,
 			Provider: string(entry.Provider),
@@ -91,7 +91,7 @@ func retryFailedLibrarySyncs(
 		}
 
 		sem <- struct{}{}
-		go func(paylaod librarySyncPayload) {
+		go func(payload SyncPayload) {
 			defer func() { <-sem }()
 			handleLibrarySync(ctx, repo, malClient, aniClient, log, payload)
 		}(payload)
@@ -104,7 +104,7 @@ func handleLibrarySync(
 	malClient *myanimelist.Client,
 	aniClient *anilist.Client,
 	log *slog.Logger,
-	payload librarySyncPayload,
+	payload SyncPayload,
 ) {
 	log.Info("Processing library sync",
 		"user_id", payload.UserID,
@@ -257,3 +257,4 @@ func handleAniProvider(
 		return fmt.Errorf("unsupported action: %s", action)
 	}
 }
+

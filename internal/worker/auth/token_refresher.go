@@ -1,4 +1,4 @@
-package worker
+package auth
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func dailyTask(
+func DailyTask(
 	ctx context.Context,
 	repo *repository.Queries,
 	providers []oauth.Provider,
@@ -62,3 +62,4 @@ func refreshAccessTokens(
 
 	return nil
 }
+

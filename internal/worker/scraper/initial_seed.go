@@ -1,4 +1,4 @@
-package worker
+package scraper
 
 import (
 	"context"
@@ -21,7 +21,7 @@ const (
 	updateSpacing  = 20 * time.Millisecond
 )
 
-func fullSeed(
+func FullSeed(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
@@ -33,7 +33,7 @@ func fullSeed(
 	}
 
 	log.Info("Starting reverse Recently‐Updated seed")
-	if err := scrapeAllRecentlyUpdated(ctx, scraper, repo, log); err != nil {
+	if err := ScrapeAllRecentlyUpdated(ctx, scraper, repo, log); err != nil {
 		return err
 	}
 
@@ -132,7 +132,7 @@ func retryFetchDetail(
 	return hianime.ScrapedAnimeInfoDto{}, lastErr
 }
 
-func scrapeAllRecentlyUpdated(
+func ScrapeAllRecentlyUpdated(
 	ctx context.Context,
 	scraper *hianime.HianimeScraper,
 	repo *repository.Queries,
@@ -241,3 +241,4 @@ func scrapeAllRecentlyUpdated(
 	)
 	return nil
 }
+

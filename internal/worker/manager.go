@@ -11,6 +11,9 @@ import (
 	"github.com/coeeter/aniways/internal/infra/client/myanimelist"
 	"github.com/coeeter/aniways/internal/repository"
 	"github.com/coeeter/aniways/internal/service/auth/oauth"
+	"github.com/coeeter/aniways/internal/worker/auth"
+	"github.com/coeeter/aniways/internal/worker/library"
+	"github.com/coeeter/aniways/internal/worker/scraper"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/robfig/cron/v3"
 )
@@ -55,7 +58,7 @@ func (m *Manager) Bootstrap(ctx context.Context) error {
 		log := m.log.With("job", "full-seed")
 		log.Info("no anime in DB — running initial scrape (blocking)")
 
-		if err := fullSeed(ctx, m.scraper, m.repo, log); err != nil {
+		if err := scraper.FullSeed(ctx, m.scraper, m.repo, log); err != nil {
 			return fmt.Errorf("full seed: %w", err)
 		}
 		log.Info("initial scrape complete")
@@ -68,7 +71,7 @@ func (m *Manager) Bootstrap(ctx context.Context) error {
 func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provider) {
 	c := cron.New()
 	_, err := c.AddFunc("@hourly", func() {
-		hourlyTask(ctx, m.scraper, m.repo, m.redis, m.log.With("job", "hourly-scrape"))
+		scraper.HourlyTask(ctx, m.scraper, m.repo, m.redis, m.log.With("job", "hourly-scrape"))
 	})
 	if err != nil {
 		m.log.Error("failed to add hourly task", "err", err)
@@ -76,7 +79,7 @@ func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provide
 	}
 
 	_, err = c.AddFunc("@daily", func() {
-		dailyTask(ctx, m.repo, providers, m.log.With("job", "daily-refresh-token"))
+		auth.DailyTask(ctx, m.repo, providers, m.log.With("job", "daily-refresh-token"))
 	})
 	if err != nil {
 		m.log.Error("failed to add daily task", "err", err)
@@ -84,14 +87,14 @@ func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provide
 	}
 
 	_, err = c.AddFunc("@every 6h", func() {
-		retryFailedLibrarySyncs(ctx, m.repo, m.malClient, m.aniClient, m.log.With("job", "failed-library-sync-cron"))
+		library.RetryFailedLibrarySyncs(ctx, m.repo, m.malClient, m.aniClient, m.log.With("job", "failed-library-sync-cron"))
 	})
 
 	m.log.Info("bootstrapping hourly + daily cron job")
 	c.Start()
 
 	go func() {
-		err := startLibrarySyncListener(
+		err := library.StartLibrarySyncListener(
 			ctx,
 			m.db,
 			m.repo,
@@ -105,7 +108,7 @@ func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provide
 	}()
 
 	go func() {
-		err := startLibraryImportJobListener(
+		err := library.StartLibraryImportJobListener(
 			ctx,
 			m.db,
 			m.repo,

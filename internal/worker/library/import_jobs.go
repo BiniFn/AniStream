@@ -1,4 +1,4 @@
-package worker
+package library
 
 import (
 	"context"
@@ -13,14 +13,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type libraryImportJobPayload struct {
+type ImportJobPayload struct {
 	ID       string `json:"id"`
 	UserID   string `json:"user_id"`
 	Provider string `json:"provider"`
 	Status   string `json:"status"`
 }
 
-func startLibraryImportJobListener(
+func StartLibraryImportJobListener(
 	ctx context.Context,
 	db *pgxpool.Pool,
 	repo *repository.Queries,
@@ -51,23 +51,23 @@ func startLibraryImportJobListener(
 			continue
 		}
 
-		var payload libraryImportJobPayload
+		var payload ImportJobPayload
 		if err := json.Unmarshal([]byte(notification.Payload), &payload); err != nil {
 			log.Error("invalid library import job payload", "err", err)
 			continue
 		}
 
-		go handleLibraryImportJob(ctx, repo, malClient, aniClient, log, payload)
+		go HandleLibraryImportJob(ctx, repo, malClient, aniClient, log, payload)
 	}
 }
 
-func handleLibraryImportJob(
+func HandleLibraryImportJob(
 	ctx context.Context,
 	repo *repository.Queries,
 	malClient *myanimelist.Client,
 	aniClient *anilist.Client,
 	log *slog.Logger,
-	payload libraryImportJobPayload,
+	payload ImportJobPayload,
 ) {
 	log.Info("processing library import job",
 		"id", payload.ID,
@@ -129,7 +129,7 @@ func importFromMal(
 	repo *repository.Queries,
 	malClient *myanimelist.Client,
 	token string,
-	payload libraryImportJobPayload,
+	payload ImportJobPayload,
 	log *slog.Logger,
 ) error {
 	page := 1
@@ -217,7 +217,7 @@ func importFromAnilist(
 	repo *repository.Queries,
 	aniClient *anilist.Client,
 	token string,
-	payload libraryImportJobPayload,
+	payload ImportJobPayload,
 	log *slog.Logger,
 ) error {
 	page := 1
@@ -290,3 +290,4 @@ func importFromAnilist(
 
 	return nil
 }
+
