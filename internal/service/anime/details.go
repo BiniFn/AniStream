@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"sort"
 	"time"
@@ -109,6 +110,18 @@ func (s *AnimeService) GetAnimeBanner(ctx context.Context, id string) (models.Ba
 		anime, err := s.anilistClient.GetAnimeDetails(ctx, int(a.MalID.Int32))
 		if err != nil {
 			return "", fmt.Errorf("failed to fetch anime details from Anilist for MAL ID %d: %v", a.MalID.Int32, err)
+		}
+
+		isValid := a.AnilistID.Valid && a.AnilistID.Int32 > 0 && anime.Media.Id == int(a.AnilistID.Int32)
+		if !isValid {
+			go func() {
+				if err := s.repo.UpdateAnimeAnilistId(context.Background(), repository.UpdateAnimeAnilistIdParams{
+					AnilistID: pgtype.Int4{Int32: int32(anime.Media.Id), Valid: anime.Media.Id > 0},
+					ID:        id,
+				}); err != nil {
+					slog.Error("failed to update anime Anilist ID", "animeID", id, "err", err)
+				}
+			}()
 		}
 
 		if anime.Media.BannerImage == "" {

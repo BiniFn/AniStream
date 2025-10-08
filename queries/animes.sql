@@ -199,8 +199,17 @@ UPDATE
   animes
 SET
   season = sqlc.arg(season),
-  season_year = sqlc.arg(season_year),
-  updated_at = NOW()
+  season_year = sqlc.arg(season_year)
+WHERE
+  id = sqlc.arg(id)
+RETURNING
+  *;
+
+-- name: UpdateAnimeAnilistId :exec
+UPDATE
+  animes
+SET
+  anilist_id = sqlc.arg(anilist_id)
 WHERE
   id = sqlc.arg(id)
 RETURNING

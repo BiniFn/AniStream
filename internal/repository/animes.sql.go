@@ -1339,6 +1339,27 @@ func (q *Queries) UpdateAnime(ctx context.Context, arg UpdateAnimeParams) error 
 	return err
 }
 
+const updateAnimeAnilistId = `-- name: UpdateAnimeAnilistId :exec
+UPDATE
+  animes
+SET
+  anilist_id = $1
+WHERE
+  id = $2
+RETURNING
+  id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
+`
+
+type UpdateAnimeAnilistIdParams struct {
+	AnilistID pgtype.Int4
+	ID        string
+}
+
+func (q *Queries) UpdateAnimeAnilistId(ctx context.Context, arg UpdateAnimeAnilistIdParams) error {
+	_, err := q.db.Exec(ctx, updateAnimeAnilistId, arg.AnilistID, arg.ID)
+	return err
+}
+
 const updateAnimeMetadataTrailer = `-- name: UpdateAnimeMetadataTrailer :exec
 UPDATE
   anime_metadata
@@ -1366,8 +1387,7 @@ UPDATE
   animes
 SET
   season = $1,
-  season_year = $2,
-  updated_at = NOW()
+  season_year = $2
 WHERE
   id = $3
 RETURNING
