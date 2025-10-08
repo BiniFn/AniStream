@@ -54,11 +54,10 @@ export const thumbnailPlugin = (thumbnails: { raw: string; url: string }) => {
 
 			const [x, y, w, h] = url.split('#xywh=')[1]!.split(',').map(Number);
 
-			const base = thumbnails.url.split('/').slice(0, -1).join('/');
 			data.push({
 				start: startSeconds,
 				end: endSeconds,
-				url: `${base}/${url.split('#xywh=')[0]}`,
+				url: `${PUBLIC_STREAMING_URL}/${url.split('#xywh=')[0]}`,
 				x: x!,
 				y: y!,
 				w: w!,

@@ -157,10 +157,10 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 			if !strings.HasPrefix(line, "#") {
 				e := strings.ToLower(path.Ext(line))
-				parts := strings.Split(e, "#")
+				parts := strings.Split(line, "#")
 				// For .vtt thumbnail contents
 				if len(parts) > 1 {
-					out = encodeProxyURL(line) + "#" + parts[1]
+					out = encodeProxyURL(parts[0]) + "#" + parts[1]
 				} else if _, ok := allowedExts[e]; ok {
 					out = encodeProxyURL(line)
 				}
