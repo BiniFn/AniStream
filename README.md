@@ -24,7 +24,7 @@ AniWays follows a clean architecture pattern with separate concerns:
 
 - **API Server** (`cmd/api`): REST API server handling HTTP requests
 - **Proxy Server** (`cmd/proxy`): HLS streaming proxy for video content
-- **Worker** (`cmd/worker`): Background job processing for data synchronization
+- **Worker** (`cmd/worker`): Background job processing for data synchronization and scraping
 - **Web Frontend** (`web/`): SvelteKit-based user interface
 
 ### Tech Stack
@@ -49,6 +49,29 @@ AniWays follows a clean architecture pattern with separate concerns:
 - Docker & Docker Compose for containerization
 - Database migrations with golang-migrate
 - Background job processing with cron scheduler
+
+## Worker CLI
+
+The worker service includes a powerful CLI for manual operations and debugging:
+
+### Available Commands
+
+```bash
+# Daemon mode (default)
+./worker                   # Run worker in daemon mode
+./worker daemon            # Same as above
+
+# Scraping operations
+./worker scrape recently-updated       # Scrape top most 40 recently updated anime (hourly task)
+./worker scrape all-recently-updated   # Scrape all recently updated pages and upsert into DB
+./worker scrape full-seed              # Complete database seed (A-Z + all recently updated) # (one-time use)
+
+# Library management
+./worker library retry-failed          # Retry failed library syncs
+
+# Authentication
+./worker auth refresh-tokens           # Refresh OAuth tokens
+```
 
 ## Local Development Setup
 
@@ -365,10 +388,10 @@ server {
 server {
     listen 443 ssl;
     server_name yourdomain.com;
-    
+
     ssl_certificate /path/to/ssl/cert.pem;
     ssl_certificate_key /path/to/ssl/key.pem;
-    
+
     location / {
         proxy_pass http://localhost:3000;
         proxy_set_header Host $host;
@@ -379,10 +402,10 @@ server {
 server {
     listen 443 ssl;
     server_name api.yourdomain.com;
-    
+
     ssl_certificate /path/to/ssl/cert.pem;
     ssl_certificate_key /path/to/ssl/key.pem;
-    
+
     location / {
         proxy_pass http://localhost:8080;
         proxy_set_header Host $host;
@@ -417,4 +440,3 @@ server {
 ---
 
 **Made with ❤️ by [Coeeter](https://github.com/coeeter)**
-
