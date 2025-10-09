@@ -10,13 +10,7 @@ import (
 	"github.com/coeeter/aniways/docs"
 	"github.com/coeeter/aniways/internal/app"
 	"github.com/coeeter/aniways/internal/models"
-	"github.com/coeeter/aniways/internal/service/admin"
-	"github.com/coeeter/aniways/internal/service/anime"
-	"github.com/coeeter/aniways/internal/service/auth"
-	"github.com/coeeter/aniways/internal/service/auth/oauth"
-	"github.com/coeeter/aniways/internal/service/library"
-	"github.com/coeeter/aniways/internal/service/settings"
-	"github.com/coeeter/aniways/internal/service/users"
+	"github.com/coeeter/aniways/internal/service"
 	"github.com/coeeter/aniways/internal/utils"
 	"github.com/flowchartsman/swaggerui"
 	"github.com/ggicci/httpin"
@@ -26,45 +20,20 @@ import (
 )
 
 type Handler struct {
-	r               *chi.Mux
-	deps            *app.Deps
-	validator       *validator.Validate
-	refresher       *anime.MetadataRefresher
-	animeService    *anime.AnimeService
-	userService     *users.UserService
-	authService     *auth.AuthService
-	settingsService *settings.SettingsService
-	libraryService  *library.LibraryService
-	adminService    *admin.AdminService
-	providerMap     map[string]oauth.Provider
+	r         *chi.Mux
+	deps      *app.Deps
+	validator *validator.Validate
+	services  *service.Services
 }
 
 func New(deps *app.Deps, r *chi.Mux) *Handler {
-	refresher := anime.NewRefresher(deps.Repo, deps.MAL)
-	animeService := anime.NewAnimeService(deps.Repo, refresher, deps.MAL, deps.Jikan, deps.Anilist, deps.Shiki, deps.Cache)
-	userService := users.NewUserService(deps.Repo, deps.Cld)
-	authService := auth.NewAuthService(deps.Repo, deps.EmailClient, deps.Env.FrontendURL)
-	settingsService := settings.NewSettingsService(deps.Repo)
-	libraryService := library.NewLibraryService(deps.Repo, refresher)
-	adminService := admin.NewAdminService(deps.Repo, deps.Scraper)
-
-	providerMap := make(map[string]oauth.Provider)
-	for _, provider := range deps.Providers {
-		providerMap[provider.Name()] = provider
-	}
+	services := service.NewServices(deps)
 
 	return &Handler{
-		r:               r,
-		deps:            deps,
-		validator:       validator.New(),
-		refresher:       refresher,
-		animeService:    animeService,
-		userService:     userService,
-		authService:     authService,
-		settingsService: settingsService,
-		libraryService:  libraryService,
-		adminService:    adminService,
-		providerMap:     providerMap,
+		r:         r,
+		deps:      deps,
+		validator: validator.New(),
+		services:  services,
 	}
 }
 

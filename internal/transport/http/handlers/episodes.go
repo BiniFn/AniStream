@@ -35,7 +35,7 @@ func (h *Handler) getAnimeEpisodes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.animeService.GetAnimeEpisodes(r.Context(), id)
+	resp, err := h.services.Anime.GetAnimeEpisodes(r.Context(), id)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)
@@ -77,7 +77,7 @@ func (h *Handler) getEpisodeServers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.animeService.GetEpisodeServers(r.Context(), id, episodeID)
+	resp, err := h.services.Anime.GetEpisodeServers(r.Context(), id, episodeID)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)
@@ -132,7 +132,7 @@ func (h *Handler) getEpisodeStreamData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.animeService.GetEpisodeStream(r.Context(), id, serverID, serverName, streamType)
+	resp, err := h.services.Anime.GetEpisodeStream(r.Context(), id, serverID, serverName, streamType)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)

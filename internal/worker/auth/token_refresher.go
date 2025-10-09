@@ -13,7 +13,7 @@ import (
 func DailyTask(
 	ctx context.Context,
 	repo *repository.Queries,
-	providers []oauth.Provider,
+	providers map[string]oauth.Provider,
 	log *slog.Logger,
 ) {
 	log.Info("Running daily task")
@@ -27,7 +27,7 @@ func DailyTask(
 func refreshAccessTokens(
 	ctx context.Context,
 	repo *repository.Queries,
-	providers []oauth.Provider,
+	providers map[string]oauth.Provider,
 	log *slog.Logger,
 ) error {
 	tokens, err := repo.GetTokensNearToExpiry(ctx)
@@ -39,13 +39,7 @@ func refreshAccessTokens(
 		return err
 	}
 
-	var malProvider *oauth.MALProvider
-	for _, provider := range providers {
-		if p, ok := provider.(*oauth.MALProvider); ok {
-			malProvider = p
-			break
-		}
-	}
+	malProvider := providers[oauth.MALProviderName.String()]
 
 	for _, token := range tokens {
 		if token.Provider == repository.ProviderAnilist {
@@ -62,4 +56,3 @@ func refreshAccessTokens(
 
 	return nil
 }
-

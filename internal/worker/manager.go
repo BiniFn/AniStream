@@ -68,7 +68,7 @@ func (m *Manager) Bootstrap(ctx context.Context) error {
 	return nil
 }
 
-func (m *Manager) StartBackground(ctx context.Context, providers []oauth.Provider) {
+func (m *Manager) StartBackground(ctx context.Context, providers map[string]oauth.Provider) {
 	c := cron.New()
 	_, err := c.AddFunc("@hourly", func() {
 		scraper.HourlyTask(ctx, m.scraper, m.repo, m.redis, m.log.With("job", "hourly-scrape"))

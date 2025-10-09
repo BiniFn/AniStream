@@ -30,7 +30,7 @@ func (h *Handler) getSettings(w http.ResponseWriter, r *http.Request) {
 
 	user := middleware.GetUser(r)
 
-	settings, err := h.settingsService.GetSettings(r.Context(), user.ID)
+	settings, err := h.services.Settings.GetSettings(r.Context(), user.ID)
 	if err != nil {
 		log.Error("failed to get settings", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to get settings")
@@ -61,7 +61,7 @@ func (h *Handler) saveSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	settings, err := h.settingsService.SaveSettings(r.Context(), settings.SaveSettingsParams{
+	settings, err := h.services.Settings.SaveSettings(r.Context(), settings.SaveSettingsParams{
 		UserID:            user.ID,
 		AutoNextEpisode:   req.AutoNextEpisode,
 		AutoPlayEpisode:   req.AutoPlayEpisode,

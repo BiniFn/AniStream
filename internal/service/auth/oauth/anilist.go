@@ -31,7 +31,7 @@ func NewAnilistProvider(clientID, clientSecret, redirectURL string, repo *reposi
 }
 
 func (a *AnilistProvider) Name() string {
-	return "anilist"
+	return AnilistProviderName.String()
 }
 
 func (a *AnilistProvider) AuthURL(ctx context.Context, _ string) (string, error) {

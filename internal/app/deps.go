@@ -33,7 +33,7 @@ type Deps struct {
 	Shiki       *shikimori.Client
 	Cld         *cloudinary.Cloudinary
 	EmailClient email.EmailClient
-	Providers   []oauth.Provider
+	Providers   map[string]oauth.Provider
 }
 
 func InitDeps(ctx context.Context, svcName string) (*Deps, error) {
@@ -83,6 +83,11 @@ func InitDeps(ctx context.Context, svcName string) (*Deps, error) {
 		repo,
 	)
 
+	providers := map[string]oauth.Provider{
+		malOauthProvider.Name():     malOauthProvider,
+		anilistOauthProvider.Name(): anilistOauthProvider,
+	}
+
 	return &Deps{
 		Env:         env,
 		Log:         rootLogger,
@@ -96,7 +101,7 @@ func InitDeps(ctx context.Context, svcName string) (*Deps, error) {
 		Shiki:       shiki,
 		Cld:         cld,
 		EmailClient: emailClient,
-		Providers:   []oauth.Provider{malOauthProvider, anilistOauthProvider},
+		Providers:   providers,
 	}, nil
 }
 

@@ -54,7 +54,7 @@ func (h *Handler) getLibrary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lib, err := h.libraryService.GetLibrary(r.Context(), library.GetLibraryParams{
+	lib, err := h.services.Library.GetLibrary(r.Context(), library.GetLibraryParams{
 		UserID:       user.ID,
 		Status:       status,
 		Page:         page,
@@ -94,7 +94,7 @@ func (h *Handler) getAnimeStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := h.libraryService.GetLibraryByAnimeID(r.Context(), user.ID, animeID)
+	status, err := h.services.Library.GetLibraryByAnimeID(r.Context(), user.ID, animeID)
 	switch err {
 	case library.ErrLibraryNotFound:
 		h.jsonError(w, http.StatusNotFound, "library not found")
@@ -129,7 +129,7 @@ func (h *Handler) getContinueWatching(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	library, err := h.libraryService.GetContinueWatching(r.Context(), library.GetContinueWatchingAnimeParams{
+	library, err := h.services.Library.GetContinueWatching(r.Context(), library.GetContinueWatchingAnimeParams{
 		UserID:       user.ID,
 		Page:         page,
 		ItemsPerPage: size,
@@ -165,7 +165,7 @@ func (h *Handler) getPlanning(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	library, err := h.libraryService.GetPlanToWatch(r.Context(), library.GetPlanToWatchAnimeParams{
+	library, err := h.services.Library.GetPlanToWatch(r.Context(), library.GetPlanToWatchAnimeParams{
 		UserID:       user.ID,
 		Page:         page,
 		ItemsPerPage: size,
@@ -200,7 +200,7 @@ func (h *Handler) deleteAnimeFromLib(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.libraryService.DeleteLibrary(r.Context(), user.ID, animeID)
+	err = h.services.Library.DeleteLibrary(r.Context(), user.ID, animeID)
 	if err != nil {
 		log.Error("failed to delete anime from library", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to delete anime from library")
@@ -242,7 +242,7 @@ func (h *Handler) createLibrary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lib, err := h.libraryService.CreateLibrary(r.Context(), user.ID, animeID, string(req.Status), req.WatchedEpisodes)
+	lib, err := h.services.Library.CreateLibrary(r.Context(), user.ID, animeID, string(req.Status), req.WatchedEpisodes)
 	switch err {
 	case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
 		h.jsonError(w, http.StatusBadRequest, err.Error())
@@ -286,7 +286,7 @@ func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lib, err := h.libraryService.UpdateLibrary(r.Context(), user.ID, animeID, string(req.Status), req.WatchedEpisodes)
+	lib, err := h.services.Library.UpdateLibrary(r.Context(), user.ID, animeID, string(req.Status), req.WatchedEpisodes)
 	switch err {
 	case library.ErrInvalidStatus, library.ErrInvalidWatchedEpisodes:
 		h.jsonError(w, http.StatusBadRequest, err.Error())
@@ -319,7 +319,7 @@ func (h *Handler) importLibrary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.libraryService.ImportLibrary(r.Context(), user.ID, provider)
+	id, err := h.services.Library.ImportLibrary(r.Context(), user.ID, provider)
 	switch err {
 	case library.ErrInvalidProvider:
 		h.jsonError(w, http.StatusBadRequest, err.Error())
@@ -352,7 +352,7 @@ func (h *Handler) getLibraryImportStatus(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	status, err := h.libraryService.GetImportLibraryStatus(r.Context(), id)
+	status, err := h.services.Library.GetImportLibraryStatus(r.Context(), id)
 	switch err {
 	case library.ErrJobNotFound:
 		h.jsonError(w, http.StatusNotFound, err.Error())
@@ -377,7 +377,7 @@ func (h *Handler) clearLibrary(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
 
-	err := h.libraryService.ClearLibrary(r.Context(), user.ID)
+	err := h.services.Library.ClearLibrary(r.Context(), user.ID)
 	if err != nil {
 		log.Error("failed to clear library", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to clear library")

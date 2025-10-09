@@ -39,7 +39,7 @@ func (h *Handler) getAnimeByID(w http.ResponseWriter, r *http.Request) {
 	input := h.getHttpInput(r).(*GetAnimeByIDInput)
 	id := input.ID
 
-	resp, err := h.animeService.GetAnimeByID(r.Context(), id)
+	resp, err := h.services.Anime.GetAnimeByID(r.Context(), id)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)
@@ -72,7 +72,7 @@ func (h *Handler) getAnimeTrailer(w http.ResponseWriter, r *http.Request) {
 	input := h.getHttpInput(r).(*GetAnimeByIDInput)
 	id := input.ID
 
-	resp, err := h.animeService.GetAnimeTrailer(r.Context(), id)
+	resp, err := h.services.Anime.GetAnimeTrailer(r.Context(), id)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)
@@ -109,7 +109,7 @@ func (h *Handler) getAnimeBanner(w http.ResponseWriter, r *http.Request) {
 	input := h.getHttpInput(r).(*GetAnimeByIDInput)
 	id := input.ID
 
-	resp, err := h.animeService.GetAnimeBanner(r.Context(), id)
+	resp, err := h.services.Anime.GetAnimeBanner(r.Context(), id)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)
@@ -146,7 +146,7 @@ func (h *Handler) getAnimeFranchise(w http.ResponseWriter, r *http.Request) {
 	input := h.getHttpInput(r).(*GetAnimeByIDInput)
 	id := input.ID
 
-	resp, err := h.animeService.GetAnimeRelations(r.Context(), id)
+	resp, err := h.services.Anime.GetAnimeRelations(r.Context(), id)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)
@@ -179,7 +179,7 @@ func (h *Handler) getAnimeCharacters(w http.ResponseWriter, r *http.Request) {
 	input := h.getHttpInput(r).(*GetAnimeByIDInput)
 	id := input.ID
 
-	resp, err := h.animeService.GetAnimeCharacters(r.Context(), id)
+	resp, err := h.services.Anime.GetAnimeCharacters(r.Context(), id)
 	switch err {
 	case anime.ErrAnimeNotFound:
 		log.Warn("anime not found", "id", id, "err", err)

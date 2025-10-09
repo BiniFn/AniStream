@@ -39,7 +39,7 @@ func (h *Handler) getCharacterByID(w http.ResponseWriter, r *http.Request) {
 	input := h.getHttpInput(r).(*GetByIDInput)
 	id := input.ID
 
-	resp, err := h.animeService.GetCharacterFull(r.Context(), id)
+	resp, err := h.services.Anime.GetCharacterFull(r.Context(), id)
 	switch err {
 	case anime.ErrCharacterNotFound:
 		log.Warn("character not found", "id", id, "err", err)
@@ -72,7 +72,7 @@ func (h *Handler) getPersonByID(w http.ResponseWriter, r *http.Request) {
 	input := h.getHttpInput(r).(*GetByIDInput)
 	id := input.ID
 
-	resp, err := h.animeService.GetPersonFull(r.Context(), id)
+	resp, err := h.services.Anime.GetPersonFull(r.Context(), id)
 	switch err {
 	case anime.ErrPersonNotFound:
 		log.Warn("person not found", "id", id, "err", err)

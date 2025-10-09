@@ -79,7 +79,7 @@ func (h *Handler) catalog(w http.ResponseWriter, r *http.Request) {
 		userID = &user.ID
 	}
 
-	resp, err := h.animeService.GetAnimeCatalog(r.Context(), input, userID)
+	resp, err := h.services.Anime.GetAnimeCatalog(r.Context(), input, userID)
 	if err != nil {
 		log.Error("failed to fetch anime catalog", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch anime catalog")
@@ -109,7 +109,7 @@ func (h *Handler) listRecentlyUpdated(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.animeService.GetRecentlyUpdatedAnimes(r.Context(), page, size)
+	resp, err := h.services.Anime.GetRecentlyUpdatedAnimes(r.Context(), page, size)
 	if err != nil {
 		log.Error("failed to fetch recently updated animes", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch recently updated animes")
@@ -129,7 +129,7 @@ func (h *Handler) listRecentlyUpdated(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) seasonalAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	resp, err := h.animeService.GetSeasonalAnimes(r.Context())
+	resp, err := h.services.Anime.GetSeasonalAnimes(r.Context())
 	if err != nil {
 		log.Error("failed to fetch seasonal animes", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch seasonal animes")
@@ -177,11 +177,11 @@ func (h *Handler) getBySeason(w http.ResponseWriter, r *http.Request) {
 	var resp models.AnimeListResponse
 
 	if season != "" && year != "" {
-		resp, err = h.animeService.GetAnimeBySeasonAndYear(r.Context(), season, int32(seasonYear), page, size)
+		resp, err = h.services.Anime.GetAnimeBySeasonAndYear(r.Context(), season, int32(seasonYear), page, size)
 	} else if season != "" {
-		resp, err = h.animeService.GetAnimeBySeason(r.Context(), season, page, size)
+		resp, err = h.services.Anime.GetAnimeBySeason(r.Context(), season, page, size)
 	} else if year != "" {
-		resp, err = h.animeService.GetAnimeByYear(r.Context(), int32(seasonYear), page, size)
+		resp, err = h.services.Anime.GetAnimeByYear(r.Context(), int32(seasonYear), page, size)
 	}
 
 	if err != nil {
@@ -212,14 +212,14 @@ func (h *Handler) randomAnime(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if genre != "" {
-		resp, err = h.animeService.GetRandomAnimeByGenre(r.Context(), genre)
+		resp, err = h.services.Anime.GetRandomAnimeByGenre(r.Context(), genre)
 		if err != nil {
 			log.Error("failed to fetch random anime by genre", "genre", genre, "err", err)
 			h.jsonError(w, http.StatusInternalServerError, "failed to fetch random anime by genre")
 			return
 		}
 	} else {
-		resp, err = h.animeService.GetRandomAnime(r.Context())
+		resp, err = h.services.Anime.GetRandomAnime(r.Context())
 		if err != nil {
 			log.Error("failed to fetch random animes", "err", err)
 			h.jsonError(w, http.StatusInternalServerError, "failed to fetch random animes")
@@ -240,7 +240,7 @@ func (h *Handler) randomAnime(w http.ResponseWriter, r *http.Request) {
 // @Router /anime/listings/genres [get]
 func (h *Handler) listGenres(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
-	resp, err := h.animeService.GetAnimeGenres(r.Context())
+	resp, err := h.services.Anime.GetAnimeGenres(r.Context())
 	if err != nil {
 		log.Error("failed to fetch anime genres", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch anime genres")
@@ -259,7 +259,7 @@ func (h *Handler) listGenres(w http.ResponseWriter, r *http.Request) {
 // @Router /anime/listings/genres/previews [get]
 func (h *Handler) genrePreviews(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
-	resp, err := h.animeService.GetGenrePreviews(r.Context())
+	resp, err := h.services.Anime.GetGenrePreviews(r.Context())
 	if err != nil {
 		log.Error("failed to fetch genre previews", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch genre previews")
@@ -306,7 +306,7 @@ func (h *Handler) searchAnimes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.animeService.SearchAnimes(r.Context(), query, genre, page, size)
+	resp, err := h.services.Anime.SearchAnimes(r.Context(), query, genre, page, size)
 	if err != nil {
 		log.Error("failed to search animes", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to search animes")
@@ -342,7 +342,7 @@ func (h *Handler) animeByGenre(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.animeService.GetAnimesByGenre(r.Context(), genre, page, size)
+	resp, err := h.services.Anime.GetAnimesByGenre(r.Context(), genre, page, size)
 	if err != nil {
 		log.Error("failed to fetch animes by genre", "genre", genre, "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch animes by genre")
@@ -362,7 +362,7 @@ func (h *Handler) animeByGenre(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) trendingAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	resp, err := h.animeService.GetTrendingAnimes(r.Context())
+	resp, err := h.services.Anime.GetTrendingAnimes(r.Context())
 	if err != nil {
 		log.Error("failed to fetch trending animes", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch trending animes")
@@ -382,7 +382,7 @@ func (h *Handler) trendingAnimes(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) popularAnimes(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 
-	resp, err := h.animeService.GetPopularAnimes(r.Context())
+	resp, err := h.services.Anime.GetPopularAnimes(r.Context())
 	if err != nil {
 		log.Error("failed to fetch popular animes", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to fetch popular animes")

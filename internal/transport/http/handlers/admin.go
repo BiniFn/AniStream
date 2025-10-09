@@ -38,7 +38,7 @@ func (h *Handler) getBulkJobStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := h.adminService.GetBulkJobStatus(jobID)
+	status, err := h.services.Admin.GetBulkJobStatus(jobID)
 	if err != nil {
 		log.Error("Failed to get job status", "jobId", jobID, "err", err)
 		if err.Error() == "job not found" {
@@ -61,7 +61,7 @@ func (h *Handler) getBulkJobResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.adminService.GetBulkJobResult(jobID)
+	result, err := h.services.Admin.GetBulkJobResult(jobID)
 	if err != nil {
 		log.Error("Failed to get job result", "jobId", jobID, "err", err)
 		if err.Error() == "job not found" {
@@ -84,7 +84,7 @@ func (h *Handler) downloadBulkJobResult(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	result, err := h.adminService.GetBulkJobResult(jobID)
+	result, err := h.services.Admin.GetBulkJobResult(jobID)
 	if err != nil {
 		log.Error("Failed to get job result", "jobId", jobID, "err", err)
 		if err.Error() == "job not found" {
@@ -116,7 +116,7 @@ func (h *Handler) downloadFailedIds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.adminService.GetBulkJobResult(jobID)
+	result, err := h.services.Admin.GetBulkJobResult(jobID)
 	if err != nil {
 		log.Error("Failed to get job result", "jobId", jobID, "err", err)
 		if err.Error() == "job not found" {
@@ -148,7 +148,7 @@ func (h *Handler) retryFailedIds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.adminService.GetBulkJobResult(jobID)
+	result, err := h.services.Admin.GetBulkJobResult(jobID)
 	if err != nil {
 		log.Error("Failed to get job result", "jobId", jobID, "err", err)
 		if err.Error() == "job not found" {
@@ -164,7 +164,7 @@ func (h *Handler) retryFailedIds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newJobID, err := h.adminService.StartBulkReprocessFromIDsWithParent(result.FailedIDs, jobID)
+	newJobID, err := h.services.Admin.StartBulkReprocessFromIDsWithParent(result.FailedIDs, jobID)
 	if err != nil {
 		log.Error("Failed to start retry job", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "Failed to start retry job")
@@ -202,7 +202,7 @@ func (h *Handler) bulkReprocessAnimeFromFile(w http.ResponseWriter, r *http.Requ
 
 	log.Info("Starting bulk anime reprocessing from file", "filename", header.Filename, "size", header.Size)
 
-	result, err := h.adminService.StartBulkReprocessFromFile(r.Context(), file)
+	result, err := h.services.Admin.StartBulkReprocessFromFile(r.Context(), file)
 	if err != nil {
 		log.Error("Failed to start bulk reprocess from file", "err", err)
 		h.jsonError(w, http.StatusBadRequest, err.Error())
@@ -244,7 +244,7 @@ func (h *Handler) unknownSeasonFix(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		fixedCount := 0
 		for _, anime := range animes {
-			_, err := h.animeService.GetAnimeByID(context.Background(), anime.ID)
+			_, err := h.services.Anime.GetAnimeByID(context.Background(), anime.ID)
 			if err != nil {
 				log.Error("Failed to reprocess anime for unknown season fix", "animeID", anime.ID, "err", err)
 				continue

@@ -42,7 +42,7 @@ func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.userService.CreateUser(r.Context(), req.Username, req.Email, req.Password)
+	u, err := h.services.Users.CreateUser(r.Context(), req.Username, req.Email, req.Password)
 	switch err {
 	case nil:
 		h.jsonOK(w, u)
@@ -79,7 +79,7 @@ func (h *Handler) updatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.userService.UpdatePassword(r.Context(), user.ID, req.OldPassword, req.NewPassword)
+	err := h.services.Users.UpdatePassword(r.Context(), user.ID, req.OldPassword, req.NewPassword)
 	switch err {
 	case nil:
 		w.WriteHeader(http.StatusOK)
@@ -116,7 +116,7 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.userService.UpdateUser(r.Context(), user.ID, req.Username, req.Email)
+	u, err := h.services.Users.UpdateUser(r.Context(), user.ID, req.Username, req.Email)
 	switch err {
 	case nil:
 		h.jsonOK(w, u)
@@ -150,7 +150,7 @@ func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.userService.DeleteUser(r.Context(), user.ID, req.Password)
+	err := h.services.Users.DeleteUser(r.Context(), user.ID, req.Password)
 	switch err {
 	case nil:
 		http.SetCookie(w, &http.Cookie{
@@ -199,7 +199,7 @@ func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	err = h.userService.UpdateProfilePicture(r.Context(), user.ID, file)
+	err = h.services.Users.UpdateProfilePicture(r.Context(), user.ID, file)
 	switch err {
 	case nil:
 		w.WriteHeader(http.StatusOK)
@@ -221,7 +221,7 @@ func (h *Handler) removeImage(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	user := middleware.GetUser(r)
 
-	err := h.userService.RemoveProfilePicture(r.Context(), user.ID)
+	err := h.services.Users.RemoveProfilePicture(r.Context(), user.ID)
 	switch err {
 	case nil:
 		w.WriteHeader(http.StatusOK)

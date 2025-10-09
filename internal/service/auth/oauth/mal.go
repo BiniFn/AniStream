@@ -33,7 +33,7 @@ func NewMALProvider(clientID, clientSecret, redirectURL string, repo *repository
 }
 
 func (m *MALProvider) Name() string {
-	return "myanimelist"
+	return MALProviderName.String()
 }
 
 func (m *MALProvider) AuthURL(ctx context.Context, state string) (string, error) {

@@ -7,6 +7,17 @@ import (
 	"math/big"
 )
 
+type ProviderName string
+
+const (
+	MALProviderName     ProviderName = "myanimelist"
+	AnilistProviderName ProviderName = "anilist"
+)
+
+func (p ProviderName) String() string {
+	return string(p)
+}
+
 type TokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`

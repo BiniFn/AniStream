@@ -49,14 +49,14 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.AuthenticateUser(r.Context(), req.Email, req.Password)
+	user, err := h.services.Users.AuthenticateUser(r.Context(), req.Email, req.Password)
 	if err != nil {
 		log.Warn("Failed to authenticate user", "err", err)
 		h.jsonError(w, http.StatusUnauthorized, "Invalid credentials")
 		return
 	}
 
-	session, err := h.userService.CreateSession(r.Context(), user.ID)
+	session, err := h.services.Users.CreateSession(r.Context(), user.ID)
 	if err != nil {
 		log.Error("Failed to create session", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "Failed to create token")
@@ -120,7 +120,7 @@ func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.DeleteSession(r.Context(), cookie.Value)
+	err = h.services.Users.DeleteSession(r.Context(), cookie.Value)
 	if err != nil {
 		log.Error("Failed to delete session", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "Failed to delete session")
@@ -164,7 +164,7 @@ func (h *Handler) forgetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authService.SendForgetPasswordEmail(r.Context(), req.Email); err != nil {
+	if err := h.services.Auth.SendForgetPasswordEmail(r.Context(), req.Email); err != nil {
 		log.Error("Failed to send reset password email", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "Failed to send reset password email")
 		return
@@ -193,7 +193,7 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.authService.GetUserByForgetPasswordToken(r.Context(), token)
+	user, err := h.services.Auth.GetUserByForgetPasswordToken(r.Context(), token)
 	if err != nil {
 		log.Error("Failed to get user by forget password token", "err", err)
 		h.jsonError(w, http.StatusUnauthorized, "Invalid token")
@@ -229,7 +229,7 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.authService.ResetPassword(r.Context(), h.userService, token, req.Password)
+	err = h.services.Auth.ResetPassword(r.Context(), h.services.Users, token, req.Password)
 	switch err {
 	case nil:
 		w.WriteHeader(http.StatusOK)
@@ -257,7 +257,7 @@ func (h *Handler) getProviders(w http.ResponseWriter, r *http.Request) {
 
 	user := middleware.GetUser(r)
 
-	providers, err := h.authService.GetConnectedProviders(r.Context(), user.ID)
+	providers, err := h.services.Auth.GetConnectedProviders(r.Context(), user.ID)
 	if err != nil {
 		log.Error("Failed to get providers", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "Failed to get providers")
@@ -288,7 +288,7 @@ func (h *Handler) deleteProvider(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.authService.DisconnectProvider(r.Context(), user.ID, provider)
+	err = h.services.Auth.DisconnectProvider(r.Context(), user.ID, provider)
 	if err != nil {
 		log.Error("Failed to disconnect provider", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "Failed to disconnect provider")

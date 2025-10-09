@@ -32,7 +32,7 @@ func (h *Handler) beginAuthHandler(w http.ResponseWriter, r *http.Request) {
 	log := h.logger(r)
 	state := uuid.NewString()
 
-	provider, ok := h.providerMap[chi.URLParam(r, "provider")]
+	provider, ok := h.deps.Providers[chi.URLParam(r, "provider")]
 	if !ok {
 		h.jsonError(w, http.StatusNotFound, "provider not found")
 		return
@@ -82,7 +82,7 @@ func (h *Handler) callbackHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
-	provider, ok := h.providerMap[chi.URLParam(r, "provider")]
+	provider, ok := h.deps.Providers[chi.URLParam(r, "provider")]
 	if !ok {
 		h.jsonError(w, http.StatusNotFound, "provider not found")
 		return
