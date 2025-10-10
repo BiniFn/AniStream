@@ -3,6 +3,7 @@
 	import { Play } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
+	import { cn } from '$lib/utils';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 	type LibraryResponse = components['schemas']['models.LibraryResponse'];
@@ -13,9 +14,17 @@
 		topLeftBadge?: Snippet;
 		libraryEntry?: LibraryResponse | null;
 		episodeLink?: number | null;
+		class?: string;
 	}
 
-	let { anime, index = 0, topLeftBadge, libraryEntry, episodeLink = null }: Props = $props();
+	let {
+		anime,
+		index = 0,
+		topLeftBadge,
+		libraryEntry,
+		episodeLink = null,
+		class: className,
+	}: Props = $props();
 
 	let linkUrl = $derived(
 		episodeLink ? `/anime/${anime.id}/watch?ep=${episodeLink}` : `/anime/${anime.id}`,
@@ -24,7 +33,10 @@
 
 <a
 	href={linkUrl}
-	class="group block transform transition-all duration-500 hover:-translate-y-2 hover:scale-105"
+	class={cn(
+		'group block transform transition-all duration-500 hover:-translate-y-2 hover:scale-105',
+		className,
+	)}
 	style="animation-delay: {index * 100}ms"
 	onclick={(e) => {
 		if ((e.target as HTMLElement).closest('button')) {

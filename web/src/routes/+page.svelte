@@ -153,18 +153,16 @@
 <div class="container mx-auto mt-[100vh] space-y-12 px-4">
 	<AnimeSection icon={TrendingUp} title="Trending Anime" visible={trending.length > 0}>
 		{#each trending.slice(1, 7) as anime, index (anime.id)}
-			<div class="w-40 flex-shrink-0 md:w-auto">
-				<AnimeCard {anime} {index}>
-					{#snippet topLeftBadge()}
-						<div
-							class="flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 text-xs font-semibold text-primary-foreground backdrop-blur-sm"
-						>
-							<Star class="h-3 w-3 fill-yellow-400 text-yellow-400" />
-							<span>#{index + 2}</span>
-						</div>
-					{/snippet}
-				</AnimeCard>
-			</div>
+			<AnimeCard {anime} {index} class="w-40 flex-shrink-0 md:w-auto">
+				{#snippet topLeftBadge()}
+					<div
+						class="flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 text-xs font-semibold text-primary-foreground backdrop-blur-sm"
+					>
+						<Star class="h-3 w-3 fill-yellow-400 text-yellow-400" />
+						<span>#{index + 2}</span>
+					</div>
+				{/snippet}
+			</AnimeCard>
 		{/each}
 	</AnimeSection>
 
@@ -175,7 +173,12 @@
 		visible={isLoggedIn && continueWatching.length > 0}
 	>
 		{#each continueWatching as item, index (item.id)}
-			<AnimeCard anime={item.anime} {index} episodeLink={item.watchedEpisodes + 1} />
+			<AnimeCard
+				anime={item.anime}
+				{index}
+				episodeLink={item.watchedEpisodes + 1}
+				class="w-40 flex-shrink-0 md:w-auto"
+			/>
 		{/each}
 	</AnimeSection>
 
@@ -186,7 +189,7 @@
 		visible={isLoggedIn && planning.length > 0}
 	>
 		{#each planning as item, index (item.id)}
-			<AnimeCard anime={item.anime} {index} episodeLink={1} />
+			<AnimeCard anime={item.anime} {index} episodeLink={1} class="w-40 flex-shrink-0 md:w-auto" />
 		{/each}
 	</AnimeSection>
 
@@ -341,7 +344,12 @@
 		visible={recentlyUpdated.length > 0}
 	>
 		{#each recentlyUpdated as anime, index (anime.id)}
-			<AnimeCard {anime} {index} episodeLink={anime.lastEpisode || 1}>
+			<AnimeCard
+				{anime}
+				{index}
+				episodeLink={anime.lastEpisode || 1}
+				class="w-40 flex-shrink-0 md:w-auto"
+			>
 				{#snippet topLeftBadge()}
 					<div
 						class="animate-pulse rounded-full bg-red-500/90 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
