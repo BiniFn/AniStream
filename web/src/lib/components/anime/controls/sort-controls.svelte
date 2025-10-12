@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
+	import { cn } from '$lib/utils';
 	import type { FilterState } from '$lib/utils/filters';
 
 	interface SortOption {
@@ -39,7 +40,7 @@
 	}
 </script>
 
-<div class="flex items-center gap-2 {className}">
+<div class={cn('flex items-center gap-2', className)}>
 	<Select.Root
 		type="single"
 		value={sortBy}
@@ -62,5 +63,8 @@
 		title={sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
 	>
 		{sortOrder === 'asc' ? '↑' : '↓'}
+		<span class="sr-only">
+			{sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
+		</span>
 	</Button>
 </div>

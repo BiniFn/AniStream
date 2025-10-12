@@ -1,6 +1,5 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/layout/page-header.svelte';
-	import { buttonVariants } from '$lib/components/ui/button';
 	import { cn } from '$lib/utils';
 	import { Funnel } from 'lucide-svelte';
 	import type { FilterState, FilterActions } from '$lib/utils/filters';
@@ -8,6 +7,7 @@
 	import SearchBar from '$lib/components/anime/controls/search-bar.svelte';
 	import SortControls from '$lib/components/anime/controls/sort-controls.svelte';
 	import ViewModeToggle from '$lib/components/anime/controls/view-mode-toggle.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 
 	interface SortOption {
 		value: string;
@@ -65,18 +65,35 @@
 
 <PageHeader {title} description={displayDescription}>
 	{#snippet actions()}
-		<div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
+		<div class="flex w-full flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
 			<div class="flex flex-col gap-2 lg:hidden">
-				<SearchBar value={filters.search} onInput={handleSearch} size="sm" />
-				<div class="flex items-center gap-1">
-					<SortControls
-						sortBy={filters.sortBy}
-						sortOrder={filters.sortOrder}
-						{sortOptions}
-						onSortChange={handleSortChange}
-						selectClass="h-9 flex-1 text-sm"
-					/>
-				</div>
+				<SearchBar value={filters.search} onInput={handleSearch} />
+
+				{#if showMobileFilters && onMobileFiltersToggle}
+					<Button
+						onclick={onMobileFiltersToggle}
+						variant="outline"
+						class={cn('relative lg:hidden')}
+					>
+						<Funnel class="h-4 w-4" />
+						Open Filters
+						{#if totalFilters > 0}
+							<span
+								class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground"
+							>
+								{totalFilters}
+							</span>
+						{/if}
+					</Button>
+				{/if}
+
+				<SortControls
+					sortBy={filters.sortBy}
+					sortOrder={filters.sortOrder}
+					{sortOptions}
+					onSortChange={handleSortChange}
+					selectClass="h-9 w-full text-sm"
+				/>
 			</div>
 
 			<div class="hidden lg:flex lg:items-center lg:gap-3">
@@ -90,25 +107,6 @@
 				/>
 				<ViewModeToggle {viewMode} {onViewModeChange} />
 			</div>
-
-			{#if showMobileFilters && onMobileFiltersToggle}
-				<button
-					onclick={onMobileFiltersToggle}
-					class={cn(
-						buttonVariants({ variant: 'outline', size: 'icon' }),
-						'relative h-9 w-9 lg:hidden',
-					)}
-				>
-					<Funnel class="h-4 w-4" />
-					{#if totalFilters > 0}
-						<span
-							class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground"
-						>
-							{totalFilters}
-						</span>
-					{/if}
-				</button>
-			{/if}
 		</div>
 	{/snippet}
 </PageHeader>

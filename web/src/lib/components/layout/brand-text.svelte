@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 
-	export let size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
-	export let variant: 'default' | 'gradient' | 'anime' = 'default';
+	type Props = {
+		size?: 'sm' | 'md' | 'lg' | 'xl';
+		variant?: 'default' | 'gradient' | 'anime';
+	};
+
+	let { size = 'md', variant = 'default' }: Props = $props();
 
 	const sizeClasses = {
 		sm: 'md:text-lg text-sm',

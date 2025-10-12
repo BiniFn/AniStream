@@ -22,7 +22,7 @@
 	const statusTabsTop = $derived(layoutState.navbarHeight + layoutState.headerHeight);
 
 	const sortOptions = [
-		{ value: 'library_updated_at', label: 'Recently Updated' },
+		{ value: 'library_updated_at', label: 'Library Updated' },
 		{ value: 'ename', label: 'Name (A-Z)' },
 		{ value: 'jname', label: 'Japanese Name' },
 		{ value: 'anime_updated_at', label: 'Anime Updated' },

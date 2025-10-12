@@ -23,8 +23,6 @@
 		{ value: 'jname', label: 'Japanese Name' },
 		{ value: 'season', label: 'Season' },
 		{ value: 'year', label: 'Year' },
-		{ value: 'anime_updated_at', label: 'Anime Updated' },
-		{ value: 'library_updated_at', label: 'Library Updated' },
 	];
 
 	async function updateFilters(newFilters: FilterState) {

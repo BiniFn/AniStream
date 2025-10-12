@@ -55,7 +55,7 @@
 			</div>
 
 			{#if actions}
-				<div class="flex items-center gap-3">
+				<div class="flex w-full items-center gap-3 md:w-fit">
 					{@render actions()}
 				</div>
 			{/if}
