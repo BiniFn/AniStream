@@ -80,10 +80,6 @@ The worker service includes a powerful CLI for manual operations and debugging:
 The easiest way to get started is with our automated setup script:
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/aniways.git
-cd aniways
-
 # Run the setup script (installs dependencies, generates code, starts services)
 make setup
 ```
