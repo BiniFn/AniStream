@@ -58,22 +58,44 @@ The worker service includes a powerful CLI for manual operations and debugging:
 
 ```bash
 # Daemon mode (default)
-./worker                   # Run worker in daemon mode
-./worker daemon            # Same as above
+./worker                              # Run worker in daemon mode
+./worker daemon                       # Same as above
 
 # Scraping operations
-./worker scrape recently-updated       # Scrape top most 40 recently updated anime (hourly task)
-./worker scrape all-recently-updated   # Scrape all recently updated pages and upsert into DB
-./worker scrape full-seed              # Complete database seed (A-Z + all recently updated) # (one-time use)
+./worker scrape recently-updated      # Scrape top most 40 recently updated anime (hourly task)
+./worker scrape all-recently-updated  # Scrape all recently updated pages and upsert into DB
+./worker scrape full-seed             # Complete database seed (A-Z + all recently updated) (one-time use)
 
 # Library management
-./worker library retry-failed          # Retry failed library syncs
+./worker library retry-failed         # Retry failed library syncs
 
 # Authentication
-./worker auth refresh-tokens           # Refresh OAuth tokens
+./worker auth refresh-tokens          # Refresh OAuth tokens
 ```
 
 ## Local Development Setup
+
+### Quick Start
+
+The easiest way to get started is with our automated setup script:
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/aniways.git
+cd aniways
+
+# Run the setup script (installs dependencies, generates code, starts services)
+make setup
+```
+
+This single command will:
+
+- Check system dependencies (Go 1.24.1+, Node.js/Bun, Docker)
+- Install all required development tools
+- Generate necessary code files (SQLC, GraphQL client, OpenAPI docs)
+- Install frontend dependencies
+- Start PostgreSQL and Redis containers
+- Set up environment configuration
 
 ### Prerequisites
 
@@ -81,18 +103,22 @@ The worker service includes a powerful CLI for manual operations and debugging:
 - Node.js 18+ (Bun recommended)
 - Docker & Docker Compose
 
-### Step 0: Start Database Services
+### Manual Setup (Alternative)
+
+If you prefer to set up manually or need to troubleshoot:
+
+#### Step 1: Start Database Services
 
 ```bash
 # Start PostgreSQL and Redis containers
 make dev-docker-up
 ```
 
-### Step 1: Install Required Binaries
+#### Step 2: Install Required Binaries
 
 ```bash
 # Install development tools
-go install github.com/cosmtrek/air@latest
+go install github.com/air-verse/air@latest
 go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 go install github.com/Khan/genqlient@latest
 go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
@@ -100,7 +126,7 @@ go install github.com/swaggo/swag/cmd/swag@latest
 npm install -g swagger2openapi
 ```
 
-### Step 2: Generate Required Files
+#### Step 3: Generate Required Files
 
 ```bash
 # Generate database code, GraphQL client, and API docs
@@ -109,7 +135,7 @@ make genqlient
 make openapi
 ```
 
-### Step 3: Install Frontend Dependencies
+#### Step 4: Install Frontend Dependencies
 
 ```bash
 cd web
@@ -117,7 +143,7 @@ bun install
 cd ..
 ```
 
-### Step 4: Start Development Servers
+#### Step 5: Start Development Servers
 
 **Option A: Individual Terminals**
 
@@ -143,7 +169,7 @@ make tmux
 
 ## Configuration
 
-The application uses environment variables for configuration. Copy `.env.example` to `.env.local` and update the values:
+The application uses environment variables for configuration. The setup script will automatically create `.env.local` from `.env.example`, but you can also do it manually:
 
 ```bash
 cp .env.example .env.local
@@ -189,6 +215,12 @@ COOKIE_DOMAIN=localhost
 
 ## Available Commands
 
+### Setup
+
+```bash
+make setup            # Run automated setup script (recommended for new developers)
+```
+
 ### Local Development
 
 ```bash
@@ -217,9 +249,8 @@ make dev-docker-logs  # View container logs
 
 ### Help
 
-```bash
+````bash
 make help             # Show all available commands
-```
 
 ## API Documentation
 
@@ -305,7 +336,7 @@ RESEND_FROM_EMAIL=noreply@yourdomain.com
 
 # Cookie Domain
 COOKIE_DOMAIN=yourdomain.com
-```
+````
 
 6. **Configure Docker Hub webhooks** to trigger Dokploy redeployment on new image pushes
 

@@ -67,7 +67,7 @@ func (h *Handler) RegisterRoutes() {
 func (h *Handler) RegisterOpenAPIRoutes() {
 	if h.deps.Env.AppEnv == "development" {
 		h.r.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/x-yaml")
+			w.Header().Set("Content-Type", "text/plain")
 			w.Write(docs.OpenAPISpec)
 		})
 

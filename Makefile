@@ -63,6 +63,11 @@ dev-docker-logs: ## View logs for all containers
 tmux: ## Start tmux session
 	@./scripts/aniways-tmux.sh
 
+# ----- Setup ----- #
+.PHONY: setup
+setup: ## Run setup script to install dependencies and start services
+	@./scripts/setup.sh
+
 # ----- Help Menu ----- #
 .PHONY: help
 help: ## Show help
