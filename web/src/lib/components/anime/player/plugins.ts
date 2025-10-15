@@ -11,8 +11,7 @@ export const thumbnailPlugin = (thumbnails: { raw: string; url: string }) => {
 			template: { $progress },
 		} = art;
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		let timer: any = null;
+		let timer: NodeJS.Timeout | null = null;
 
 		const url = `${PUBLIC_STREAMING_URL}${thumbnails.url}`;
 		if (!url) return;
