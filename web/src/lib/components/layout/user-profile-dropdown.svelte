@@ -1,17 +1,17 @@
 <script lang="ts">
-	import type { components } from '$lib/api/openapi';
 	import { buttonVariants } from '$lib/components/ui/button/button.svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { cn } from '$lib/utils';
 	import { ChevronDown, Heart, LogOut, Settings, User } from 'lucide-svelte';
 	import ProfilePicture from './profile-picture.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 
 	interface Props {
-		user: components['schemas']['models.UserResponse'];
 		class?: string;
 	}
 
-	let { user, class: className }: Props = $props();
+	let { class: className }: Props = $props();
+	const appState = getAppStateContext();
 </script>
 
 <DropdownMenu.Root>
@@ -22,7 +22,7 @@
 			className,
 		)}
 	>
-		<span class="hidden text-sm font-medium lg:block">{user.username}</span>
+		<span class="hidden text-sm font-medium lg:block">{appState.user?.username}</span>
 		<ProfilePicture class="size-8" />
 		<ChevronDown class="h-4 w-4 opacity-50" />
 	</DropdownMenu.Trigger>
@@ -30,8 +30,8 @@
 	<DropdownMenu.Content class="w-56" align="end">
 		<DropdownMenu.Label class="font-normal">
 			<div class="flex flex-col space-y-1">
-				<p class="text-sm leading-none font-medium">{user.username}</p>
-				<p class="text-xs leading-none text-muted-foreground">{user.email}</p>
+				<p class="text-sm leading-none font-medium">{appState.user?.username}</p>
+				<p class="text-xs leading-none text-muted-foreground">{appState.user?.email}</p>
 			</div>
 		</DropdownMenu.Label>
 		<DropdownMenu.Separator />

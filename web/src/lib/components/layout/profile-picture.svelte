@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Avatar from '$lib/components/ui/avatar';
-	import { appState } from '$lib/context/state.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -8,13 +8,13 @@
 	};
 
 	let { class: className }: Props = $props();
-	let user = $derived(appState.user);
+	const appState = getAppStateContext();
 </script>
 
 <Avatar.Root class={cn('size-10', className)}>
-	<Avatar.Image src={user?.profilePicture} alt={user?.username} />
+	<Avatar.Image src={appState.user?.profilePicture} alt={appState.user?.username} />
 	<Avatar.Fallback class="bg-primary/50 text-sm font-medium">
-		{user?.username
+		{appState.user?.username
 			?.split(' ')
 			.map((n) => n.charAt(0))
 			.join('')

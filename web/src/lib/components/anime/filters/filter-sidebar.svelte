@@ -4,10 +4,10 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as Select from '$lib/components/ui/select';
-	import { layoutState } from '$lib/context/layout.svelte';
 	import { cn } from '$lib/utils';
 	import { X } from 'lucide-svelte';
 	import type { FilterState, FilterActions } from '$lib/utils/filters';
+	import { getLayoutStateContext } from '$lib/context/layout.svelte';
 
 	interface Props {
 		genres: string[];
@@ -17,8 +17,9 @@
 	}
 
 	let { genres, filters, filterActions, showItemsPerPage = true }: Props = $props();
+	const layoutState = getLayoutStateContext();
 
-	const sidebarTop = $derived(layoutState.navbarHeight + layoutState.headerHeight + 16);
+	const sidebarTop = $derived(layoutState.totalHeight + 16);
 
 	const seasons = ['winter', 'spring', 'summer', 'fall', 'unknown'] as const;
 	const currentYear = new Date().getFullYear();

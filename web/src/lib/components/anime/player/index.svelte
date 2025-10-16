@@ -2,7 +2,7 @@
 	import { preloadData } from '$app/navigation';
 	import type { components } from '$lib/api/openapi';
 	import { createArtPlayer } from '$lib/components/anime/player/create-player.svelte';
-	import { appState } from '$lib/context/state.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 
 	type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 
@@ -14,6 +14,7 @@
 	};
 
 	let { info, playerId, nextEpisodeUrl, updateLibrary }: Props = $props();
+	const appState = getAppStateContext();
 
 	let element: HTMLDivElement | null = $state(null);
 
@@ -27,6 +28,7 @@
 
 		const player = createArtPlayer({
 			id: playerId,
+			appState,
 			container: element,
 			source: info,
 			nextEpisodeUrl,

@@ -6,13 +6,14 @@ import type Hls from 'hls.js';
 import { Captions, LoaderCircle, Pause, SkipForward } from 'lucide-svelte';
 import { amplifyVolumePlugin, skipPlugin, thumbnailPlugin, windowKeyBindPlugin } from './plugins';
 import type { components } from '$lib/api/openapi';
-import { appState } from '$lib/context/state.svelte';
 import { PUBLIC_STREAMING_URL } from '$env/static/public';
+import type { AppState } from '$lib/context/state.svelte';
 
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 
 type Props = {
 	id: string;
+	appState: AppState;
 	container: HTMLDivElement;
 	source: StreamInfo;
 	nextEpisodeUrl: string | undefined;
@@ -25,6 +26,7 @@ const artplayerSettingsSchema = type({
 
 export const createArtPlayer = async ({
 	id,
+	appState,
 	container,
 	source,
 	nextEpisodeUrl,
@@ -141,28 +143,19 @@ export const createArtPlayer = async ({
 				icon: art.icons.play,
 				html: 'Auto Play Episode',
 				switch: appState.settings?.autoPlayEpisode,
-				onSwitch: () => {
-					appState.settings!.autoPlayEpisode = !appState.settings?.autoPlayEpisode;
-					return appState.settings?.autoPlayEpisode;
-				},
+				onSwitch: () => appState.toggleSetting('autoPlayEpisode'),
 			},
 			{
 				icon: convertComponentToHTML(SkipForward, { size: 22 }),
 				html: 'Auto Play Next Episode',
 				switch: appState.settings?.autoNextEpisode,
-				onSwitch: () => {
-					appState.settings!.autoNextEpisode = !appState.settings?.autoNextEpisode;
-					return appState.settings?.autoNextEpisode;
-				},
+				onSwitch: () => appState.toggleSetting('autoNextEpisode'),
 			},
 			{
 				icon: convertComponentToHTML(Pause, { size: 22 }),
 				html: 'Auto Resume Episode',
 				switch: appState.settings?.autoResumeEpisode,
-				onSwitch: () => {
-					appState.settings!.autoResumeEpisode = !appState.settings?.autoResumeEpisode;
-					return appState.settings?.autoResumeEpisode;
-				},
+				onSwitch: () => appState.toggleSetting('autoResumeEpisode'),
 			},
 		],
 	});

@@ -10,7 +10,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
-	import { appState } from '$lib/context/state.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 	import { cn } from '$lib/utils';
 	import { type } from 'arktype';
@@ -38,8 +38,8 @@
 	};
 
 	let { animeId, libraryEntry, class: className, iconOnly = false }: Props = $props();
+	const appState = getAppStateContext();
 
-	let isLoggedIn = $derived(appState.user != null);
 	let isOpen = $state(false);
 	let isAdding = $state(false);
 	let isDeleting = $state(false);
@@ -95,7 +95,7 @@
 		}
 	};
 	const checkIfLoggedIn = (fn: () => void) => {
-		if (!isLoggedIn) {
+		if (!appState.isLoggedIn) {
 			toast.error('You must be logged in to use the library', {
 				action: {
 					label: 'Login',

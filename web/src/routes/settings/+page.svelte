@@ -1,16 +1,10 @@
 <script lang="ts">
-	import type { components } from '$lib/api/openapi';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import Label from '$lib/components/ui/label/label.svelte';
-	import { appState } from '$lib/context/state.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 
-	type Settings = Omit<components['schemas']['models.SettingsResponse'], 'userId'>;
-
-	function updateSetting(key: keyof Settings, value: boolean) {
-		if (!appState.settings) return;
-		appState.settings[key] = value;
-	}
+	const appState = getAppStateContext();
 </script>
 
 <Card.Root>
@@ -32,7 +26,7 @@
 					<Button
 						variant={appState.settings?.autoPlayEpisode ? 'default' : 'outline'}
 						size="sm"
-						onclick={() => updateSetting('autoPlayEpisode', !appState.settings?.autoPlayEpisode)}
+						onclick={() => appState.toggleSetting('autoPlayEpisode')}
 					>
 						{appState.settings?.autoPlayEpisode ? 'Enabled' : 'Disabled'}
 					</Button>
@@ -48,7 +42,7 @@
 					<Button
 						variant={appState.settings?.autoNextEpisode ? 'default' : 'outline'}
 						size="sm"
-						onclick={() => updateSetting('autoNextEpisode', !appState.settings?.autoNextEpisode)}
+						onclick={() => appState.toggleSetting('autoNextEpisode')}
 					>
 						{appState.settings?.autoNextEpisode ? 'Enabled' : 'Disabled'}
 					</Button>
@@ -64,8 +58,7 @@
 					<Button
 						variant={appState.settings?.autoResumeEpisode ? 'default' : 'outline'}
 						size="sm"
-						onclick={() =>
-							updateSetting('autoResumeEpisode', !appState.settings?.autoResumeEpisode)}
+						onclick={() => appState.toggleSetting('autoResumeEpisode')}
 					>
 						{appState.settings?.autoResumeEpisode ? 'Enabled' : 'Disabled'}
 					</Button>
@@ -81,7 +74,7 @@
 					<Button
 						variant={appState.settings?.incognitoMode ? 'default' : 'outline'}
 						size="sm"
-						onclick={() => updateSetting('incognitoMode', !appState.settings?.incognitoMode)}
+						onclick={() => appState.toggleSetting('incognitoMode')}
 					>
 						{appState.settings?.incognitoMode ? 'Enabled' : 'Disabled'}
 					</Button>

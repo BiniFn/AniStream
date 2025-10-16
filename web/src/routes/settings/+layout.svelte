@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { layoutState } from '$lib/context/layout.svelte';
 	import { cn } from '$lib/utils';
 	import { Settings, TriangleAlert, User, Users } from 'lucide-svelte';
 	import type { LayoutProps } from './$types';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { goto } from '$app/navigation';
+	import PageHeader from '$lib/components/layout/page-header.svelte';
 
 	let { children }: LayoutProps = $props();
 
@@ -48,15 +48,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-background">
-	<div
-		class="z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:sticky"
-		style="top: {layoutState.navbarHeight}px"
-	>
-		<div class="container mx-auto px-3 py-3 sm:px-4 sm:py-4">
-			<h1 class="text-lg font-bold">Settings</h1>
-			<p class="text-xs text-muted-foreground">Manage your account preferences and integrations</p>
-		</div>
-	</div>
+	<PageHeader title="Settings" description="Manage your account and application settings" />
 
 	<div class="container mx-auto px-4 py-8">
 		<div class="flex flex-col gap-6 lg:flex-row">

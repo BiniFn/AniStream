@@ -7,7 +7,6 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { appState } from '$lib/context/state.svelte';
 	import { cn } from '$lib/utils';
 	import {
 		ArrowLeft,
@@ -24,11 +23,13 @@
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageProps } from './$types';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 
 	type StreamingData = components['schemas']['models.StreamingDataResponse'];
 	type EpisodeServer = components['schemas']['models.EpisodeServerResponse'];
 
 	let { data }: PageProps = $props();
+	const appState = getAppStateContext();
 
 	let selectedServer = $state(data.servers[0] || null);
 	let streamInfo: StreamingData | null = $state(null);
@@ -227,7 +228,7 @@
 							info={streamInfo}
 							{nextEpisodeUrl}
 							updateLibrary={async () => {
-								if (!appState.user) return;
+								if (!appState.isLoggedIn) return;
 								if (data.libraryEntry && data.episodeNumber <= data.libraryEntry.watchedEpisodes)
 									return;
 

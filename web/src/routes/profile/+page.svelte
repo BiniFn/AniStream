@@ -8,7 +8,6 @@
 	import * as Form from '$lib/components/ui/form';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { Separator } from '$lib/components/ui/separator';
-	import { layoutState } from '$lib/context/layout.svelte';
 	import { cn } from '$lib/utils';
 	import { type } from 'arktype';
 	import { formatDate } from 'date-fns';
@@ -28,6 +27,7 @@
 	import { defaults, setError, superForm } from 'sveltekit-superforms';
 	import { arktype, arktypeClient } from 'sveltekit-superforms/adapters';
 	import type { PageProps } from './$types';
+	import PageHeader from '$lib/components/layout/page-header.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -138,15 +138,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-background">
-	<div
-		class="z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:sticky"
-		style="top: {layoutState.navbarHeight}px"
-	>
-		<div class="container mx-auto px-4 py-4">
-			<h1 class="text-2xl font-bold tracking-tight">Profile</h1>
-			<p class="text-sm text-muted-foreground">Manage your account and view your anime library</p>
-		</div>
-	</div>
+	<PageHeader title="Profile" description="Manage your account and view your anime library" />
 
 	<div class="container mx-auto px-4 py-8">
 		<div class="grid gap-8 lg:grid-cols-3">

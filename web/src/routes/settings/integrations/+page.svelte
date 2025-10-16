@@ -5,12 +5,13 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { importjob } from '$lib/context/import.svelte';
 	import { Import, TriangleAlert } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageProps } from './$types';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 
 	let { data }: PageProps = $props();
+	const appState = getAppStateContext();
 
 	let oauthProviders = $derived(data.oauthProviders);
 	let isDisconnecting = $state<string | null>(null);
@@ -55,9 +56,9 @@
 					query: { provider },
 				},
 			});
+
 			if (response.data?.id) {
-				importjob.id = response.data.id;
-				localStorage.setItem('import_job_id', response.data.id);
+				appState.setImportJobId(response.data.id);
 				toast.success('Library import started. You will be notified when it completes.');
 				showImportDialog = false;
 			}

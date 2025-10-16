@@ -4,22 +4,21 @@
 	import MobileFilters from '$lib/components/anime/filters/mobile-filters.svelte';
 	import AnimePageHeader from '$lib/components/anime/layout/anime-page-header.svelte';
 	import { Label } from '$lib/components/ui/label';
-	import { layoutState } from '$lib/context/layout.svelte';
 	import { CircleCheck, CirclePlay, CircleX, Clock, Pause } from 'lucide-svelte';
 	import { createFilterActions, updateUrlWithFilters } from '$lib/utils/filter-actions';
 	import { getTotalFilters, type FilterState } from '$lib/utils/filters';
 	import type { PageProps } from './$types';
 	import AnimeGrid from '$lib/components/anime/display/anime-grid.svelte';
 	import EmptyState from '$lib/components/anime/display/empty-state.svelte';
+	import { getLayoutStateContext } from '$lib/context/layout.svelte';
 
 	let { data }: PageProps = $props();
+	const layoutState = getLayoutStateContext();
 
 	let filters = $state(data.initialFilters);
 	let viewMode = $state<'grid' | 'list'>('grid');
 	let isLoading = $state(false);
 	let showMobileFilters = $state(false);
-
-	const statusTabsTop = $derived(layoutState.navbarHeight + layoutState.headerHeight);
 
 	const sortOptions = [
 		{ value: 'library_updated_at', label: 'Library Updated' },
@@ -118,7 +117,7 @@
 				currentPage={filters.page}
 				{totalPages}
 			>
-				<div class="sticky z-10 mb-4 hidden lg:block" style="top: {statusTabsTop}px">
+				<div class="sticky z-10 mb-4 hidden lg:block" style="top: {layoutState.totalHeight}px">
 					<div
 						class="border-b bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 					>

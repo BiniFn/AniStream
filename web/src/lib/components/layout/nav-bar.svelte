@@ -7,7 +7,6 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
-	import { appState } from '$lib/context/state.svelte';
 	import { cn } from '$lib/utils';
 	import {
 		Dice6,
@@ -23,11 +22,11 @@
 	} from 'lucide-svelte';
 	import ProfilePicture from './profile-picture.svelte';
 	import BrandText from './brand-text.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 
-	let user = $derived(appState.user);
-	let isLoggedIn = $derived(user != null);
+	const appState = getAppStateContext();
 	let links = $derived.by(() => {
 		const base = [
 			{ label: 'Home', link: '/', Icon: House },
@@ -36,7 +35,7 @@
 			{ label: 'Random', link: '/random', Icon: Dice6 },
 		];
 
-		if (isLoggedIn) {
+		if (appState.isLoggedIn) {
 			base.push({ label: 'My List', link: '/my-list', Icon: Heart });
 		}
 
@@ -44,7 +43,7 @@
 	});
 
 	let sheetLinks = $derived.by(() => {
-		if (!isLoggedIn) {
+		if (!appState.isLoggedIn) {
 			return links;
 		}
 
@@ -174,11 +173,11 @@
 					</kbd>
 				</Button>
 
-				{#if !isLoggedIn}
+				{#if !appState.isLoggedIn}
 					<Button href="/login" variant="outline" class="hidden lg:inline-flex">Sign In</Button>
 					<Button href="/register" class="hidden lg:inline-flex">Register</Button>
 				{:else}
-					<UserProfileDropdown user={user!} class="hidden lg:flex" />
+					<UserProfileDropdown class="hidden lg:flex" />
 				{/if}
 			</div>
 		</div>
@@ -191,14 +190,14 @@
 			<Sheet.Title>Menu</Sheet.Title>
 		</Sheet.Header>
 
-		{#if isLoggedIn}
+		{#if appState.isLoggedIn}
 			<div class="px-4 pb-4">
 				<div class="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-					<UserProfileDropdown user={user!} class="hidden" />
+					<UserProfileDropdown class="hidden" />
 					<ProfilePicture />
 					<div class="flex flex-col">
-						<p class="text-sm font-medium">{user?.username}</p>
-						<p class="text-xs text-muted-foreground">{user?.email}</p>
+						<p class="text-sm font-medium">{appState.user?.username}</p>
+						<p class="text-xs text-muted-foreground">{appState.user?.email}</p>
 					</div>
 				</div>
 			</div>
@@ -231,7 +230,7 @@
 				<Search class="h-4 w-4" />
 				<span>Search anime...</span>
 			</Button>
-			{#if !isLoggedIn}
+			{#if !appState.isLoggedIn}
 				<Button href="/login" variant="outline" class="w-full">Sign In</Button>
 				<Button href="/register" class="w-full">Register</Button>
 			{:else}

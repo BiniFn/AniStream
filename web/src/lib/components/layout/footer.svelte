@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { appState } from '$lib/context/state.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 	import BrandText from './brand-text.svelte';
 	import { Heart } from 'lucide-svelte';
 
-	let isLoggedIn = $derived(appState.user != null);
+	const appState = getAppStateContext();
 </script>
 
 <footer class="border-t border-border bg-background">
@@ -36,7 +36,7 @@
 							Genres
 						</a>
 					</li>
-					{#if isLoggedIn}
+					{#if appState.isLoggedIn}
 						<li>
 							<a href="/my-list" class="text-muted-foreground transition-colors hover:text-primary">
 								My List
@@ -49,7 +49,7 @@
 			<div>
 				<h4 class="mb-4 text-sm font-semibold tracking-wide text-foreground uppercase">Account</h4>
 				<ul class="space-y-3 text-sm">
-					{#if isLoggedIn}
+					{#if appState.isLoggedIn}
 						<li>
 							<a href="/profile" class="text-muted-foreground transition-colors hover:text-primary">
 								Profile
