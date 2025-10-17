@@ -30,7 +30,10 @@
 
 <div class="space-y-6">
 	<div class="space-y-2">
-		<h2 class="text-2xl font-bold">Themes</h2>
+		<h2 class="flex items-center text-2xl font-bold">
+			Themes
+			<Badge variant="secondary" class="ml-2">Beta</Badge>
+		</h2>
 		<p class="text-muted-foreground">
 			Choose a theme that matches your style. Each theme comes with its own color palette and
 			typography.
@@ -63,9 +66,14 @@
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<!-- Theme Preview -->
-					<div class={cn('dark rounded-lg border overflow-hidden bg-background', theme.className || 'default')}>
+					<div
+						class={cn(
+							'dark overflow-hidden rounded-lg border bg-background',
+							theme.className || 'default',
+						)}
+					>
 						<!-- Mini App Interface -->
-						<div class="p-3 space-y-3">
+						<div class="space-y-3 p-3">
 							<!-- Header -->
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
@@ -87,7 +95,7 @@
 										<div class="flex-1 space-y-1">
 											<div class="h-2.5 w-4/5 rounded bg-foreground"></div>
 											<div class="h-2 w-3/5 rounded bg-muted-foreground"></div>
-											<div class="flex gap-1 mt-1">
+											<div class="mt-1 flex gap-1">
 												<div class="h-2 w-8 rounded-full bg-primary"></div>
 												<div class="h-2 w-8 rounded-full bg-secondary"></div>
 											</div>
@@ -102,7 +110,7 @@
 										<div class="flex-1 space-y-1">
 											<div class="h-2.5 w-3/4 rounded bg-foreground"></div>
 											<div class="h-2 w-2/3 rounded bg-muted-foreground"></div>
-											<div class="flex gap-1 mt-1">
+											<div class="mt-1 flex gap-1">
 												<div class="h-2 w-8 rounded-full bg-accent"></div>
 												<div class="h-2 w-8 rounded-full bg-muted"></div>
 											</div>
@@ -113,10 +121,10 @@
 
 							<!-- Action Buttons -->
 							<div class="flex gap-2">
-								<div class="h-6 w-14 rounded bg-primary flex items-center justify-center">
+								<div class="flex h-6 w-14 items-center justify-center rounded bg-primary">
 									<div class="h-1.5 w-8 rounded bg-primary-foreground"></div>
 								</div>
-								<div class="h-6 w-14 rounded border border-border flex items-center justify-center">
+								<div class="flex h-6 w-14 items-center justify-center rounded border border-border">
 									<div class="h-1.5 w-8 rounded bg-foreground"></div>
 								</div>
 							</div>
