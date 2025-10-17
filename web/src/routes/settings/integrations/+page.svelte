@@ -119,14 +119,12 @@
 			<Card.Description>Import your anime library from external services</Card.Description>
 		</Card.Header>
 		<Card.Content class="space-y-4">
-			<div
-				class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950"
-			>
+			<div class="rounded-lg border border-amber-800 bg-amber-950 p-4">
 				<div class="flex items-start gap-3">
-					<TriangleAlert class="mt-0.5 h-5 w-5 text-amber-600 dark:text-amber-400" />
+					<TriangleAlert class="mt-0.5 h-5 w-5 text-amber-400" />
 					<div class="space-y-2">
-						<h4 class="font-medium text-amber-800 dark:text-amber-200">Important Notes</h4>
-						<ul class="list-disc space-y-1 text-sm text-amber-700 dark:text-amber-300">
+						<h4 class="font-medium text-amber-200">Important Notes</h4>
+						<ul class="list-disc space-y-1 text-sm text-amber-300">
 							<li>Importing will add anime to your library but won't remove existing entries</li>
 							<li>AniList tokens expire yearly and require re-authentication</li>
 							<li>Make sure you're connected to the provider before importing</li>
@@ -187,14 +185,12 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="space-y-4">
-			<div
-				class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950"
-			>
+			<div class="rounded-lg border border-blue-800 bg-blue-950 p-4">
 				<div class="flex items-start gap-3">
-					<TriangleAlert class="mt-0.5 h-5 w-5 text-blue-600 dark:text-blue-400" />
+					<TriangleAlert class="mt-0.5 h-5 w-5 text-blue-400" />
 					<div class="space-y-2">
-						<h4 class="font-medium text-blue-800 dark:text-blue-200">Before Importing</h4>
-						<ul class="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+						<h4 class="font-medium text-blue-200">Before Importing</h4>
+						<ul class="space-y-1 text-sm text-blue-300">
 							<li>
 								• Make sure you're connected to {selectedProvider === 'myanimelist'
 									? 'MyAnimeList'

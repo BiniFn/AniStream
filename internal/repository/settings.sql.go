@@ -11,37 +11,96 @@ import (
 
 const getSettingsOfUser = `-- name: GetSettingsOfUser :one
 SELECT
-  user_id, auto_next_episode, auto_play_episode, auto_resume_episode, incognito_mode
+  settings.user_id, settings.auto_next_episode, settings.auto_play_episode, settings.auto_resume_episode, settings.incognito_mode, settings.theme_id,
+  themes.id, themes.name, themes.theme_class, themes.description, themes.created_at, themes.updated_at
 FROM
   settings
+  INNER JOIN themes ON settings.theme_id = themes.id
 WHERE
-  user_id = $1
+  settings.user_id = $1
 `
 
-func (q *Queries) GetSettingsOfUser(ctx context.Context, userID string) (Setting, error) {
+type GetSettingsOfUserRow struct {
+	Setting Setting
+	Theme   Theme
+}
+
+func (q *Queries) GetSettingsOfUser(ctx context.Context, userID string) (GetSettingsOfUserRow, error) {
 	row := q.db.QueryRow(ctx, getSettingsOfUser, userID)
-	var i Setting
+	var i GetSettingsOfUserRow
 	err := row.Scan(
-		&i.UserID,
-		&i.AutoNextEpisode,
-		&i.AutoPlayEpisode,
-		&i.AutoResumeEpisode,
-		&i.IncognitoMode,
+		&i.Setting.UserID,
+		&i.Setting.AutoNextEpisode,
+		&i.Setting.AutoPlayEpisode,
+		&i.Setting.AutoResumeEpisode,
+		&i.Setting.IncognitoMode,
+		&i.Setting.ThemeID,
+		&i.Theme.ID,
+		&i.Theme.Name,
+		&i.Theme.ThemeClass,
+		&i.Theme.Description,
+		&i.Theme.CreatedAt,
+		&i.Theme.UpdatedAt,
 	)
 	return i, err
 }
 
+const listThemes = `-- name: ListThemes :many
+SELECT
+  id, name, theme_class, description, created_at, updated_at
+FROM
+  themes
+ORDER BY
+  id ASC
+`
+
+func (q *Queries) ListThemes(ctx context.Context) ([]Theme, error) {
+	rows, err := q.db.Query(ctx, listThemes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Theme
+	for rows.Next() {
+		var i Theme
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ThemeClass,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const saveSettings = `-- name: SaveSettings :one
-INSERT INTO settings(user_id, auto_next_episode, auto_play_episode, auto_resume_episode, incognito_mode)
-  VALUES ($1, $2, $3, $4, $5)
-ON CONFLICT (user_id)
-  DO UPDATE SET
-    auto_next_episode = EXCLUDED.auto_next_episode,
-    auto_play_episode = EXCLUDED.auto_play_episode,
-    auto_resume_episode = EXCLUDED.auto_resume_episode,
-    incognito_mode = EXCLUDED.incognito_mode
-  RETURNING
-    user_id, auto_next_episode, auto_play_episode, auto_resume_episode, incognito_mode
+WITH upserted AS (
+INSERT INTO settings(user_id, auto_next_episode, auto_play_episode, auto_resume_episode, incognito_mode, theme_id)
+    VALUES ($1, $2, $3, $4, $5, $6)
+  ON CONFLICT (user_id)
+    DO UPDATE SET
+      auto_next_episode = EXCLUDED.auto_next_episode,
+      auto_play_episode = EXCLUDED.auto_play_episode,
+      auto_resume_episode = EXCLUDED.auto_resume_episode,
+      incognito_mode = EXCLUDED.incognito_mode,
+      theme_id = EXCLUDED.theme_id
+    RETURNING
+      user_id, auto_next_episode, auto_play_episode, auto_resume_episode, incognito_mode, theme_id
+)
+  SELECT
+    upserted.user_id, upserted.auto_next_episode, upserted.auto_play_episode, upserted.auto_resume_episode, upserted.incognito_mode, upserted.theme_id,
+    themes.id, themes.name, themes.theme_class, themes.description, themes.created_at, themes.updated_at
+  FROM
+    upserted
+  LEFT JOIN themes ON themes.id = upserted.theme_id
 `
 
 type SaveSettingsParams struct {
@@ -50,23 +109,42 @@ type SaveSettingsParams struct {
 	AutoPlayEpisode   bool
 	AutoResumeEpisode bool
 	IncognitoMode     bool
+	ThemeID           int32
 }
 
-func (q *Queries) SaveSettings(ctx context.Context, arg SaveSettingsParams) (Setting, error) {
+type SaveSettingsRow struct {
+	UserID            string
+	AutoNextEpisode   bool
+	AutoPlayEpisode   bool
+	AutoResumeEpisode bool
+	IncognitoMode     bool
+	ThemeID           int32
+	Theme             Theme
+}
+
+func (q *Queries) SaveSettings(ctx context.Context, arg SaveSettingsParams) (SaveSettingsRow, error) {
 	row := q.db.QueryRow(ctx, saveSettings,
 		arg.UserID,
 		arg.AutoNextEpisode,
 		arg.AutoPlayEpisode,
 		arg.AutoResumeEpisode,
 		arg.IncognitoMode,
+		arg.ThemeID,
 	)
-	var i Setting
+	var i SaveSettingsRow
 	err := row.Scan(
 		&i.UserID,
 		&i.AutoNextEpisode,
 		&i.AutoPlayEpisode,
 		&i.AutoResumeEpisode,
 		&i.IncognitoMode,
+		&i.ThemeID,
+		&i.Theme.ID,
+		&i.Theme.Name,
+		&i.Theme.ThemeClass,
+		&i.Theme.Description,
+		&i.Theme.CreatedAt,
+		&i.Theme.UpdatedAt,
 	)
 	return i, err
 }

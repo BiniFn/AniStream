@@ -470,6 +470,16 @@ type Setting struct {
 	AutoPlayEpisode   bool
 	AutoResumeEpisode bool
 	IncognitoMode     bool
+	ThemeID           int32
+}
+
+type Theme struct {
+	ID          int32
+	Name        string
+	ThemeClass  string
+	Description pgtype.Text
+	CreatedAt   pgtype.Timestamp
+	UpdatedAt   pgtype.Timestamp
 }
 
 type User struct {

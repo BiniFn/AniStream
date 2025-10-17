@@ -4,6 +4,8 @@
 	import Sonner from '$lib/components/ui/sonner/sonner.svelte';
 	import { setLayoutStateContext } from '$lib/context/layout.svelte';
 	import { setAppStateContext } from '$lib/context/state.svelte';
+	import { getFontUrlsForTheme } from '$lib/themes';
+	import { cn } from '$lib/utils';
 	import '../app.css';
 	import type { LayoutProps } from './$types';
 
@@ -11,11 +13,24 @@
 	const appState = setAppStateContext(data.user, data.settings);
 	const layoutState = setLayoutStateContext();
 
+	let theme = $derived(appState.settings?.theme);
+
+	$effect(() => {
+		if (!theme) return;
+		document.documentElement.className = cn('dark', theme.className);
+	});
+
 	$effect(() => {
 		appState.setUser(data.user);
 		appState.setSettings(data.settings);
 	});
 </script>
+
+<svelte:head>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link rel="stylesheet" href={getFontUrlsForTheme(theme?.className ?? '')} />
+</svelte:head>
 
 <div class="sticky top-0 z-50" {@attach layoutState.setHeight('navbar')}>
 	<NavBar />

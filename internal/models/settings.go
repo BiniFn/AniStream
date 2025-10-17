@@ -5,6 +5,14 @@ type SettingsRequest struct {
 	AutoPlayEpisode   bool `json:"autoPlayEpisode" example:"false"`
 	AutoResumeEpisode bool `json:"autoResumeEpisode" example:"true"`
 	IncognitoMode     bool `json:"incognitoMode" example:"false"`
+	ThemeId           int  `json:"themeId" example:"1"`
+}
+
+type Theme struct {
+	ID          int    `json:"id" validate:"required" example:"1"`
+	Name        string `json:"name" validate:"required" example:"Default"`
+	Description string `json:"description" validate:"required" example:"The default Aniways theme."`
+	ClassName   string `json:"className" validate:"required" example:"theme-default"`
 }
 
 type SettingsResponse struct {
@@ -13,4 +21,5 @@ type SettingsResponse struct {
 	AutoPlayEpisode   bool   `json:"autoPlayEpisode" validate:"required" example:"false"`
 	AutoResumeEpisode bool   `json:"autoResumeEpisode" validate:"required" example:"true"`
 	IncognitoMode     bool   `json:"incognitoMode" validate:"required" example:"false"`
+	Theme             Theme  `json:"theme" validate:"required"`
 }

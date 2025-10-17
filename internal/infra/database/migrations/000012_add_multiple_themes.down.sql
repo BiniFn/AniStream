@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS themes;
+
+ALTER TABLE settings
+  DROP COLUMN IF EXISTS theme_id;
+

@@ -114,7 +114,7 @@
 	{#if person.about}
 		<section class="mb-8">
 			<h2 class="mb-4 text-2xl font-bold">About</h2>
-			<div class="prose prose-sm dark:prose-invert max-w-none">
+			<div class="max-w-none">
 				<div class="leading-relaxed text-muted-foreground">
 					{#each person.about.split(/\n+/).filter((line) => line.trim() !== '') as line, i (i)}
 						{line}<br />

@@ -14,6 +14,8 @@ func (h *Handler) SettingsRoutes() {
 		r.Get("/", h.getSettings)
 		r.Post("/", h.saveSettings)
 	})
+
+	h.r.Get("/themes", h.getThemes)
 }
 
 // @Summary Get user settings
@@ -67,6 +69,7 @@ func (h *Handler) saveSettings(w http.ResponseWriter, r *http.Request) {
 		AutoPlayEpisode:   req.AutoPlayEpisode,
 		AutoResumeEpisode: req.AutoResumeEpisode,
 		IncognitoMode:     req.IncognitoMode,
+		ThemeID:           req.ThemeId,
 	})
 	if err != nil {
 		log.Error("failed to save settings", "err", err)
@@ -75,4 +78,25 @@ func (h *Handler) saveSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.jsonOK(w, settings)
+}
+
+// @Summary Get available themes
+// @Description Get available themes
+// @Tags Settings
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Theme
+// @Failure 500 {object} models.ErrorResponse
+// @Router /themes [get]
+func (h *Handler) getThemes(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	themes, err := h.services.Settings.GetAvailableThemes(r.Context())
+	if err != nil {
+		log.Error("failed to get themes", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to get themes")
+		return
+	}
+
+	h.jsonOK(w, themes)
 }

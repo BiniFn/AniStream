@@ -32,11 +32,12 @@ func (s *SettingsService) GetSettings(ctx context.Context, userID string) (model
 			AutoPlayEpisode:   true,
 			AutoResumeEpisode: false,
 			IncognitoMode:     false,
+			ThemeID:           1,
 		})
 		if err != nil {
 			return models.SettingsResponse{}, err
 		}
-		return mappers.SettingsFromRepository(setting), nil
+		return mappers.SettingsFromSaveRepository(setting), nil
 	default:
 		return models.SettingsResponse{}, err
 	}
@@ -48,6 +49,7 @@ type SaveSettingsParams struct {
 	AutoPlayEpisode   bool
 	AutoResumeEpisode bool
 	IncognitoMode     bool
+	ThemeID           int
 }
 
 func (s *SettingsService) SaveSettings(ctx context.Context, params SaveSettingsParams) (models.SettingsResponse, error) {
@@ -57,11 +59,26 @@ func (s *SettingsService) SaveSettings(ctx context.Context, params SaveSettingsP
 		AutoPlayEpisode:   params.AutoPlayEpisode,
 		AutoResumeEpisode: params.AutoResumeEpisode,
 		IncognitoMode:     params.IncognitoMode,
+		ThemeID:           int32(params.ThemeID),
 	})
 
 	if err != nil {
 		return models.SettingsResponse{}, err
 	}
 
-	return mappers.SettingsFromRepository(settings), nil
+	return mappers.SettingsFromSaveRepository(settings), nil
+}
+
+func (s *SettingsService) GetAvailableThemes(ctx context.Context) ([]models.Theme, error) {
+	themesRows, err := s.repo.ListThemes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	themes := make([]models.Theme, 0, len(themesRows))
+	for _, themeRow := range themesRows {
+		themes = append(themes, mappers.ThemesFromRepository(themeRow))
+	}
+
+	return themes, nil
 }

@@ -13,6 +13,7 @@
 		ChevronLeft,
 		ChevronRight,
 		CircleAlert,
+		Film,
 		Info,
 		LoaderCircle,
 		Play,
@@ -24,6 +25,7 @@
 	import { toast } from 'svelte-sonner';
 	import type { PageProps } from './$types';
 	import { getAppStateContext } from '$lib/context/state.svelte';
+	import { flip } from 'svelte/animate';
 
 	type StreamingData = components['schemas']['models.StreamingDataResponse'];
 	type EpisodeServer = components['schemas']['models.EpisodeServerResponse'];
@@ -354,59 +356,62 @@
 						</span>
 					{/if}
 				</div>
-			</div>
-		</div>
-	</div>
 
-	<div class="border-t bg-card p-4">
-		<div class="mb-3 flex items-center justify-between">
-			<h3 class="font-semibold">Episodes</h3>
-			<span class="text-sm text-muted-foreground">
-				{data.episodes.length} Total
-			</span>
-		</div>
-		<Input
-			type="text"
-			placeholder="Search episodes..."
-			bind:value={episodesSearch}
-			class="mb-3 h-9"
-		/>
-		<div class="max-h-96 overflow-y-auto rounded-lg border">
-			<div class="space-y-1 p-2">
-				{#each filteredEpisodes as episode (episode.id)}
-					{@const isActive = episode.number === data.episodeNumber}
-					<button
-						onclick={() => changeEpisode(episode.number)}
-						class={cn(
-							'group flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-colors',
-							isActive
-								? 'bg-primary text-primary-foreground'
-								: 'hover:bg-accent hover:text-accent-foreground',
-						)}
-					>
-						<div
-							class={cn(
-								'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded text-xs font-bold',
-								isActive ? 'bg-primary-foreground/20' : 'bg-muted',
-							)}
-						>
-							{episode.number}
+				<div class="mt-8 mb-3 flex items-center justify-between">
+					<h3 class="font-semibold">Episodes</h3>
+					<span class="text-sm text-muted-foreground">
+						{data.episodes.length} Total
+					</span>
+				</div>
+				<Input
+					type="text"
+					placeholder="Search episodes..."
+					bind:value={episodesSearch}
+					class="mb-6 h-9"
+				/>
+				<div class="max-h-96 space-y-3 overflow-y-auto rounded-lg border bg-muted p-4">
+					{#if filteredEpisodes.length === 0}
+						<div class="rounded-lg border bg-muted/30 p-8 text-center">
+							<Film class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+							<p class="text-sm text-muted-foreground">No episodes match your search...</p>
 						</div>
-						<div class="min-w-0 flex-1">
-							<p class="line-clamp-1 text-sm">
-								{episode.title || `Episode ${episode.number}`}
-							</p>
+					{/if}
+					{#each filteredEpisodes as episode (episode.id)}
+						{@const isActive = episode.number === data.episodeNumber}
+						<div class="group w-full" animate:flip={{ duration: 500 }}>
+							<Button
+								onclick={() => changeEpisode(episode.number)}
+								variant={isActive ? 'default' : 'outline'}
+								class="h-fit w-full"
+							>
+								<div
+									class={cn(
+										'flex aspect-square w-10 flex-shrink-0 items-center justify-center rounded text-xs font-bold',
+										'bg-accent text-accent-foreground',
+									)}
+								>
+									{episode.number}
+								</div>
+								<div class="min-w-0 flex-1 text-left">
+									<p class="line-clamp-1 text-sm">
+										{episode.title || `Episode ${episode.number}`}
+									</p>
+								</div>
+								<div class="flex items-center gap-2">
+									{#if episode.isFiller}
+										<Badge variant="secondary" class="text-xs">Filler</Badge>
+									{/if}
+									<Play
+										class={cn(
+											'h-3 w-3 flex-shrink-0',
+											isActive || 'opacity-0 group-hover:opacity-100',
+										)}
+									/>
+								</div>
+							</Button>
 						</div>
-						<div class="flex items-center gap-2">
-							{#if episode.isFiller}
-								<Badge variant="secondary" class="text-xs">Filler</Badge>
-							{/if}
-							{#if isActive}
-								<Play class="h-3 w-3 flex-shrink-0" />
-							{/if}
-						</div>
-					</button>
-				{/each}
+					{/each}
+				</div>
 			</div>
 		</div>
 	</div>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { cn } from '$lib/utils';
-	import { Settings, TriangleAlert, User, Users } from 'lucide-svelte';
+	import { Palette, Settings, TriangleAlert, User, Users } from 'lucide-svelte';
 	import type { LayoutProps } from './$types';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { goto } from '$app/navigation';
@@ -11,6 +11,7 @@
 
 	const tabs = [
 		{ id: 'preferences', label: 'Preferences', icon: Settings, href: '/settings' },
+		{ id: 'themes', label: 'Themes', icon: Palette, href: '/settings/themes' },
 		{ id: 'account', label: 'Account', icon: User, href: '/settings/account' },
 		{ id: 'integrations', label: 'Integrations', icon: Users, href: '/settings/integrations' },
 		{ id: 'danger', label: 'Danger Zone', icon: TriangleAlert, href: '/settings/danger' },

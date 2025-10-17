@@ -1625,6 +1625,27 @@ paths:
       summary: Save user settings
       tags:
         - Settings
+  /themes:
+    get:
+      description: Get available themes
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.Theme"
+                type: array
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get available themes
+      tags:
+        - Settings
   /users:
     delete:
       description: Delete user account
@@ -2629,6 +2650,9 @@ components:
         incognitoMode:
           example: false
           type: boolean
+        themeId:
+          example: 1
+          type: integer
       type: object
     models.SettingsResponse:
       properties:
@@ -2644,6 +2668,8 @@ components:
         incognitoMode:
           example: false
           type: boolean
+        theme:
+          $ref: "#/components/schemas/models.Theme"
         userId:
           example: V1StGXR8Z5jdHi6B
           type: string
@@ -2652,6 +2678,7 @@ components:
         - autoPlayEpisode
         - autoResumeEpisode
         - incognitoMode
+        - theme
         - userId
       type: object
     models.StreamingDataResponse:
@@ -2685,6 +2712,26 @@ components:
           type: string
       required:
         - iframe
+      type: object
+    models.Theme:
+      properties:
+        className:
+          example: theme-default
+          type: string
+        description:
+          example: The default Aniways theme.
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: Default
+          type: string
+      required:
+        - className
+        - description
+        - id
+        - name
       type: object
     models.TrackResponse:
       properties:

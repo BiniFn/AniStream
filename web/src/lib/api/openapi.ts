@@ -2688,6 +2688,54 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/themes': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get available themes
+		 * @description Get available themes
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.Theme'][];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/users': {
 		parameters: {
 			query?: never;
@@ -3416,6 +3464,8 @@ export interface components {
 			autoResumeEpisode?: boolean;
 			/** @example false */
 			incognitoMode?: boolean;
+			/** @example 1 */
+			themeId?: number;
 		};
 		'models.SettingsResponse': {
 			/** @example true */
@@ -3426,6 +3476,7 @@ export interface components {
 			autoResumeEpisode: boolean;
 			/** @example false */
 			incognitoMode: boolean;
+			theme: components['schemas']['models.Theme'];
 			/** @example V1StGXR8Z5jdHi6B */
 			userId: string;
 		};
@@ -3442,6 +3493,16 @@ export interface components {
 			iframe: string;
 			/** @example /proxy?p=encodedurl&s=hd */
 			proxyHls?: string;
+		};
+		'models.Theme': {
+			/** @example theme-default */
+			className: string;
+			/** @example The default Aniways theme. */
+			description: string;
+			/** @example 1 */
+			id: number;
+			/** @example Default */
+			name: string;
 		};
 		'models.TrackResponse': {
 			/** @example true */

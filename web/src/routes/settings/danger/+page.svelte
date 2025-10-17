@@ -92,21 +92,21 @@
 	}
 </script>
 
-<Card.Root class="border-red-200 dark:border-red-800">
+<Card.Root class="border-red-800">
 	<Card.Header>
-		<Card.Title class="flex items-center gap-2 text-red-600 dark:text-red-400">
+		<Card.Title class="flex items-center gap-2 text-red-400">
 			<TriangleAlert class="h-5 w-5" />
 			Danger Zone
 		</Card.Title>
 		<Card.Description>Irreversible and destructive actions</Card.Description>
 	</Card.Header>
 	<Card.Content class="space-y-4">
-		<div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+		<div class="rounded-lg border border-red-800 bg-red-950 p-4">
 			<div class="flex items-start gap-3">
-				<Database class="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
+				<Database class="mt-0.5 h-5 w-5 text-red-400" />
 				<div class="space-y-2">
-					<h4 class="font-medium text-red-800 dark:text-red-200">Clear Library</h4>
-					<p class="text-sm text-red-700 dark:text-red-300">
+					<h4 class="font-medium text-red-200">Clear Library</h4>
+					<p class="text-sm text-red-300">
 						Remove all anime from your library. This action cannot be undone.
 					</p>
 					<Button variant="destructive" size="sm" onclick={() => (showClearDialog = true)}>
@@ -117,12 +117,12 @@
 			</div>
 		</div>
 
-		<div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+		<div class="rounded-lg border border-red-800 bg-red-950 p-4">
 			<div class="flex items-start gap-3">
-				<Trash2 class="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
+				<Trash2 class="mt-0.5 h-5 w-5 text-red-400" />
 				<div class="space-y-2">
-					<h4 class="font-medium text-red-800 dark:text-red-200">Delete Account</h4>
-					<p class="text-sm text-red-700 dark:text-red-300">
+					<h4 class="font-medium text-red-200">Delete Account</h4>
+					<p class="text-sm text-red-300">
 						Permanently delete your account and all associated data. This action cannot be undone.
 					</p>
 					<Button variant="destructive" size="sm" onclick={() => (showDeleteDialog = true)}>
@@ -138,20 +138,18 @@
 <Dialog.Root bind:open={showDeleteDialog}>
 	<Dialog.Content>
 		<Dialog.Header>
-			<Dialog.Title class="text-red-600 dark:text-red-400">Delete Account</Dialog.Title>
+			<Dialog.Title class="text-red-400">Delete Account</Dialog.Title>
 			<Dialog.Description>
 				This action cannot be undone. All your data will be permanently deleted.
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="space-y-4">
-			<div
-				class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950"
-			>
+			<div class="rounded-lg border border-red-800 bg-red-950 p-4">
 				<div class="flex items-start gap-3">
-					<TriangleAlert class="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
+					<TriangleAlert class="mt-0.5 h-5 w-5 text-red-400" />
 					<div class="space-y-2">
-						<h4 class="font-medium text-red-800 dark:text-red-200">What will be deleted:</h4>
-						<ul class="space-y-1 text-sm text-red-700 dark:text-red-300">
+						<h4 class="font-medium text-red-200">What will be deleted:</h4>
+						<ul class="space-y-1 text-sm text-red-300">
 							<li>• Your profile and account information</li>
 							<li>• Your entire anime library and watch history</li>
 							<li>• All your settings and preferences</li>
@@ -243,20 +241,18 @@
 <Dialog.Root bind:open={showClearDialog}>
 	<Dialog.Content>
 		<Dialog.Header>
-			<Dialog.Title class="text-red-600 dark:text-red-400">Clear Library</Dialog.Title>
+			<Dialog.Title class="text-red-400">Clear Library</Dialog.Title>
 			<Dialog.Description>
 				This action cannot be undone. All anime in your library will be permanently removed.
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="space-y-4">
-			<div
-				class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950"
-			>
+			<div class="rounded-lg border border-red-800 bg-red-950 p-4">
 				<div class="flex items-start gap-3">
-					<TriangleAlert class="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
+					<TriangleAlert class="mt-0.5 h-5 w-5 text-red-400" />
 					<div class="space-y-2">
-						<h4 class="font-medium text-red-800 dark:text-red-200">What will be removed:</h4>
-						<ul class="space-y-1 text-sm text-red-700 dark:text-red-300">
+						<h4 class="font-medium text-red-200">What will be removed:</h4>
+						<ul class="space-y-1 text-sm text-red-300">
 							<li>• All anime in your library (watching, completed, dropped, etc.)</li>
 							<li>• Watch progress and episode counts</li>
 							<li>• Personal ratings and notes</li>

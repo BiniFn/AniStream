@@ -28,17 +28,23 @@ export class AppState {
 		this.importJobId = importJobId ?? this.getDefaultImportJobId();
 
 		$effect(() => {
-			localStorage.setItem('settings', JSON.stringify(this.settings));
-
-			if (!this.isLoggedIn) return;
-
 			const newSettings = JSON.stringify(this.settings);
 			if (this.oldSettings === newSettings) return;
 			this.oldSettings = newSettings;
 
-			apiClient.POST('/settings', {
-				body: { ...this.settings },
-			});
+			if (this.isLoggedIn) {
+				apiClient.POST('/settings', {
+					body: {
+						autoNextEpisode: this.settings!.autoNextEpisode,
+						autoPlayEpisode: this.settings!.autoPlayEpisode,
+						incognitoMode: this.settings!.incognitoMode,
+						autoResumeEpisode: this.settings!.autoResumeEpisode,
+						themeId: this.settings!.theme.id,
+					},
+				});
+			} else {
+				localStorage.setItem('settings', JSON.stringify(this.settings));
+			}
 		});
 
 		$effect(() => {
@@ -78,15 +84,22 @@ export class AppState {
 
 			if (response.data) {
 				const status = response.data.status;
+				let isDone = false;
 
 				if (status === 'completed') {
-					clearInterval(this.importJobPollingTimeout!);
-					this.importJobPollingTimeout = null;
+					isDone = true;
 					toast.success('Library import completed successfully!');
-				} else if (status === 'failed') {
+				}
+
+				if (status === 'failed') {
+					isDone = true;
+					toast.error('Library import failed. Please try again.');
+				}
+
+				if (isDone) {
 					clearInterval(this.importJobPollingTimeout!);
 					this.importJobPollingTimeout = null;
-					toast.error('Library import failed. Please try again.');
+					this.importJobId = null;
 				}
 			}
 		} catch (error) {
@@ -95,9 +108,12 @@ export class AppState {
 	}
 
 	getDefaultSettings(): Settings {
-		if (typeof localStorage !== 'undefined' && localStorage.getItem('settings')) {
-			const s = JSON.parse(localStorage.getItem('settings')!);
-			return s;
+		if (
+			!this.isLoggedIn &&
+			typeof localStorage !== 'undefined' &&
+			localStorage.getItem('settings')
+		) {
+			return JSON.parse(localStorage.getItem('settings')!);
 		}
 
 		return {
@@ -105,21 +121,25 @@ export class AppState {
 			autoPlayEpisode: true,
 			incognitoMode: false,
 			autoResumeEpisode: true,
+			theme: {
+				id: 1,
+				name: 'Default',
+				description: 'The default Aniways theme',
+				className: '',
+			},
 		};
 	}
 
 	getDefaultImportJobId(): string | null {
 		if (typeof localStorage === 'undefined') return null;
-		return localStorage ? localStorage.getItem('importJobId') : null;
-	}
-
-	logout() {
-		this.user = null;
-		this.settings = this.getDefaultSettings();
+		return localStorage.getItem('importJobId');
 	}
 
 	setUser(u: User | null) {
 		this.user = u;
+		if (this.isLoggedIn) {
+			localStorage.removeItem('settings');
+		}
 	}
 
 	setSettings(s: Settings | null) {
@@ -130,10 +150,15 @@ export class AppState {
 		this.settings = s;
 	}
 
-	toggleSetting<K extends keyof Settings>(key: K) {
+	toggleSetting<K extends keyof Omit<Settings, 'theme'>>(key: K) {
 		if (!this.settings) return;
 		this.settings[key] = !this.settings[key];
 		return this.settings[key];
+	}
+
+	updateTheme(theme: Settings['theme']) {
+		if (!this.settings) return;
+		this.settings.theme = theme;
 	}
 
 	setImportJobId(id: string | null) {

@@ -11,7 +11,6 @@
 	import {
 		Dice6,
 		Heart,
-		House,
 		Library,
 		LogOut,
 		Menu,
@@ -29,7 +28,6 @@
 	const appState = getAppStateContext();
 	let links = $derived.by(() => {
 		const base = [
-			{ label: 'Home', link: '/', Icon: House },
 			{ label: 'Catalog', link: '/catalog', Icon: Library },
 			{ label: 'Genres', link: '/genres', Icon: Swords },
 			{ label: 'Random', link: '/random', Icon: Dice6 },

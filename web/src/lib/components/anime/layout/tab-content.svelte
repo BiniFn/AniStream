@@ -79,7 +79,7 @@
 		{#if anime.metadata?.description}
 			<section class="hidden space-y-4 md:block">
 				<h3 class="text-xl font-bold">Synopsis</h3>
-				<div class="prose prose-sm dark:prose-invert max-w-none">
+				<div class="max-w-none">
 					<p
 						class={cn(
 							'leading-relaxed text-muted-foreground',
@@ -189,16 +189,16 @@
 			{#if episodes.length > 0}
 				<div class="grid gap-3">
 					{#each filteredEpisodes as episode (episode.id)}
-						<a
-							href="/anime/{anime.id}/watch?ep={episode.number}"
-							class="group relative overflow-hidden rounded-lg border bg-card p-4 transition-all hover:border-primary/50 hover:bg-accent"
-							animate:flip={{ duration: 500 }}
-						>
-							<div class="flex items-center gap-4">
+						<div animate:flip={{ duration: 500 }} class="group">
+							<Button
+								href="/anime/{anime.id}/watch?ep={episode.number}"
+								class="flex h-fit items-center gap-4"
+								variant="outline"
+							>
 								<div
-									class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-muted"
+									class="flex aspect-square w-10 flex-shrink-0 items-center justify-center rounded-lg bg-accent"
 								>
-									<span class="text-sm font-bold">{episode.number}</span>
+									<span class="text-sm font-bold text-accent-foreground">{episode.number}</span>
 								</div>
 								<div class="min-w-0 flex-1">
 									<h4 class="line-clamp-1 font-semibold">
@@ -217,8 +217,8 @@
 								<Play
 									class="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
 								/>
-							</div>
-						</a>
+							</Button>
+						</div>
 					{/each}
 				</div>
 				{#if filteredEpisodes.length === 0}
