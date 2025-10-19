@@ -357,60 +357,65 @@
 					{/if}
 				</div>
 
-				<div class="mt-8 mb-3 flex items-center justify-between">
-					<h3 class="font-semibold">Episodes</h3>
-					<span class="text-sm text-muted-foreground">
-						{data.episodes.length} Total
-					</span>
-				</div>
-				<Input
-					type="text"
-					placeholder="Search episodes..."
-					bind:value={episodesSearch}
-					class="mb-6 h-9"
-				/>
-				<div class="max-h-96 space-y-3 overflow-y-auto rounded-lg border bg-muted p-4">
+				<div class="mt-8 space-y-3 rounded-lg border bg-card p-4">
+					<div class="flex items-center justify-between">
+						<h3 class="font-semibold">Episodes</h3>
+						<span class="text-sm text-muted-foreground">
+							{data.episodes.length} Total
+						</span>
+					</div>
+
+					<Input
+						type="text"
+						placeholder="Search episodes..."
+						bind:value={episodesSearch}
+						class="mb-6 h-9"
+					/>
+
 					{#if filteredEpisodes.length === 0}
 						<div class="rounded-lg border bg-muted/30 p-8 text-center">
 							<Film class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
 							<p class="text-sm text-muted-foreground">No episodes match your search...</p>
 						</div>
 					{/if}
-					{#each filteredEpisodes as episode (episode.id)}
-						{@const isActive = episode.number === data.episodeNumber}
-						<div class="group w-full" animate:flip={{ duration: 500 }}>
-							<Button
-								onclick={() => changeEpisode(episode.number)}
-								variant={isActive ? 'default' : 'outline'}
-								class="h-fit w-full"
-							>
-								<div
-									class={cn(
-										'flex aspect-square w-10 flex-shrink-0 items-center justify-center rounded text-xs font-bold',
-										'bg-accent text-accent-foreground',
-									)}
+
+					<div class="max-h-96 w-full space-y-3 overflow-y-auto">
+						{#each filteredEpisodes as episode (episode.id)}
+							{@const isActive = episode.number === data.episodeNumber}
+							<div class="group w-full" animate:flip={{ duration: 500 }}>
+								<Button
+									onclick={() => changeEpisode(episode.number)}
+									variant={isActive ? 'default' : 'outline'}
+									class="h-fit w-full"
 								>
-									{episode.number}
-								</div>
-								<div class="min-w-0 flex-1 text-left">
-									<p class="line-clamp-1 text-sm">
-										{episode.title || `Episode ${episode.number}`}
-									</p>
-								</div>
-								<div class="flex items-center gap-2">
-									{#if episode.isFiller}
-										<Badge variant="secondary" class="text-xs">Filler</Badge>
-									{/if}
-									<Play
+									<div
 										class={cn(
-											'h-3 w-3 flex-shrink-0',
-											isActive || 'opacity-0 group-hover:opacity-100',
+											'flex aspect-square w-10 flex-shrink-0 items-center justify-center rounded text-xs font-bold',
+											'bg-accent text-accent-foreground',
 										)}
-									/>
-								</div>
-							</Button>
-						</div>
-					{/each}
+									>
+										{episode.number}
+									</div>
+									<div class="min-w-0 flex-1 text-left">
+										<p class="line-clamp-1 text-sm">
+											{episode.title || `Episode ${episode.number}`}
+										</p>
+									</div>
+									<div class="flex items-center gap-2">
+										{#if episode.isFiller}
+											<Badge variant="secondary" class="text-xs">Filler</Badge>
+										{/if}
+										<Play
+											class={cn(
+												'h-3 w-3 flex-shrink-0',
+												isActive || 'opacity-0 group-hover:opacity-100',
+											)}
+										/>
+									</div>
+								</Button>
+							</div>
+						{/each}
+					</div>
 				</div>
 			</div>
 		</div>
