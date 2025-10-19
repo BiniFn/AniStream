@@ -357,7 +357,7 @@
 					{/if}
 				</div>
 
-				<div class="mt-8 space-y-3 rounded-lg border bg-card p-4">
+				<div class="space-y-3 rounded-lg border bg-card p-4">
 					<div class="flex items-center justify-between">
 						<h3 class="font-semibold">Episodes</h3>
 						<span class="text-sm text-muted-foreground">
