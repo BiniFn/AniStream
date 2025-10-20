@@ -397,6 +397,7 @@ func (s *HianimeScraper) GetStreamData(
 			Intro:  meta.Intro,
 			Outro:  meta.Outro,
 			Tracks: meta.Tracks,
+			Server: serverName,
 		}, nil
 	}
 

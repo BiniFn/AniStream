@@ -3,6 +3,7 @@ package mappers
 import (
 	"encoding/base64"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/coeeter/aniways/internal/infra/client/hianime"
@@ -154,13 +155,20 @@ func EpisodeServerFromScraper(server hianime.ScrapedEpisodeServerDto) models.Epi
 }
 
 func StreamingDataFromScraper(data hianime.ScrapedStreamData) models.StreamingDataResponse {
+	var server string
+	if strings.HasPrefix(data.Server, "hd") {
+		server = "hd"
+	} else if strings.ToLower(server) == "megaplay" {
+		server = "megaplay"
+	}
+
 	source := models.StreamingSourceResponse{
 		Iframe: data.Source.Iframe,
 	}
 	if data.Source.Hls != nil {
 		source.Hls = data.Source.Hls
 		p := base64.StdEncoding.EncodeToString([]byte(*data.Source.Hls))
-		proxy := fmt.Sprintf("/proxy?p=%s&s=hd", p)
+		proxy := fmt.Sprintf("/proxy?p=%s&s=%s", p, server)
 		source.ProxyHls = &proxy
 	}
 
@@ -168,10 +176,9 @@ func StreamingDataFromScraper(data hianime.ScrapedStreamData) models.StreamingDa
 	for i, track := range data.Tracks {
 		encoder := base64.StdEncoding
 		p := encoder.EncodeToString([]byte(track.File))
-		s := "hd"
 
 		tracks[i] = models.TrackResponse{
-			URL:     fmt.Sprintf("/proxy?p=%s&s=%s", p, s),
+			URL:     fmt.Sprintf("/proxy?p=%s&s=%s", p, server),
 			Raw:     track.File,
 			Kind:    track.Kind,
 			Label:   track.Label,
