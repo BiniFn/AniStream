@@ -10,15 +10,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Redis interface {
-	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
-	Get(ctx context.Context, key string) *redis.StringCmd
-	Del(ctx context.Context, key ...string) *redis.IntCmd
-	Pipeline() redis.Pipeliner
-}
-
 type RedisClient struct {
-	r      Redis
+	r      redis.Cmdable
 	appEnv string
 	log    *slog.Logger
 }
