@@ -66,11 +66,6 @@ func (h *Handler) RegisterRoutes() {
 
 func (h *Handler) RegisterOpenAPIRoutes() {
 	if h.deps.Env.AppEnv == "development" {
-		h.r.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "text/plain")
-			w.Write(docs.OpenAPISpec)
-		})
-
 		h.r.Handle("/swagger/*", http.StripPrefix("/swagger", swaggerui.Handler(docs.OpenAPISpec)))
 	}
 }
