@@ -382,7 +382,22 @@
 					<div class="max-h-96 w-full space-y-3 overflow-y-auto">
 						{#each filteredEpisodes as episode (episode.id)}
 							{@const isActive = episode.number === data.episodeNumber}
-							<div class="group w-full" animate:flip={{ duration: 500 }}>
+							<div
+								class="group w-full"
+								animate:flip={{ duration: 500 }}
+								{@attach (node: HTMLElement) => {
+									if (!isActive) return;
+									const container = node.parentElement;
+									if (!container) return;
+									container.scrollTo({
+										top:
+											node.offsetTop -
+											container.offsetTop -
+											container.clientHeight / 2 +
+											node.clientHeight / 2,
+									});
+								}}
+							>
 								<Button
 									onclick={() => changeEpisode(episode.number)}
 									variant={isActive ? 'default' : 'outline'}
