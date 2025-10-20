@@ -58,39 +58,32 @@
 		{:else if anime && anime.length > 0}
 			{#if viewMode === 'grid'}
 				<div
-					class="grid animate-in grid-cols-2 gap-3 duration-500 fade-in sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+					class="grid grid-cols-2 gap-3 duration-500 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
 				>
-					{#each anime as a, i (a.id)}
-						<div
-							class="animate-in duration-500 slide-in-from-bottom-5"
-							style="animation-delay: {i * 50}ms"
-						>
-							<AnimeCard
-								anime={a}
-								index={i}
-								libraryEntry={'library' in a && a.library
-									? {
-											id: a.library.id,
-											anime: a,
-											status: a.library.status,
-											animeId: a.id,
-											createdAt: '',
-											updatedAt: a.library.updatedAt,
-											userId: '',
-											watchedEpisodes: a.library.watchedEpisodes,
-										}
-									: undefined}
-							/>
-						</div>
+					{#each anime as a (a.id)}
+						<AnimeCard
+							anime={a}
+							libraryEntry={'library' in a && a.library
+								? {
+										id: a.library.id,
+										anime: a,
+										status: a.library.status,
+										animeId: a.id,
+										createdAt: '',
+										updatedAt: a.library.updatedAt,
+										userId: '',
+										watchedEpisodes: a.library.watchedEpisodes,
+									}
+								: undefined}
+						/>
 					{/each}
 				</div>
 			{:else}
-				<div class="animate-in space-y-4 duration-500 fade-in">
-					{#each anime as a, i (a.id)}
+				<div class="space-y-4">
+					{#each anime as a (a.id)}
 						<a
 							href="/anime/{a.id}"
-							class="flex animate-in gap-3 rounded-lg border bg-card p-3 transition-all duration-500 slide-in-from-left-5 hover:border-primary hover:shadow-lg sm:p-4"
-							style="animation-delay: {i * 50}ms"
+							class="flex gap-3 rounded-lg border bg-card p-3 transition hover:border-primary hover:shadow-lg sm:p-4"
 							onclick={(e) => {
 								if ((e.target as HTMLElement).closest('button')) {
 									e.preventDefault();
@@ -149,54 +142,3 @@
 		{/if}
 	</div>
 </main>
-
-<style>
-	@keyframes slide-in-from-bottom-5 {
-		from {
-			transform: translateY(20px);
-			opacity: 0;
-		}
-		to {
-			transform: translateY(0);
-			opacity: 1;
-		}
-	}
-
-	@keyframes slide-in-from-left-5 {
-		from {
-			transform: translateX(-20px);
-			opacity: 0;
-		}
-		to {
-			transform: translateX(0);
-			opacity: 1;
-		}
-	}
-
-	.animate-in {
-		animation-fill-mode: both;
-	}
-
-	.fade-in {
-		animation: fade-in 0.5s ease-out;
-	}
-
-	.slide-in-from-bottom-5 {
-		animation: slide-in-from-bottom-5 0.5s ease-out;
-		animation-fill-mode: both;
-	}
-
-	.slide-in-from-left-5 {
-		animation: slide-in-from-left-5 0.5s ease-out;
-		animation-fill-mode: both;
-	}
-
-	@keyframes fade-in {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-</style>

@@ -117,7 +117,7 @@
 				currentPage={filters.page}
 				{totalPages}
 			>
-				<div class="sticky z-10 mb-4 hidden lg:block" style="top: {layoutState.totalHeight}px">
+				<div class="sticky z-20 mb-4 hidden lg:block" style="top: {layoutState.totalHeight}px">
 					<div
 						class="border-b bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 					>

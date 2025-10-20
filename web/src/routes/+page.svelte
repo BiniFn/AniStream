@@ -153,7 +153,7 @@
 <div class="container mx-auto mt-[100vh] space-y-12 px-4">
 	<AnimeSection icon={TrendingUp} title="Trending Anime" visible={trending.length > 0}>
 		{#each trending.slice(1, 7) as anime, index (anime.id)}
-			<AnimeCard {anime} {index} class="w-40 flex-shrink-0 md:w-auto">
+			<AnimeCard {anime} class="w-40 flex-shrink-0 md:w-auto">
 				{#snippet topLeftBadge()}
 					<div
 						class="flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 text-xs font-semibold text-primary-foreground backdrop-blur-sm"
@@ -172,10 +172,9 @@
 		viewAllHref="/continue-watching"
 		visible={isLoggedIn && continueWatching.length > 0}
 	>
-		{#each continueWatching as item, index (item.id)}
+		{#each continueWatching as item (item.id)}
 			<AnimeCard
 				anime={item.anime}
-				{index}
 				episodeLink={item.watchedEpisodes + 1}
 				class="w-40 flex-shrink-0 md:w-auto"
 			/>
@@ -188,8 +187,8 @@
 		viewAllHref="/planning"
 		visible={isLoggedIn && planning.length > 0}
 	>
-		{#each planning as item, index (item.id)}
-			<AnimeCard anime={item.anime} {index} episodeLink={1} class="w-40 flex-shrink-0 md:w-auto" />
+		{#each planning as item (item.id)}
+			<AnimeCard anime={item.anime} episodeLink={1} class="w-40 flex-shrink-0 md:w-auto" />
 		{/each}
 	</AnimeSection>
 
@@ -343,13 +342,8 @@
 		viewAllHref="/catalog?sortBy=updated_at&sortOrder=desc"
 		visible={recentlyUpdated.length > 0}
 	>
-		{#each recentlyUpdated as anime, index (anime.id)}
-			<AnimeCard
-				{anime}
-				{index}
-				episodeLink={anime.lastEpisode || 1}
-				class="w-40 flex-shrink-0 md:w-auto"
-			>
+		{#each recentlyUpdated as anime (anime.id)}
+			<AnimeCard {anime} episodeLink={anime.lastEpisode || 1} class="w-40 flex-shrink-0 md:w-auto">
 				{#snippet topLeftBadge()}
 					<div
 						class="animate-pulse rounded-full bg-red-500/90 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"

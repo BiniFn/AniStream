@@ -33,8 +33,8 @@
 			<div
 				class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
 			>
-				{#each data.listings.items as item, i (item.id)}
-					<AnimeCard anime={item.anime} index={i} episodeLink={item.watchedEpisodes + 1} />
+				{#each data.listings.items as item (item.id)}
+					<AnimeCard anime={item.anime} episodeLink={item.watchedEpisodes + 1} />
 				{/each}
 			</div>
 

@@ -10,21 +10,13 @@
 
 	interface Props {
 		anime: AnimeResponse;
-		index?: number;
 		topLeftBadge?: Snippet;
 		libraryEntry?: LibraryResponse | null;
 		episodeLink?: number | null;
 		class?: string;
 	}
 
-	let {
-		anime,
-		index = 0,
-		topLeftBadge,
-		libraryEntry,
-		episodeLink = null,
-		class: className,
-	}: Props = $props();
+	let { anime, topLeftBadge, libraryEntry, episodeLink = null, class: className }: Props = $props();
 
 	let linkUrl = $derived(
 		episodeLink ? `/anime/${anime.id}/watch?ep=${episodeLink}` : `/anime/${anime.id}`,
@@ -37,7 +29,6 @@
 		'group block transform transition-all duration-500 hover:-translate-y-2 hover:scale-105',
 		className,
 	)}
-	style="animation-delay: {index * 100}ms"
 	onclick={(e) => {
 		if ((e.target as HTMLElement).closest('button')) {
 			e.preventDefault();
