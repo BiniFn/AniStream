@@ -11,7 +11,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 
 		if (person.error) {
 			console.error('Failed to fetch person:', person.error);
-			redirectToErrorPage('person_not_found_or_unavailable');
+			redirectToErrorPage('person_not_found_or_unavailable', `/va/${params.id}`);
 		}
 
 		return {
@@ -19,6 +19,6 @@ export const load: PageLoad = async ({ fetch, params }) => {
 		};
 	} catch (error) {
 		console.error('Error loading person:', error);
-		redirectToErrorPage('person_not_found_or_unavailable');
+		redirectToErrorPage('person_not_found_or_unavailable', `/va/${params.id}`);
 	}
 };

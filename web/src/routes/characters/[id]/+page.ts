@@ -11,7 +11,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 
 		if (character.error) {
 			console.error('Failed to fetch character:', character.error);
-			redirectToErrorPage('character_not_found_or_unavailable');
+			redirectToErrorPage('character_not_found_or_unavailable', `/characters/${params.id}`);
 		}
 
 		return {
@@ -19,6 +19,6 @@ export const load: PageLoad = async ({ fetch, params }) => {
 		};
 	} catch (error) {
 		console.error('Error loading character:', error);
-		redirectToErrorPage('character_not_found_or_unavailable');
+		redirectToErrorPage('character_not_found_or_unavailable', `/characters/${params.id}`);
 	}
 };

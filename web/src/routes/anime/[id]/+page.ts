@@ -37,7 +37,7 @@ export const load: PageLoad = async ({ fetch, params }) => {
 	const isAnimeError = anime.status === 'rejected';
 	const animeData = anime.status === 'fulfilled' ? anime.value?.data : null;
 	if (isAnimeError || !animeData) {
-		redirectToErrorPage('anime_not_found_or_unavailable');
+		redirectToErrorPage('anime_not_found_or_unavailable', `/anime/${params.id}`);
 	}
 
 	const ratings: Record<string, string> = {

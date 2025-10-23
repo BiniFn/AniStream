@@ -18,13 +18,16 @@ export const load: PageLoad = async ({ fetch, params, url }) => {
 	const libraryData = library.status === 'fulfilled' ? library.value?.data : null;
 
 	if (!animeData || !episodesData) {
-		redirectToErrorPage('anime_not_found_or_unavailable');
+		redirectToErrorPage('anime_not_found_or_unavailable', `/anime/${params.id}`);
 	}
 
 	const currentEpisode = episodesData?.find((ep) => ep.number === episodeNumber);
 
 	if (!currentEpisode) {
-		redirectToErrorPage('episode_not_found_or_unavailable');
+		redirectToErrorPage(
+			'episode_not_found_or_unavailable',
+			`/anime/${params.id}/watch?ep=${episodeNumber}`,
+		);
 	}
 
 	const episodeServers = await apiClient.GET('/anime/{id}/episodes/{episodeID}/servers', {

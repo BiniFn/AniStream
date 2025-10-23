@@ -16,6 +16,6 @@ export const errorMessages: Record<ErrorType, string> = {
 	person_not_found_or_unavailable: 'The requested voice actor was not found or is unavailable.',
 } as const;
 
-export const redirectToErrorPage = (type: ErrorType) => {
-	redirect(302, `/error?type=${type}`);
+export const redirectToErrorPage = (type: ErrorType, from: string) => {
+	redirect(302, `/error?type=${type}&from=${encodeURIComponent(from)}`);
 };
