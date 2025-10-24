@@ -6,33 +6,20 @@
 	import { Pagination } from '$lib/components/ui/pagination';
 	import type { Snippet } from 'svelte';
 	import LibraryBtn from '../controls/library-btn.svelte';
+	import type { FilterManager } from '$lib/utils/filter-manager.svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 	type AnimeWithLibraryResponse = components['schemas']['models.AnimeWithLibraryResponse'];
 
 	interface Props {
 		anime: AnimeResponse[] | AnimeWithLibraryResponse[];
-		viewMode: 'grid' | 'list';
-		currentPage: number;
 		totalPages: number;
-		changePage: (page: number) => void;
-		isLoading: boolean;
-		itemsPerPage: number;
 		children?: Snippet;
 		empty: Snippet;
+		filterManager: FilterManager;
 	}
 
-	let {
-		anime,
-		viewMode,
-		currentPage,
-		totalPages,
-		changePage,
-		isLoading = false,
-		itemsPerPage = 24,
-		children,
-		empty,
-	}: Props = $props();
+	let { anime, totalPages, children, empty, filterManager }: Props = $props();
 </script>
 
 <main class="flex-1">
@@ -41,13 +28,13 @@
 	{/if}
 
 	<div class="px-4">
-		{#if isLoading}
+		{#if filterManager.isLoading}
 			<div
-				class={viewMode === 'grid'
+				class={filterManager.viewMode === 'grid'
 					? 'grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
 					: 'space-y-3 sm:space-y-4'}
 			>
-				{#each Array(itemsPerPage) as _, i (i)}
+				{#each Array(filterManager.filters.itemsPerPage) as _, i (i)}
 					<div class="space-y-2">
 						<Skeleton class="aspect-[3/4] rounded-xl" />
 						<Skeleton class="h-4 w-3/4" />
@@ -56,7 +43,7 @@
 				{/each}
 			</div>
 		{:else if anime && anime.length > 0}
-			{#if viewMode === 'grid'}
+			{#if filterManager.viewMode === 'grid'}
 				<div
 					class="grid grid-cols-2 gap-3 duration-500 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
 				>
@@ -136,7 +123,11 @@
 				</div>
 			{/if}
 
-			<Pagination {totalPages} {currentPage} onPageChange={changePage} />
+			<Pagination
+				{totalPages}
+				currentPage={filterManager.filters.page}
+				onPageChange={filterManager.setPage}
+			/>
 		{:else}
 			{@render empty()}
 		{/if}

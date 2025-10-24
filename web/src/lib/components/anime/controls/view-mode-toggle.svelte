@@ -9,12 +9,7 @@
 		class?: string;
 	}
 
-	let {
-		viewMode = $bindable(),
-		onViewModeChange,
-		size = 'md',
-		class: className = '',
-	}: Props = $props();
+	let { viewMode, onViewModeChange, size = 'md', class: className = '' }: Props = $props();
 
 	const sizeClasses = {
 		sm: 'h-7 w-7',
@@ -27,7 +22,6 @@
 	};
 
 	function setViewMode(mode: 'grid' | 'list') {
-		viewMode = mode;
 		onViewModeChange(mode);
 	}
 </script>

@@ -5,20 +5,17 @@
 	import AnimePageHeader from '$lib/components/anime/layout/anime-page-header.svelte';
 	import { Label } from '$lib/components/ui/label';
 	import { CircleCheck, CirclePlay, CircleX, Clock, Pause } from 'lucide-svelte';
-	import { createFilterActions, updateUrlWithFilters } from '$lib/utils/filter-actions';
-	import { getTotalFilters, type FilterState } from '$lib/utils/filters';
 	import type { PageProps } from './$types';
 	import AnimeGrid from '$lib/components/anime/display/anime-grid.svelte';
 	import EmptyState from '$lib/components/anime/display/empty-state.svelte';
 	import { getLayoutStateContext } from '$lib/context/layout.svelte';
+	import { FilterManager } from '$lib/utils/filter-manager.svelte';
+	import { watch } from 'runed';
 
 	let { data }: PageProps = $props();
 	const layoutState = getLayoutStateContext();
 
-	let filters = $state(data.initialFilters);
-	let viewMode = $state<'grid' | 'list'>('grid');
-	let isLoading = $state(false);
-	let showMobileFilters = $state(false);
+	const filterManager = new FilterManager(data.initialFilters);
 
 	const sortOptions = [
 		{ value: 'library_updated_at', label: 'Library Updated' },
@@ -38,31 +35,33 @@
 		{ value: 'dropped', label: 'Dropped', icon: CircleX, iconColor: 'text-red-500' },
 	] as const;
 
-	const currentTab = $derived(statusTabs.find((tab) => tab.value === data.status) || statusTabs[0]);
-	const totalFilters = $derived(getTotalFilters(filters));
-	const totalPages = $derived(data.listings?.pageInfo ? data.listings.pageInfo.totalPages : 0);
+	let currentTab = $derived.by(() => {
+		return statusTabs.find((tab) => tab.value === data.status) || statusTabs[0];
+	});
 
-	async function updateFilters(newFilters: FilterState) {
-		isLoading = true;
-		filters = newFilters;
-		await updateUrlWithFilters(filters);
-		isLoading = false;
-	}
+	let description = $derived.by(() => {
+		switch (data.status) {
+			case 'watching':
+				return 'Track the anime you are currently watching and stay updated with your progress.';
+			case 'planning':
+				return 'Keep a list of anime you plan to watch in the future and never miss out on new shows.';
+			case 'completed':
+				return 'View and manage the anime you have completed watching.';
+			case 'paused':
+				return 'Manage the anime you have put on hold and plan to resume later.';
+			case 'dropped':
+				return 'Keep track of the anime you have decided to stop watching.';
+			default:
+				return '';
+		}
+	});
 
-	const filterActions = createFilterActions(() => filters, updateFilters);
-
-	function handleViewModeChange(mode: 'grid' | 'list') {
-		viewMode = mode;
-	}
-
-	function changeStatus(newStatus: FilterState['status']) {
-		filterActions.setStatus(newStatus);
-	}
-
-	function changePage(newPage: number) {
-		filterActions.setPage(newPage);
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	}
+	watch(
+		() => filterManager.filters.page,
+		() => {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		},
+	);
 </script>
 
 <svelte:head>
@@ -74,30 +73,17 @@
 	<AnimePageHeader
 		title="My Anime List"
 		description="Track and manage your anime collection"
-		{filters}
-		{filterActions}
+		{filterManager}
 		{sortOptions}
-		bind:viewMode
-		{totalFilters}
-		pageInfo={data.listings?.pageInfo}
-		onViewModeChange={handleViewModeChange}
-		onMobileFiltersToggle={() => (showMobileFilters = true)}
 	/>
 
-	<MobileFilters
-		bind:open={showMobileFilters}
-		genres={data.genres || []}
-		{filters}
-		{filterActions}
-		{totalFilters}
-		onOpenChange={(open) => (showMobileFilters = open)}
-	>
+	<MobileFilters genres={data.genres || []} {filterManager}>
 		<div class="flex flex-col gap-2">
 			<Label class="text-xs font-medium">Filter by Status</Label>
 			<LibraryStatusTabs
 				class="overflow-x-auto"
 				currentStatus={data.status}
-				onStatusChange={changeStatus}
+				onStatusChange={filterManager.setStatus}
 			/>
 		</div>
 	</MobileFilters>
@@ -105,47 +91,36 @@
 	<div class="container mx-auto px-4 pt-4 pb-8">
 		<div class="flex gap-8">
 			<aside class="hidden w-64 shrink-0 lg:block">
-				<FilterSidebar genres={data.genres || []} {filters} {filterActions} />
+				<FilterSidebar genres={data.genres || []} {filterManager} />
 			</aside>
 
 			<AnimeGrid
 				anime={data.listings?.items || []}
-				{viewMode}
-				{isLoading}
-				itemsPerPage={filters.itemsPerPage}
-				{changePage}
-				currentPage={filters.page}
-				{totalPages}
+				{filterManager}
+				totalPages={data.listings?.pageInfo.totalPages || 1}
 			>
 				<div class="sticky z-20 mb-4 hidden lg:block" style="top: {layoutState.totalHeight}px">
 					<div
 						class="border-b bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 					>
-						<LibraryStatusTabs currentStatus={data.status} onStatusChange={changeStatus} />
+						<LibraryStatusTabs
+							currentStatus={data.status}
+							onStatusChange={filterManager.setStatus}
+						/>
 					</div>
 				</div>
 
 				<div
 					class="mb-4 max-w-[calc(100vw-32px)] overflow-x-auto border-b bg-background py-3 lg:hidden"
 				>
-					<LibraryStatusTabs currentStatus={data.status} onStatusChange={changeStatus} />
+					<LibraryStatusTabs currentStatus={data.status} onStatusChange={filterManager.setStatus} />
 				</div>
 
 				{#snippet empty()}
 					<EmptyState
 						icon={currentTab.icon}
 						title="No anime in {currentTab.label}"
-						description={data.status === 'watching'
-							? 'Start watching anime to see them here. Your progress will be automatically tracked.'
-							: data.status === 'planning'
-								? "Add anime you plan to watch later. Keep track of shows you're interested in."
-								: data.status === 'completed'
-									? "Anime you've finished watching will appear here. Complete a series to add it."
-									: data.status === 'paused'
-										? "Anime you've put on hold will appear here. Take a break and come back later."
-										: data.status === 'dropped'
-											? "Anime you've decided not to continue will appear here."
-											: ''}
+						{description}
 						action={{
 							label: 'Browse Catalog',
 							href: '/catalog',

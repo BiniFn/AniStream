@@ -2,12 +2,13 @@
 	import PageHeader from '$lib/components/layout/page-header.svelte';
 	import { cn } from '$lib/utils';
 	import { Funnel } from 'lucide-svelte';
-	import type { FilterState, FilterActions } from '$lib/utils/filters';
 	import ActiveFilters from '$lib/components/anime/filters/active-filters.svelte';
 	import SearchBar from '$lib/components/anime/controls/search-bar.svelte';
 	import SortControls from '$lib/components/anime/controls/sort-controls.svelte';
 	import ViewModeToggle from '$lib/components/anime/controls/view-mode-toggle.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import type { FilterManager } from '$lib/utils/filter-manager.svelte';
+	import { useDebounce } from 'runed';
 
 	interface SortOption {
 		value: string;
@@ -17,100 +18,62 @@
 	interface Props {
 		title: string;
 		description?: string;
-		filters: FilterState;
-		filterActions: FilterActions;
+		filterManager: FilterManager;
 		sortOptions: SortOption[];
-		viewMode: 'grid' | 'list';
-		totalFilters: number;
-		showMobileFilters?: boolean;
 		pageInfo?: {
 			currentPage: number;
 			totalPages: number;
 		};
-		onViewModeChange: (mode: 'grid' | 'list') => void;
-		onMobileFiltersToggle?: () => void;
 	}
 
-	let {
-		title,
-		description,
-		filters,
-		filterActions,
-		sortOptions,
-		viewMode = $bindable(),
-		totalFilters,
-		showMobileFilters = true,
-		pageInfo,
-		onViewModeChange,
-		onMobileFiltersToggle,
-	}: Props = $props();
+	let { title, description, filterManager, sortOptions, pageInfo }: Props = $props();
 
 	const displayDescription = $derived(
 		pageInfo ? `Page ${pageInfo.currentPage} of ${pageInfo.totalPages}` : description,
 	);
 
-	let searchTimeout: NodeJS.Timeout;
-
-	function handleSearch(value: string) {
-		clearTimeout(searchTimeout);
-		searchTimeout = setTimeout(() => {
-			filterActions.updateSearch(value);
-		}, 500);
-	}
-
-	function handleSortChange(newSortBy: FilterState['sortBy'], newSortOrder: 'asc' | 'desc') {
-		filterActions.setSort(newSortBy, newSortOrder);
-	}
+	const handleSearch = useDebounce((value: string) => {
+		filterManager.updateSearch(value);
+	}, 500);
 </script>
 
 <PageHeader {title} description={displayDescription}>
 	{#snippet actions()}
 		<div class="flex w-full flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
 			<div class="flex flex-col gap-2 lg:hidden">
-				<SearchBar value={filters.search} onInput={handleSearch} />
+				<SearchBar value={filterManager.filters.search} onInput={handleSearch} />
 
-				{#if showMobileFilters && onMobileFiltersToggle}
-					<Button
-						onclick={onMobileFiltersToggle}
-						variant="outline"
-						class={cn('relative lg:hidden')}
-					>
-						<Funnel class="h-4 w-4" />
-						Open Filters
-						{#if totalFilters > 0}
-							<span
-								class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground"
-							>
-								{totalFilters}
-							</span>
-						{/if}
-					</Button>
-				{/if}
+				<Button
+					onclick={() => filterManager.setMobileFiltersVisibility(true)}
+					variant="outline"
+					class={cn('relative lg:hidden')}
+				>
+					<Funnel class="h-4 w-4" />
+					Open Filters
+					{#if filterManager.totalFilters > 0}
+						<span
+							class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground"
+						>
+							{filterManager.totalFilters}
+						</span>
+					{/if}
+				</Button>
 
-				<SortControls
-					sortBy={filters.sortBy}
-					sortOrder={filters.sortOrder}
-					{sortOptions}
-					onSortChange={handleSortChange}
-					selectClass="h-9 w-full text-sm"
-				/>
+				<SortControls {sortOptions} selectClass="h-9 w-full text-sm" {filterManager} />
 			</div>
 
 			<div class="hidden lg:flex lg:items-center lg:gap-3">
-				<SearchBar value={filters.search} onInput={handleSearch} class="w-80" />
-				<SortControls
-					sortBy={filters.sortBy}
-					sortOrder={filters.sortOrder}
-					{sortOptions}
-					onSortChange={handleSortChange}
-					selectClass="w-[172px]"
+				<SearchBar value={filterManager.filters.search} onInput={handleSearch} class="w-80" />
+				<SortControls {sortOptions} selectClass="w-[172px]" {filterManager} />
+				<ViewModeToggle
+					viewMode={filterManager.viewMode}
+					onViewModeChange={filterManager.handleViewModeChange}
 				/>
-				<ViewModeToggle {viewMode} {onViewModeChange} />
 			</div>
 		</div>
 	{/snippet}
 </PageHeader>
 
 <div class="container mx-auto px-4">
-	<ActiveFilters {filters} {filterActions} {totalFilters} class="mt-4" />
+	<ActiveFilters {filterManager} class="mt-4" />
 </div>

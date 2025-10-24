@@ -38,7 +38,7 @@ export const defaultFilters: FilterState = {
 	page: 1,
 };
 
-export function filtersToQuery(filters: FilterState): URLSearchParams {
+export function filtersToSearchParams(filters: FilterState): URLSearchParams {
 	const params = new URLSearchParams();
 	const apiQuery = filtersToApiQuery(filters);
 	const entries = Object.entries(

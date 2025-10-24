@@ -10,21 +10,14 @@
 		class?: string;
 	}
 
-	let {
-		value = $bindable(),
-		placeholder = 'Search anime...',
-		onInput,
-		class: className = '',
-	}: Props = $props();
+	let { value, placeholder = 'Search anime...', onInput, class: className = '' }: Props = $props();
 
 	function handleInput(e: Event) {
 		const target = e.currentTarget as HTMLInputElement;
-		value = target.value;
 		onInput(target.value);
 	}
 
 	function clearSearch() {
-		value = '';
 		onInput('');
 	}
 </script>

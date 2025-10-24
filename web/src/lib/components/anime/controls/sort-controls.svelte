@@ -2,6 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Select from '$lib/components/ui/select';
 	import { cn } from '$lib/utils';
+	import type { FilterManager } from '$lib/utils/filter-manager.svelte';
 	import type { FilterState } from '$lib/utils/filters';
 
 	interface SortOption {
@@ -10,44 +11,36 @@
 	}
 
 	interface Props {
-		sortBy: FilterState['sortBy'];
-		sortOrder: 'asc' | 'desc';
 		sortOptions: SortOption[];
-		onSortChange: (sortBy: FilterState['sortBy'], sortOrder: 'asc' | 'desc') => void;
 		class?: string;
 		selectClass?: string;
+		filterManager: FilterManager;
 	}
 
-	let {
-		sortBy = $bindable(),
-		sortOrder = $bindable(),
-		sortOptions,
-		onSortChange,
-		class: className = '',
-		selectClass = '',
-	}: Props = $props();
+	let { filterManager, sortOptions, class: className = '', selectClass = '' }: Props = $props();
 
 	function handleSortByChange(value: FilterState['sortBy'] | undefined) {
 		if (value) {
-			sortBy = value;
-			onSortChange(sortBy, sortOrder);
+			filterManager.setSort(value, filterManager.filters.sortOrder);
 		}
 	}
 
 	function toggleSortOrder() {
-		sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-		onSortChange(sortBy, sortOrder);
+		const newOrder = filterManager.filters.sortOrder === 'asc' ? 'desc' : 'asc';
+		filterManager.setSort(filterManager.filters.sortBy, newOrder);
 	}
 </script>
 
 <div class={cn('flex items-center gap-2', className)}>
 	<Select.Root
 		type="single"
-		value={sortBy}
+		value={filterManager.filters.sortBy}
 		onValueChange={(value) => handleSortByChange(value as FilterState['sortBy'])}
 	>
 		<Select.Trigger class={selectClass}>
-			<span>{sortOptions.find((o) => o.value === sortBy)?.label || 'Sort by'}</span>
+			<span>
+				{sortOptions.find((o) => o.value === filterManager.filters.sortBy)?.label || 'Sort by'}
+			</span>
 		</Select.Trigger>
 		<Select.Content>
 			{#each sortOptions as option (option.value)}
@@ -60,11 +53,11 @@
 		variant="outline"
 		size="icon"
 		onclick={toggleSortOrder}
-		title={sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
+		title={filterManager.filters.sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
 	>
-		{sortOrder === 'asc' ? '↑' : '↓'}
+		{filterManager.filters.sortOrder === 'asc' ? '↑' : '↓'}
 		<span class="sr-only">
-			{sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
+			{filterManager.filters.sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
 		</span>
 	</Button>
 </div>

@@ -2,19 +2,16 @@
 	import FilterSidebar from '$lib/components/anime/filters/filter-sidebar.svelte';
 	import MobileFilters from '$lib/components/anime/filters/mobile-filters.svelte';
 	import AnimePageHeader from '$lib/components/anime/layout/anime-page-header.svelte';
-	import { createFilterActions, updateUrlWithFilters } from '$lib/utils/filter-actions';
-	import { getTotalFilters, type FilterState } from '$lib/utils/filters';
 	import type { PageProps } from './$types';
 	import AnimeGrid from '$lib/components/anime/display/anime-grid.svelte';
 	import EmptyState from '$lib/components/anime/display/empty-state.svelte';
 	import { Search } from 'lucide-svelte';
+	import { FilterManager } from '$lib/utils/filter-manager.svelte';
+	import { watch } from 'runed';
 
 	let { data }: PageProps = $props();
 
-	let filters = $state(data.initialFilters);
-	let viewMode = $state<'grid' | 'list'>('grid');
-	let isLoading = $state(false);
-	let showMobileFilters = $state(false);
+	const filterManager = new FilterManager(data.initialFilters);
 
 	const sortOptions = [
 		{ value: 'relevance', label: 'Relevance' },
@@ -25,26 +22,12 @@
 		{ value: 'year', label: 'Year' },
 	];
 
-	async function updateFilters(newFilters: FilterState) {
-		isLoading = true;
-		filters = newFilters;
-		await updateUrlWithFilters(filters);
-		isLoading = false;
-	}
-
-	const filterActions = createFilterActions(() => filters, updateFilters);
-
-	function handleViewModeChange(mode: 'grid' | 'list') {
-		viewMode = mode;
-	}
-
-	function changePage(newPage: number) {
-		filterActions.setPage(newPage);
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	}
-
-	const totalFilters = $derived(getTotalFilters(filters));
-	const totalPages = $derived(data.listings?.pageInfo ? data.listings.pageInfo.totalPages : 0);
+	watch(
+		() => filterManager.filters.page,
+		() => {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		},
+	);
 </script>
 
 <svelte:head>
@@ -56,39 +39,23 @@
 	<AnimePageHeader
 		title="Anime Catalog"
 		description="Browse and discover anime from our extensive catalog"
-		{filters}
-		{filterActions}
+		{filterManager}
 		{sortOptions}
-		bind:viewMode
-		{totalFilters}
 		pageInfo={data.listings?.pageInfo}
-		onViewModeChange={handleViewModeChange}
-		onMobileFiltersToggle={() => (showMobileFilters = true)}
 	/>
 
-	<MobileFilters
-		bind:open={showMobileFilters}
-		genres={data.genres || []}
-		{filters}
-		{filterActions}
-		{totalFilters}
-		onOpenChange={(open) => (showMobileFilters = open)}
-	/>
+	<MobileFilters genres={data.genres || []} {filterManager} />
 
 	<div class="container mx-auto px-4 py-8">
 		<div class="flex gap-8">
 			<aside class="hidden w-64 shrink-0 lg:block">
-				<FilterSidebar genres={data.genres || []} {filters} {filterActions} />
+				<FilterSidebar genres={data.genres || []} {filterManager} />
 			</aside>
 
 			<AnimeGrid
 				anime={data.listings?.items || []}
-				{viewMode}
-				{isLoading}
-				itemsPerPage={filters.itemsPerPage}
-				{changePage}
-				currentPage={filters.page}
-				{totalPages}
+				{filterManager}
+				totalPages={data.listings?.pageInfo.totalPages || 1}
 			>
 				{#snippet empty()}
 					<EmptyState
