@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { goto, invalidate, preloadData } from '$app/navigation';
+	import { invalidate, preloadData } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
-	import type { components } from '$lib/api/openapi';
 	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
 	import Player from '$lib/components/anime/player/index.svelte';
 	import { Badge } from '$lib/components/ui/badge';
@@ -21,116 +20,96 @@
 		Server,
 		Star,
 	} from 'lucide-svelte';
-	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageProps } from './$types';
 	import { getAppStateContext } from '$lib/context/state.svelte';
 	import { flip } from 'svelte/animate';
-
-	type StreamingData = components['schemas']['models.StreamingDataResponse'];
-	type EpisodeServer = components['schemas']['models.EpisodeServerResponse'];
+	import { Debounced, resource } from 'runed';
 
 	let { data }: PageProps = $props();
 	const appState = getAppStateContext();
 
 	let selectedServer = $state(data.servers[0] || null);
-	let streamInfo: StreamingData | null = $state(null);
-	let isLoading = $state(true);
-	let videoError = $state(false);
-	let errorMessage = $state('');
-	let isFullscreen = $state(false);
+
+	const streamResource = resource(
+		[() => data.anime.id, () => selectedServer?.serverId, () => data.episodeNumber],
+		async ([animeId, serverId], _, { signal }) => {
+			const server = data.servers.find((s) => s.serverId === serverId);
+			if (!server) return null;
+
+			const res = await apiClient.GET('/anime/{id}/episodes/servers/{serverID}', {
+				params: {
+					path: {
+						id: animeId,
+						serverID: server.serverId,
+					},
+					query: {
+						server: server.serverName.toLowerCase().replace(/\s+/g, '-'),
+						type: server.type.toLowerCase(),
+					},
+				},
+				signal,
+			});
+
+			if (!res.data) throw new Error('No stream data received from server');
+			return res.data;
+		},
+	);
 
 	let episodesSearch = $state('');
+	let filteredEpisodes = new Debounced(() => {
+		if (!episodesSearch) return data.episodes;
+		return data.episodes.filter((ep) => {
+			const s = (ep.number.toString() + (ep.title || `Episode ${ep.number}`)).toLowerCase();
+			return s.includes(episodesSearch.toLowerCase());
+		});
+	}, 250);
 
 	let groupedServers = $derived.by(() => {
-		const groups: Record<string, EpisodeServer[]> = {};
-		for (const server of data.servers) {
-			const t = server.type.toLowerCase();
-			(groups[t] ??= []).push(server);
-		}
-		return groups;
+		return Object.fromEntries(
+			data.servers
+				.map((s) => s.type.toLowerCase())
+				.filter((v, i, a) => a.indexOf(v) === i) // remove duplicates
+				.map((type) => [type, data.servers.filter((s) => s.type.toLowerCase() === type)]),
+		);
 	});
 
-	let hasNextEpisode = $derived(data.episodeNumber < data.episodes.length);
-	let hasPrevEpisode = $derived(data.episodeNumber > 1);
-	let nextEpisodeUrl = $derived.by(() =>
-		hasNextEpisode ? `/anime/${data.anime.id}/watch?ep=${data.episodeNumber + 1}` : undefined,
+	const episodeUrl = (epNum: number) => `/anime/${data.anime.id}/watch?ep=${epNum}`;
+	let prevEpisodeUrl = $derived(data.episodeNumber > 1 ? episodeUrl(data.episodeNumber - 1) : null);
+	let nextEpisodeUrl = $derived(
+		data.episodeNumber < data.episodes.length ? episodeUrl(data.episodeNumber + 1) : null,
 	);
 
 	$effect(() => {
 		if (nextEpisodeUrl) preloadData(nextEpisodeUrl);
 	});
 
-	let filteredEpisodes = $derived.by(() => {
-		if (!episodesSearch) return data.episodes;
-		return data.episodes.filter((ep) => {
-			const s = (ep.number.toString() + (ep.title || `Episode ${ep.number}`)).toLowerCase();
-			return s.includes(episodesSearch.toLowerCase());
-		});
-	});
-
-	let loadToken = 0;
 	$effect(() => {
-		if (!selectedServer) return;
-
-		const serverNow =
-			data.servers.find((s) => s.serverId === selectedServer?.serverId) ?? data.servers[0];
-		if (!serverNow) return;
-
-		const token = ++loadToken;
-		(async () => {
-			isLoading = true;
-			videoError = false;
-			errorMessage = '';
-
-			try {
-				const res = await apiClient.GET('/anime/{id}/episodes/servers/{serverID}', {
-					params: {
-						path: { id: data.anime.id, serverID: selectedServer.serverId },
-						query: {
-							server: selectedServer.serverName.toLowerCase().replace(/\s+/g, '-'),
-							type: selectedServer.type.toLowerCase(),
-						},
-					},
-				});
-				if (token !== loadToken) return;
-				if (!res.data) throw new Error('No stream data received from server');
-				streamInfo = res.data;
-			} catch (e) {
-				videoError = true;
-				errorMessage = e instanceof Error ? e.message : 'Failed to load video stream';
-				streamInfo = null;
-			} finally {
-				if (token === loadToken) isLoading = false;
-			}
-		})();
-	});
-
-	$effect(() => {
-		const _deps = `${data.anime.id}:${data.episodeNumber}:${data.servers.length}`;
-
 		const list = data.servers ?? [];
 		if (!selectedServer || !list.some((s) => s.serverId === selectedServer?.serverId)) {
-			selectedServer = list[0] || null;
+			selectedServer = list[0] ?? null;
 		}
-		streamInfo = null;
-		videoError = false;
-		errorMessage = '';
 	});
 
-	function changeEpisode(n: number) {
-		goto(`/anime/${data.anime.id}/watch?ep=${n}`, { replaceState: true });
-	}
+	const updateLibrary = async () => {
+		if (!appState.isLoggedIn) return;
+		if (data.libraryEntry && data.episodeNumber <= data.libraryEntry.watchedEpisodes) return;
 
-	onMount(() => {
-		const handleFS = () => (isFullscreen = !!document.fullscreenElement);
-		document.addEventListener('fullscreenchange', handleFS);
-		document.addEventListener('webkitfullscreenchange', handleFS);
-		return () => {
-			document.removeEventListener('fullscreenchange', handleFS);
-			document.removeEventListener('webkitfullscreenchange', handleFS);
-		};
-	});
+		const id = toast.loading('Updating library status...');
+		try {
+			await apiClient.PUT('/library/{animeID}', {
+				params: { path: { animeID: data.anime.id } },
+				body: { watchedEpisodes: data.episodeNumber, status: 'watching' },
+			});
+
+			await invalidate((url) => url.pathname.startsWith('/library'));
+			toast.success('Library status updated');
+		} catch {
+			toast.error('Failed to update library status');
+		} finally {
+			toast.dismiss(id);
+		}
+	};
 </script>
 
 <svelte:head>
@@ -175,22 +154,20 @@
 	<div class={cn('flex flex-col gap-6 p-4 lg:p-6')}>
 		<div class="space-y-4">
 			<div
-				class={cn(
-					'relative w-full overflow-hidden rounded-lg bg-black',
-					isFullscreen ? 'fixed inset-0 z-50' : 'aspect-video',
-				)}
+				class={cn('relative aspect-video w-full overflow-hidden rounded-lg bg-black')}
 				role="presentation"
 			>
-				{#if videoError}
+				{#if streamResource.error}
 					<div
 						class="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4 text-white"
 					>
 						<CircleAlert class="h-12 w-12 text-destructive" />
-						<p class="text-center text-lg font-medium">{errorMessage || 'Failed to load video'}</p>
+						<p class="text-center text-lg font-medium">
+							{streamResource.error.message || 'Failed to load video'}
+						</p>
 						<div class="flex gap-2">
 							<Button
 								onclick={() => {
-									videoError = false;
 									selectedServer = selectedServer && { ...selectedServer };
 								}}
 								variant="secondary"
@@ -207,7 +184,6 @@
 									);
 									const next = data.servers[(currentIndex + 1) % data.servers.length];
 									if (next) {
-										videoError = false;
 										selectedServer = next;
 									}
 								}}
@@ -219,7 +195,7 @@
 							</Button>
 						</div>
 					</div>
-				{:else if isLoading || !streamInfo}
+				{:else if streamResource.loading || !streamResource.current}
 					<div class="absolute inset-0 grid place-items-center">
 						<LoaderCircle class="h-12 w-12 animate-spin text-primary" />
 					</div>
@@ -227,28 +203,9 @@
 					{#key `${data.anime.id}:${data.episodeNumber}:${selectedServer?.serverId ?? ''}`}
 						<Player
 							playerId={`anime-${data.anime.id}-ep-${data.episodeNumber}`}
-							info={streamInfo}
+							info={streamResource.current}
 							{nextEpisodeUrl}
-							updateLibrary={async () => {
-								if (!appState.isLoggedIn) return;
-								if (data.libraryEntry && data.episodeNumber <= data.libraryEntry.watchedEpisodes)
-									return;
-
-								const id = toast.loading('Updating library status...');
-								try {
-									await apiClient.PUT('/library/{animeID}', {
-										params: { path: { animeID: data.anime.id } },
-										body: { watchedEpisodes: data.episodeNumber, status: 'watching' },
-									});
-
-									await invalidate((url) => url.pathname.startsWith('/library'));
-									toast.success('Library status updated');
-								} catch {
-									toast.error('Failed to update library status');
-								} finally {
-									toast.dismiss(id);
-								}
-							}}
+							{updateLibrary}
 						/>
 					{/key}
 				{/if}
@@ -257,22 +214,12 @@
 			<div class="space-y-4">
 				<div class="flex items-center justify-between rounded-lg border bg-card p-4">
 					<div class="flex items-center gap-2">
-						<Button
-							size="sm"
-							variant="outline"
-							disabled={!hasPrevEpisode}
-							onclick={() => changeEpisode(data.episodeNumber - 1)}
-						>
+						<Button size="sm" variant="outline" disabled={!prevEpisodeUrl} href={prevEpisodeUrl}>
 							<ChevronLeft class="mr-1 h-4 w-4" />
 							Previous
 						</Button>
 
-						<Button
-							size="sm"
-							variant="outline"
-							disabled={!hasNextEpisode}
-							onclick={() => changeEpisode(data.episodeNumber + 1)}
-						>
+						<Button size="sm" variant="outline" disabled={!nextEpisodeUrl} href={nextEpisodeUrl}>
 							Next
 							<ChevronRight class="ml-1 h-4 w-4" />
 						</Button>
@@ -365,14 +312,22 @@
 						</span>
 					</div>
 
-					<Input
-						type="text"
-						placeholder="Search episodes..."
-						bind:value={episodesSearch}
-						class="mb-6 h-9"
-					/>
+					<div class="relative mb-6 w-full">
+						<Input
+							type="text"
+							placeholder="Search episodes..."
+							bind:value={episodesSearch}
+							class="h-9 w-full"
+						/>
 
-					{#if filteredEpisodes.length === 0}
+						{#if filteredEpisodes.pending}
+							<div class="absolute top-1/2 right-3 -translate-y-1/2">
+								<LoaderCircle class="h-4 w-4 animate-spin text-muted-foreground" />
+							</div>
+						{/if}
+					</div>
+
+					{#if filteredEpisodes.current.length === 0}
 						<div class="rounded-lg border bg-muted/30 p-8 text-center">
 							<Film class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
 							<p class="text-sm text-muted-foreground">No episodes match your search...</p>
@@ -380,7 +335,7 @@
 					{/if}
 
 					<div class="max-h-96 w-full space-y-3 overflow-y-auto">
-						{#each filteredEpisodes as episode (episode.id)}
+						{#each filteredEpisodes.current as episode (episode.id)}
 							{@const isActive = episode.number === data.episodeNumber}
 							<div
 								class="group w-full"
@@ -399,7 +354,7 @@
 								}}
 							>
 								<Button
-									onclick={() => changeEpisode(episode.number)}
+									href={episodeUrl(episode.number)}
 									variant={isActive ? 'default' : 'outline'}
 									class="h-fit w-full"
 								>

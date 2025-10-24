@@ -9,7 +9,7 @@
 	type Props = {
 		playerId: string;
 		info: StreamInfo;
-		nextEpisodeUrl?: string;
+		nextEpisodeUrl: string | null;
 		updateLibrary: () => Promise<void>;
 	};
 

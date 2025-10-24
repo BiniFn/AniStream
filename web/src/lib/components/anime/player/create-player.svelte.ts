@@ -16,7 +16,7 @@ type Props = {
 	appState: AppState;
 	container: HTMLDivElement;
 	source: StreamInfo;
-	nextEpisodeUrl: string | undefined;
+	nextEpisodeUrl: string | null;
 	updateLibrary: () => Promise<void>;
 };
 
