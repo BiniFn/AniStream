@@ -136,7 +136,12 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 	if ext == ".m3u8" || ext == ".vtt" {
 		w.Header().Del("Content-Length")
+		w.Header().Set("Cache-Control", "public, max-age=60")
+	} else {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	}
+
+	setContentType(w, ext)
 
 	w.WriteHeader(resp.StatusCode)
 
@@ -187,4 +192,33 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Info("proxied", "method", r.Method, "remoteAddr", r.RemoteAddr, "targetURL", targetURL)
+}
+
+func setContentType(w http.ResponseWriter, ext string) {
+	switch ext {
+	case ".m3u8":
+		w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
+	case ".ts":
+		w.Header().Set("Content-Type", "video/MP2T")
+	case ".vtt":
+		w.Header().Set("Content-Type", "text/vtt")
+	case ".png":
+		w.Header().Set("Content-Type", "image/png")
+	case ".jpg", ".jpeg":
+		w.Header().Set("Content-Type", "image/jpeg")
+	case ".webp":
+		w.Header().Set("Content-Type", "image/webp")
+	case ".ico":
+		w.Header().Set("Content-Type", "image/x-icon")
+	case ".html":
+		w.Header().Set("Content-Type", "text/html")
+	case ".js":
+		w.Header().Set("Content-Type", "application/javascript")
+	case ".css":
+		w.Header().Set("Content-Type", "text/css")
+	case ".txt":
+		w.Header().Set("Content-Type", "text/plain")
+	default:
+		w.Header().Set("Content-Type", "application/octet-stream")
+	}
 }
