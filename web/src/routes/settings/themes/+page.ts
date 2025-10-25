@@ -1,9 +1,9 @@
 import { apiClient } from '$lib/api/client';
 import type { PageLoad } from './$types';
 
-export const load: PageLoad = async () => {
+export const load: PageLoad = async ({ fetch }) => {
 	try {
-		const response = await apiClient.GET('/themes');
+		const response = await apiClient.GET('/themes', { fetch });
 		return {
 			themes: response.data || [],
 		};
@@ -14,4 +14,3 @@ export const load: PageLoad = async () => {
 		};
 	}
 };
-

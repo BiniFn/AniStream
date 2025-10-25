@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidate, preloadData } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
 	import Player from '$lib/components/anime/player/index.svelte';
@@ -79,10 +79,6 @@
 	let nextEpisodeUrl = $derived(
 		data.episodeNumber < data.episodes.length ? episodeUrl(data.episodeNumber + 1) : null,
 	);
-
-	$effect(() => {
-		if (nextEpisodeUrl) preloadData(nextEpisodeUrl);
-	});
 
 	$effect(() => {
 		const list = data.servers ?? [];
