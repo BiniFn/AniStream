@@ -2,12 +2,13 @@ import { goto } from '$app/navigation';
 import { convertComponentToHTML } from '$lib/utils';
 import { ArkErrors, type } from 'arktype';
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
-import type Hls from 'hls.js';
+import Hls from 'hls.js';
 import { Captions, LoaderCircle, Pause, SkipForward } from 'lucide-svelte';
 import { amplifyVolumePlugin, skipPlugin, thumbnailPlugin, windowKeyBindPlugin } from './plugins';
 import type { components } from '$lib/api/openapi';
 import { PUBLIC_STREAMING_URL } from '$env/static/public';
 import type { AppState } from '$lib/context/state.svelte';
+import Artplayer from 'artplayer';
 
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 
@@ -24,7 +25,7 @@ const artplayerSettingsSchema = type({
 	times: 'Record<string, number>',
 });
 
-export const createArtPlayer = async ({
+export const createArtPlayer = ({
 	id,
 	appState,
 	container,
@@ -37,9 +38,6 @@ export const createArtPlayer = async ({
 	const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 		navigator.userAgent,
 	);
-
-	const Hls = import('hls.js');
-	const Artplayer = await import('artplayer').then((module) => module.default);
 
 	const art = new Artplayer({
 		id,
@@ -92,45 +90,43 @@ export const createArtPlayer = async ({
 		customType: {
 			m3u8: (video, url, art) => {
 				console.log('Custom type m3u8', url);
-				Hls.then((module) => {
-					const Hls = module.default;
-					if (Hls.isSupported()) {
-						if (art.hls) (art.hls as Hls).destroy();
-						const hls = new Hls();
-						hls.loadSource(url);
-						hls.attachMedia(video);
-						art.hls = hls;
-						art.on('destroy', () => hls.destroy());
-						// update art quality when hls quality changes
-						hls.on(Hls.Events.LEVEL_SWITCHED, () => {
-							const currentLevel = hls.levels[hls.currentLevel]?.height + 'p';
-							const currentSetting = art.setting.find('hls-quality') as unknown as {
-								selector: { default: boolean; html: string }[];
-								tooltip: string;
-							};
 
-							if (
-								currentSetting &&
-								currentSetting.selector.find((item) => item.default)?.html !== currentLevel
-							) {
-								art.setting.update({
-									...currentSetting,
-									selector: currentSetting.selector.map((item) => ({
-										...item,
-										default: item.html === currentLevel,
-									})),
-									tooltip: currentLevel,
-								});
-							}
+				if (Hls.isSupported()) {
+					if (art.hls) (art.hls as Hls).destroy();
+					const hls = new Hls();
+					hls.loadSource(url);
+					hls.attachMedia(video);
+					art.hls = hls;
+					art.on('destroy', () => hls.destroy());
+					// update art quality when hls quality changes
+					hls.on(Hls.Events.LEVEL_SWITCHED, () => {
+						const currentLevel = hls.levels[hls.currentLevel]?.height + 'p';
+						const currentSetting = art.setting.find('hls-quality') as unknown as {
+							selector: { default: boolean; html: string }[];
+							tooltip: string;
+						};
 
-							art.notice.show = `Quality: ${currentLevel}`;
-						});
-					} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-						video.src = url;
-					} else {
-						art.notice.show = 'Unsupported playback format: m3u8';
-					}
-				});
+						if (
+							currentSetting &&
+							currentSetting.selector.find((item) => item.default)?.html !== currentLevel
+						) {
+							art.setting.update({
+								...currentSetting,
+								selector: currentSetting.selector.map((item) => ({
+									...item,
+									default: item.html === currentLevel,
+								})),
+								tooltip: currentLevel,
+							});
+						}
+
+						art.notice.show = `Quality: ${currentLevel}`;
+					});
+				} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+					video.src = url;
+				} else {
+					art.notice.show = 'Unsupported playback format: m3u8';
+				}
 			},
 		},
 	});
@@ -194,18 +190,15 @@ export const createArtPlayer = async ({
 				JSON.parse(localStorage.getItem('artplayer_settings') ?? '{}'),
 			);
 			if (time instanceof ArkErrors === false && time.times[id]) {
-				if (time.times[id] >= art.duration) return;
+				const savedTime = Math.floor(time.times[id]);
+				const duration = Math.floor(art.duration);
+				if (savedTime >= duration - 5) return;
 				art.currentTime = time.times[id];
 			}
 		}
 
 		if (appState.settings?.autoPlayEpisode) {
 			art.play();
-		}
-
-		if (sessionStorage.getItem('artplayer_resume_fullscreen') === 'true') {
-			art.fullscreen = true;
-			sessionStorage.removeItem('artplayer_resume_fullscreen');
 		}
 	});
 
@@ -221,12 +214,6 @@ export const createArtPlayer = async ({
 		await updateLibrary();
 
 		if (nextEpisodeUrl && appState.settings?.autoNextEpisode) {
-			if (art.fullscreen) {
-				sessionStorage.setItem('artplayer_resume_fullscreen', 'true');
-			} else {
-				sessionStorage.removeItem('artplayer_resume_fullscreen');
-			}
-
 			await goto(nextEpisodeUrl);
 		}
 	});

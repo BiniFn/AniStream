@@ -35,8 +35,8 @@
 			updateLibrary,
 		});
 
-		return async () => {
-			(await player).destroy();
+		return () => {
+			player.destroy();
 		};
 	});
 </script>
