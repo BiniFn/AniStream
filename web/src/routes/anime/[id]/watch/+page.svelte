@@ -151,242 +151,232 @@
 		</div>
 	</header>
 
-	<div class={cn('flex flex-col gap-6 p-4 lg:p-6')}>
-		<div class="space-y-4">
-			<div
-				class={cn('relative aspect-video w-full overflow-hidden rounded-lg bg-black')}
-				role="presentation"
-			>
-				{#if streamResource.error}
-					<div
-						class="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4 text-white"
-					>
-						<CircleAlert class="h-12 w-12 text-destructive" />
-						<p class="text-center text-lg font-medium">
-							{streamResource.error.message || 'Failed to load video'}
-						</p>
-						<div class="flex gap-2">
-							<Button
-								onclick={() => {
-									selectedServer = selectedServer && { ...selectedServer };
-								}}
-								variant="secondary"
-								size="sm"
-							>
-								<RefreshCcw class="mr-2 h-4 w-4" />
-								Try Again
-							</Button>
-							<Button
-								onclick={() => {
-									const currentIndex = data.servers.findIndex(
-										(s) =>
-											s.serverId === selectedServer?.serverId && s.type === selectedServer?.type,
-									);
-									const next = data.servers[(currentIndex + 1) % data.servers.length];
-									if (next) {
-										selectedServer = next;
-									}
-								}}
-								variant="secondary"
-								size="sm"
-								disabled={data.servers.length <= 1}
-							>
-								Try Different Server
-							</Button>
+	<div class="container mx-auto space-y-4 p-4">
+		<div
+			class={cn('relative aspect-video w-full overflow-hidden rounded-lg bg-black')}
+			role="presentation"
+		>
+			{#if streamResource.error}
+				<div
+					class="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4 text-white"
+				>
+					<CircleAlert class="h-12 w-12 text-destructive" />
+					<p class="text-center text-lg font-medium">
+						{streamResource.error.message || 'Failed to load video'}
+					</p>
+					<div class="flex gap-2">
+						<Button
+							onclick={() => {
+								streamResource.refetch();
+							}}
+							variant="secondary"
+							size="sm"
+						>
+							<RefreshCcw class="mr-2 h-4 w-4" />
+							Try Again
+						</Button>
+						<Button
+							onclick={() => {
+								const servers = groupedServers[selectedServer?.type.toLowerCase() ?? ''] || [];
+								const index = servers.findIndex((s) => s.serverId === selectedServer?.serverId);
+								selectedServer = servers[(index + 1) % servers.length] || null;
+							}}
+							variant="secondary"
+							size="sm"
+							disabled={data.servers.length <= 1}
+						>
+							Try Different Server
+						</Button>
+					</div>
+				</div>
+			{:else if streamResource.loading || !streamResource.current}
+				<div class="absolute inset-0 grid place-items-center">
+					<LoaderCircle class="h-12 w-12 animate-spin text-primary" />
+				</div>
+			{:else}
+				{#key `${data.anime.id}:${data.episodeNumber}:${selectedServer?.serverId ?? ''}`}
+					<Player
+						playerId={`anime-${data.anime.id}-ep-${data.episodeNumber}`}
+						info={streamResource.current}
+						{nextEpisodeUrl}
+						{updateLibrary}
+					/>
+				{/key}
+			{/if}
+		</div>
+
+		<div class="flex items-center justify-between rounded-lg border bg-card p-4">
+			<div class="flex items-center gap-2">
+				<Button size="sm" variant="outline" disabled={!prevEpisodeUrl} href={prevEpisodeUrl}>
+					<ChevronLeft class="mr-1 h-4 w-4" />
+					Previous
+				</Button>
+
+				<Button size="sm" variant="outline" disabled={!nextEpisodeUrl} href={nextEpisodeUrl}>
+					Next
+					<ChevronRight class="ml-1 h-4 w-4" />
+				</Button>
+			</div>
+		</div>
+
+		{#if Object.keys(groupedServers).length > 0}
+			<div class="space-y-3 rounded-lg border bg-card p-4">
+				<h3 class="text-base font-semibold">Servers</h3>
+				{#each Object.entries(groupedServers) as [type, servers], i (i)}
+					<div class="space-y-2">
+						<p class="text-sm font-medium text-muted-foreground uppercase">{type}</p>
+						<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+							{#each servers as server (server.serverId)}
+								<Button
+									variant={selectedServer?.serverId === server.serverId &&
+									selectedServer.type === server.type
+										? 'default'
+										: 'outline'}
+									size="sm"
+									onclick={() => (selectedServer = server)}
+									class="justify-start"
+								>
+									<Server class="mr-2 h-3 w-3" />
+									<span class="truncate capitalize">{server.serverName}</span>
+								</Button>
+							{/each}
 						</div>
 					</div>
-				{:else if streamResource.loading || !streamResource.current}
-					<div class="absolute inset-0 grid place-items-center">
-						<LoaderCircle class="h-12 w-12 animate-spin text-primary" />
+				{/each}
+			</div>
+		{/if}
+
+		<div class="rounded-lg border bg-card p-4">
+			<div class="flex items-start gap-4">
+				<img
+					src={data.anime.imageUrl}
+					alt={data.anime.jname || data.anime.ename}
+					class="h-24 w-16 rounded object-cover"
+				/>
+				<div class="flex-1 space-y-2">
+					<div>
+						<h2 class="line-clamp-1 text-lg font-bold">
+							{data.anime.jname || data.anime.ename}
+						</h2>
+						{#if data.anime.ename && data.anime.jname}
+							<p class="line-clamp-1 text-sm text-muted-foreground">{data.anime.ename}</p>
+						{/if}
 					</div>
-				{:else}
-					{#key `${data.anime.id}:${data.episodeNumber}:${selectedServer?.serverId ?? ''}`}
-						<Player
-							playerId={`anime-${data.anime.id}-ep-${data.episodeNumber}`}
-							info={streamResource.current}
-							{nextEpisodeUrl}
-							{updateLibrary}
-						/>
-					{/key}
+					<div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+						{#if data.anime.metadata?.mean}
+							<div class="flex items-center gap-1">
+								<Star class="h-3 w-3 fill-yellow-500 text-yellow-500" />
+								<span>{data.anime.metadata.mean.toFixed(1)}</span>
+							</div>
+							<span>•</span>
+						{/if}
+						<span class="capitalize">{data.anime.season} {data.anime.seasonYear}</span>
+						<span>•</span>
+						<span>{data.anime.metadata?.totalEpisodes || data.anime.lastEpisode} Episodes</span>
+					</div>
+					<div class="mt-2 flex flex-wrap gap-2">
+						<Button href="/anime/{data.anime.id}" variant="outline">
+							<Info class="mr-2 h-4 w-4" />
+							View Details
+						</Button>
+						<LibraryBtn animeId={data.anime.id} libraryEntry={data.libraryEntry ?? null} />
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="rounded-lg border bg-card p-4">
+			<h3 class="text-base font-bold">
+				Episode {data.episodeNumber}: {data.currentEpisode.title || `Episode ${data.episodeNumber}`}
+			</h3>
+			{#if data.currentEpisode.isFiller}
+				<span class="mt-2 inline-block rounded bg-muted px-2 py-1 text-xs font-medium">
+					Filler Episode
+				</span>
+			{/if}
+		</div>
+
+		<div class="space-y-3 rounded-lg border bg-card p-4">
+			<div class="flex items-center justify-between">
+				<h3 class="font-semibold">Episodes</h3>
+				<span class="text-sm text-muted-foreground">
+					{data.episodes.length} Total
+				</span>
+			</div>
+
+			<div class="relative mb-6 w-full">
+				<Input
+					type="text"
+					placeholder="Search episodes..."
+					bind:value={episodesSearch}
+					class="h-9 w-full"
+				/>
+
+				{#if filteredEpisodes.pending}
+					<div class="absolute top-1/2 right-3 -translate-y-1/2">
+						<LoaderCircle class="h-4 w-4 animate-spin text-muted-foreground" />
+					</div>
 				{/if}
 			</div>
 
-			<div class="space-y-4">
-				<div class="flex items-center justify-between rounded-lg border bg-card p-4">
-					<div class="flex items-center gap-2">
-						<Button size="sm" variant="outline" disabled={!prevEpisodeUrl} href={prevEpisodeUrl}>
-							<ChevronLeft class="mr-1 h-4 w-4" />
-							Previous
-						</Button>
-
-						<Button size="sm" variant="outline" disabled={!nextEpisodeUrl} href={nextEpisodeUrl}>
-							Next
-							<ChevronRight class="ml-1 h-4 w-4" />
-						</Button>
-					</div>
+			{#if filteredEpisodes.current.length === 0}
+				<div class="rounded-lg border bg-muted/30 p-8 text-center">
+					<Film class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+					<p class="text-sm text-muted-foreground">No episodes match your search...</p>
 				</div>
+			{/if}
 
-				{#if Object.keys(groupedServers).length > 0}
-					<div class="space-y-3 rounded-lg border bg-card p-4">
-						<h3 class="text-base font-semibold">Servers</h3>
-						{#each Object.entries(groupedServers) as [type, servers], i (i)}
-							<div class="space-y-2">
-								<p class="text-sm font-medium text-muted-foreground uppercase">{type}</p>
-								<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-									{#each servers as server (server.serverId)}
-										<Button
-											variant={selectedServer?.serverId === server.serverId &&
-											selectedServer.type === server.type
-												? 'default'
-												: 'outline'}
-											size="sm"
-											onclick={() => (selectedServer = server)}
-											class="justify-start"
-										>
-											<Server class="mr-2 h-3 w-3" />
-											<span class="truncate capitalize">{server.serverName}</span>
-										</Button>
-									{/each}
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
-
-				<div class="rounded-lg border bg-card p-4">
-					<div class="flex items-start gap-4">
-						<img
-							src={data.anime.imageUrl}
-							alt={data.anime.jname || data.anime.ename}
-							class="h-24 w-16 rounded object-cover"
-						/>
-						<div class="flex-1 space-y-2">
-							<div>
-								<h2 class="line-clamp-1 text-lg font-bold">
-									{data.anime.jname || data.anime.ename}
-								</h2>
-								{#if data.anime.ename && data.anime.jname}
-									<p class="line-clamp-1 text-sm text-muted-foreground">{data.anime.ename}</p>
-								{/if}
-							</div>
-							<div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-								{#if data.anime.metadata?.mean}
-									<div class="flex items-center gap-1">
-										<Star class="h-3 w-3 fill-yellow-500 text-yellow-500" />
-										<span>{data.anime.metadata.mean.toFixed(1)}</span>
-									</div>
-									<span>•</span>
-								{/if}
-								<span class="capitalize">{data.anime.season} {data.anime.seasonYear}</span>
-								<span>•</span>
-								<span>{data.anime.metadata?.totalEpisodes || data.anime.lastEpisode} Episodes</span>
-							</div>
-							<div class="mt-2 flex flex-wrap gap-2">
-								<Button href="/anime/{data.anime.id}" variant="outline">
-									<Info class="mr-2 h-4 w-4" />
-									View Details
-								</Button>
-								<LibraryBtn animeId={data.anime.id} libraryEntry={data.libraryEntry ?? null} />
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div class="rounded-lg border bg-card p-4">
-					<h3 class="text-base font-bold">
-						Episode {data.episodeNumber}: {data.currentEpisode.title ||
-							`Episode ${data.episodeNumber}`}
-					</h3>
-					{#if data.currentEpisode.isFiller}
-						<span class="mt-2 inline-block rounded bg-muted px-2 py-1 text-xs font-medium">
-							Filler Episode
-						</span>
-					{/if}
-				</div>
-
-				<div class="space-y-3 rounded-lg border bg-card p-4">
-					<div class="flex items-center justify-between">
-						<h3 class="font-semibold">Episodes</h3>
-						<span class="text-sm text-muted-foreground">
-							{data.episodes.length} Total
-						</span>
-					</div>
-
-					<div class="relative mb-6 w-full">
-						<Input
-							type="text"
-							placeholder="Search episodes..."
-							bind:value={episodesSearch}
-							class="h-9 w-full"
-						/>
-
-						{#if filteredEpisodes.pending}
-							<div class="absolute top-1/2 right-3 -translate-y-1/2">
-								<LoaderCircle class="h-4 w-4 animate-spin text-muted-foreground" />
-							</div>
-						{/if}
-					</div>
-
-					{#if filteredEpisodes.current.length === 0}
-						<div class="rounded-lg border bg-muted/30 p-8 text-center">
-							<Film class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-							<p class="text-sm text-muted-foreground">No episodes match your search...</p>
-						</div>
-					{/if}
-
-					<div class="max-h-96 w-full space-y-3 overflow-y-auto">
-						{#each filteredEpisodes.current as episode (episode.id)}
-							{@const isActive = episode.number === data.episodeNumber}
+			<div class="max-h-96 w-full space-y-3 overflow-y-auto">
+				{#each filteredEpisodes.current as episode (episode.id)}
+					{@const isActive = episode.number === data.episodeNumber}
+					<div
+						class="group w-full"
+						animate:flip={{ duration: 500 }}
+						{@attach (node: HTMLElement) => {
+							if (!isActive) return;
+							const container = node.parentElement;
+							if (!container) return;
+							container.scrollTo({
+								top:
+									node.offsetTop -
+									container.offsetTop -
+									container.clientHeight / 2 +
+									node.clientHeight / 2,
+							});
+						}}
+					>
+						<Button
+							href={episodeUrl(episode.number)}
+							variant={isActive ? 'default' : 'outline'}
+							class="h-fit w-full"
+						>
 							<div
-								class="group w-full"
-								animate:flip={{ duration: 500 }}
-								{@attach (node: HTMLElement) => {
-									if (!isActive) return;
-									const container = node.parentElement;
-									if (!container) return;
-									container.scrollTo({
-										top:
-											node.offsetTop -
-											container.offsetTop -
-											container.clientHeight / 2 +
-											node.clientHeight / 2,
-									});
-								}}
+								class={cn(
+									'flex aspect-square w-10 flex-shrink-0 items-center justify-center rounded text-xs font-bold',
+									'bg-accent text-accent-foreground',
+								)}
 							>
-								<Button
-									href={episodeUrl(episode.number)}
-									variant={isActive ? 'default' : 'outline'}
-									class="h-fit w-full"
-								>
-									<div
-										class={cn(
-											'flex aspect-square w-10 flex-shrink-0 items-center justify-center rounded text-xs font-bold',
-											'bg-accent text-accent-foreground',
-										)}
-									>
-										{episode.number}
-									</div>
-									<div class="min-w-0 flex-1 text-left">
-										<p class="line-clamp-1 text-sm">
-											{episode.title || `Episode ${episode.number}`}
-										</p>
-									</div>
-									<div class="flex items-center gap-2">
-										{#if episode.isFiller}
-											<Badge variant="secondary" class="text-xs">Filler</Badge>
-										{/if}
-										<Play
-											class={cn(
-												'h-3 w-3 flex-shrink-0',
-												isActive || 'opacity-0 group-hover:opacity-100',
-											)}
-										/>
-									</div>
-								</Button>
+								{episode.number}
 							</div>
-						{/each}
+							<div class="min-w-0 flex-1 text-left">
+								<p class="line-clamp-1 text-sm">
+									{episode.title || `Episode ${episode.number}`}
+								</p>
+							</div>
+							<div class="flex items-center gap-2">
+								{#if episode.isFiller}
+									<Badge variant="secondary" class="text-xs">Filler</Badge>
+								{/if}
+								<Play
+									class={cn(
+										'h-3 w-3 flex-shrink-0',
+										isActive || 'opacity-0 group-hover:opacity-100',
+									)}
+								/>
+							</div>
+						</Button>
 					</div>
-				</div>
+				{/each}
 			</div>
 		</div>
 	</div>
