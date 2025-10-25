@@ -35,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/proxy", proxyHandler)
+	mux.HandleFunc("/proxy/", proxyHandler)
 
 	srv := &http.Server{
 		Addr:    *addr,
@@ -74,19 +74,23 @@ func main() {
 func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	p := r.URL.Query().Get("p")
-	if p == "" {
-		http.Error(w, "`p` is required", http.StatusBadRequest)
+	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/proxy/"), "/")
+	if len(parts) != 2 {
+		http.Error(w, "not found", http.StatusNotFound)
+		logger.Error("invalid proxy request path", "path", r.URL.Path)
 		return
 	}
-	rawURL, err := base64.URLEncoding.DecodeString(p)
-	if err != nil {
-		http.Error(w, "Invalid `p` parameter", http.StatusBadRequest)
-		return
-	}
-	targetURL := string(rawURL)
 
-	serverName := r.URL.Query().Get("s")
+	serverName := parts[0]
+	pEnc := parts[1]
+	targetURLBytes, err := base64.URLEncoding.DecodeString(pEnc)
+	if err != nil {
+		http.Error(w, "invalid URL encoding", http.StatusBadRequest)
+		logger.Error("error decoding target URL", "err", err, "pEnc", pEnc)
+		return
+	}
+	targetURL := string(targetURLBytes)
+
 	isHianime := strings.HasPrefix(strings.ToLower(serverName), "hd")
 
 	headers := http.Header{}
@@ -144,7 +148,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 			full = base + next
 		}
 		pEnc := base64.URLEncoding.EncodeToString([]byte(full))
-		return "/proxy?p=" + pEnc + "&s=" + url.QueryEscape(serverName)
+		return "/proxy/" + serverName + "/" + pEnc
 	}
 
 	if ext == ".m3u8" || ext == ".vtt" {

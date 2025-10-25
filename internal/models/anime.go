@@ -94,7 +94,7 @@ type StreamingDataResponse struct {
 
 type StreamingSourceResponse struct {
 	Hls      *string `json:"hls" example:"https://example.com/stream.m3u8"`
-	ProxyHls *string `json:"proxyHls" example:"/proxy?p=encodedurl&s=hd"`
+	ProxyHls *string `json:"proxyHls" example:"/proxy/{server}/{encodedUrl}"`
 	Iframe   string  `json:"iframe" validate:"required" example:"https://example.com/embed/abc123"`
 }
 
@@ -104,7 +104,7 @@ type SegmentResponse struct {
 }
 
 type TrackResponse struct {
-	URL     string `json:"url" validate:"required" example:"/proxy?p=encodedurl&s=hd"`
+	URL     string `json:"url" validate:"required" example:"/proxy/{server}/{encodedUrl}"`
 	Raw     string `json:"raw" validate:"required" example:"https://example.com/subtitles.vtt"`
 	Kind    string `json:"kind" validate:"required" example:"captions"`
 	Label   string `json:"label" validate:"required" example:"English"`

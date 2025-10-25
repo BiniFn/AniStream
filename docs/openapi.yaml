@@ -2708,7 +2708,7 @@ components:
           example: https://example.com/embed/abc123
           type: string
         proxyHls:
-          example: /proxy?p=encodedurl&s=hd
+          example: /proxy/{server}/{encodedUrl}
           type: string
       required:
         - iframe
@@ -2748,7 +2748,7 @@ components:
           example: https://example.com/subtitles.vtt
           type: string
         url:
-          example: /proxy?p=encodedurl&s=hd
+          example: /proxy/{server}/{encodedUrl}
           type: string
       required:
         - default

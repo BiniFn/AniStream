@@ -3491,7 +3491,7 @@ export interface components {
 			hls?: string;
 			/** @example https://example.com/embed/abc123 */
 			iframe: string;
-			/** @example /proxy?p=encodedurl&s=hd */
+			/** @example /proxy/{server}/{encodedUrl} */
 			proxyHls?: string;
 		};
 		'models.Theme': {
@@ -3513,7 +3513,7 @@ export interface components {
 			label: string;
 			/** @example https://example.com/subtitles.vtt */
 			raw: string;
-			/** @example /proxy?p=encodedurl&s=hd */
+			/** @example /proxy/{server}/{encodedUrl} */
 			url: string;
 		};
 		'models.TrailerResponse': {

@@ -168,7 +168,7 @@ func StreamingDataFromScraper(data hianime.ScrapedStreamData) models.StreamingDa
 	if data.Source.Hls != nil {
 		source.Hls = data.Source.Hls
 		p := base64.StdEncoding.EncodeToString([]byte(*data.Source.Hls))
-		proxy := fmt.Sprintf("/proxy?p=%s&s=%s", p, server)
+		proxy := fmt.Sprintf("/proxy/%s/%s", server, p)
 		source.ProxyHls = &proxy
 	}
 
@@ -178,7 +178,7 @@ func StreamingDataFromScraper(data hianime.ScrapedStreamData) models.StreamingDa
 		p := encoder.EncodeToString([]byte(track.File))
 
 		tracks[i] = models.TrackResponse{
-			URL:     fmt.Sprintf("/proxy?p=%s&s=%s", p, server),
+			URL:     fmt.Sprintf("/proxy/%s/%s", server, p),
 			Raw:     track.File,
 			Kind:    track.Kind,
 			Label:   track.Label,
