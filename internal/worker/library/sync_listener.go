@@ -200,7 +200,7 @@ func handleMalProvider(
 		})
 
 	case string(repository.LibraryActionsUpdateStatus):
-		return malClient.UpdateAnimeList(ctx, myanimelist.UpdateAnimeListParams{
+		return malClient.UpdateAnimeListStatus(ctx, myanimelist.UpdateAnimeListStatusParams{
 			Token:   token,
 			AnimeID: int(anime.MalID.Int32),
 			Status:  status,
@@ -257,4 +257,3 @@ func handleAniProvider(
 		return fmt.Errorf("unsupported action: %s", action)
 	}
 }
-

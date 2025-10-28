@@ -218,6 +218,39 @@ func (c *Client) UpdateAnimeList(ctx context.Context, params UpdateAnimeListPara
 	return nil
 }
 
+type UpdateAnimeListStatusParams struct {
+	Token   string
+	AnimeID int
+	Status  string
+}
+
+func (c *Client) UpdateAnimeListStatus(ctx context.Context, params UpdateAnimeListStatusParams) error {
+	body := url.Values{}
+	s := MalListStatus("").FromRepository(params.Status)
+	if s.IsValid() && params.Status != "" {
+		body.Set("status", string(s))
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "PATCH", fmt.Sprintf("%s/anime/%d/my_list_status", c.baseURL, params.AnimeID), strings.NewReader(body.Encode()))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+params.Token)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
 type DeleteAnimeListParams struct {
 	Token   string
 	AnimeID int
