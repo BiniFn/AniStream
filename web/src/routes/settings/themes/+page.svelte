@@ -14,6 +14,8 @@
 	let { data }: PageProps = $props();
 	const appState = getAppStateContext();
 
+	let currentTheme = $derived(appState.settings?.theme?.id);
+
 	function updateTheme(theme: Theme) {
 		appState.updateTheme(theme);
 		toast.success(`Theme changed to ${theme.name}`);
@@ -42,11 +44,12 @@
 
 	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{#each data.themes as theme (theme.id)}
-			{@const isSelected = appState.settings?.theme?.id === theme.id}
 			<Card.Root
 				class={cn(
 					'group cursor-pointer transition-all duration-200 hover:shadow-lg',
-					isSelected ? 'shadow-lg ring-2 ring-primary' : 'hover:scale-[1.02] hover:shadow-md',
+					currentTheme === theme.id
+						? 'shadow-lg ring-2 ring-primary'
+						: 'hover:scale-[1.02] hover:shadow-md',
 				)}
 				onclick={() => updateTheme(theme)}
 			>
@@ -56,7 +59,7 @@
 							<Card.Title class="text-lg">{theme.name}</Card.Title>
 							<Card.Description>{theme.description}</Card.Description>
 						</div>
-						{#if isSelected}
+						{#if currentTheme === theme.id}
 							<Badge variant="default" class="gap-1">
 								<Check class="h-3 w-3" />
 								Active
@@ -131,11 +134,15 @@
 						</div>
 					</div>
 
-					<Button variant={isSelected ? 'default' : 'outline'} size="sm" class="w-full gap-2">
-						{#if isSelected}
+					<Button
+						variant={currentTheme === theme.id ? 'default' : 'outline'}
+						size="sm"
+						class="w-full gap-2"
+					>
+						{#if currentTheme === theme.id}
 							<Check class="h-3 w-3" />
 						{/if}
-						{isSelected ? 'Active' : 'Select'}
+						{currentTheme === theme.id ? 'Active' : 'Select'}
 					</Button>
 				</Card.Content>
 			</Card.Root>

@@ -64,7 +64,7 @@
 	<title>{person.name} - Voice Actor - Aniways</title>
 	<meta
 		name="description"
-		content={person.about || `Learn more about ${person.name} and their voice acting roles`}
+		content={`Learn more about ${person.name} and their voice acting roles`}
 	/>
 </svelte:head>
 

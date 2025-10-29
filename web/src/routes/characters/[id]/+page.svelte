@@ -43,7 +43,7 @@
 	<title>{character.name} - Character - Aniways</title>
 	<meta
 		name="description"
-		content={character.about || `Learn more about ${character.name} and their anime appearances`}
+		content={`Learn more about ${character.name} and their anime appearances`}
 	/>
 </svelte:head>
 

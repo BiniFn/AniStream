@@ -324,12 +324,11 @@
 
 			<div class="max-h-96 w-full space-y-3 overflow-y-auto">
 				{#each filteredEpisodes.current as episode (episode.id)}
-					{@const isActive = episode.number === data.episodeNumber}
 					<div
 						class="group w-full"
 						animate:flip={{ duration: 500 }}
 						{@attach (node: HTMLElement) => {
-							if (!isActive) return;
+							if (episode.id !== data.currentEpisode.id) return;
 							const container = node.parentElement;
 							if (!container) return;
 							container.scrollTo({
@@ -343,7 +342,7 @@
 					>
 						<Button
 							href={episodeUrl(episode.number)}
-							variant={isActive ? 'default' : 'outline'}
+							variant={episode.id === data.currentEpisode.id ? 'default' : 'outline'}
 							class="h-fit w-full"
 						>
 							<div
@@ -366,7 +365,7 @@
 								<Play
 									class={cn(
 										'h-3 w-3 flex-shrink-0',
-										isActive || 'opacity-0 group-hover:opacity-100',
+										episode.id === data.currentEpisode.id || 'opacity-0 group-hover:opacity-100',
 									)}
 								/>
 							</div>

@@ -17,11 +17,7 @@
 
 <svelte:head>
 	<title>{data.anime.jname || data.anime.ename} - Aniways</title>
-	<meta
-		name="description"
-		content={data.anime.metadata?.description ||
-			`Watch ${data.anime.jname || data.anime.ename} on Aniways`}
-	/>
+	<meta name="description" content={`Watch ${data.anime.jname || data.anime.ename} on Aniways`} />
 </svelte:head>
 
 <HeroSection
