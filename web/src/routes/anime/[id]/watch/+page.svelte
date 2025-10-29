@@ -24,7 +24,7 @@
 	import type { PageProps } from './$types';
 	import { getAppStateContext } from '$lib/context/state.svelte';
 	import { flip } from 'svelte/animate';
-	import { Debounced, resource } from 'runed';
+	import { resource } from 'runed';
 
 	let { data }: PageProps = $props();
 	const appState = getAppStateContext();
@@ -57,13 +57,13 @@
 	);
 
 	let episodesSearch = $state('');
-	let filteredEpisodes = new Debounced(() => {
+	let filteredEpisodes = $derived.by(() => {
 		if (!episodesSearch) return data.episodes;
 		return data.episodes.filter((ep) => {
 			const s = (ep.number.toString() + (ep.title || `Episode ${ep.number}`)).toLowerCase();
 			return s.includes(episodesSearch.toLowerCase());
 		});
-	}, 250);
+	});
 
 	let groupedServers = $derived.by(() => {
 		return Object.fromEntries(
@@ -300,22 +300,14 @@
 				</span>
 			</div>
 
-			<div class="relative mb-6 w-full">
-				<Input
-					type="text"
-					placeholder="Search episodes..."
-					bind:value={episodesSearch}
-					class="h-9 w-full"
-				/>
+			<Input
+				type="text"
+				placeholder="Search episodes..."
+				bind:value={episodesSearch}
+				class="mb-6 h-9 w-full"
+			/>
 
-				{#if filteredEpisodes.pending}
-					<div class="absolute top-1/2 right-3 -translate-y-1/2">
-						<LoaderCircle class="h-4 w-4 animate-spin text-muted-foreground" />
-					</div>
-				{/if}
-			</div>
-
-			{#if filteredEpisodes.current.length === 0}
+			{#if filteredEpisodes.length === 0}
 				<div class="rounded-lg border bg-muted/30 p-8 text-center">
 					<Film class="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
 					<p class="text-sm text-muted-foreground">No episodes match your search...</p>
@@ -323,7 +315,7 @@
 			{/if}
 
 			<div class="max-h-96 w-full space-y-3 overflow-y-auto">
-				{#each filteredEpisodes.current as episode (episode.id)}
+				{#each filteredEpisodes as episode (episode.id)}
 					<div
 						class="group w-full"
 						animate:flip={{ duration: 500 }}
