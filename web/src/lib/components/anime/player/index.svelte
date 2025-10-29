@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { preloadData } from '$app/navigation';
 	import type { components } from '$lib/api/openapi';
 	import { createArtPlayer } from '$lib/components/anime/player/create-player.svelte';
 	import { getAppStateContext } from '$lib/context/state.svelte';
@@ -17,11 +16,6 @@
 	const appState = getAppStateContext();
 
 	let element: HTMLDivElement | null = $state(null);
-
-	$effect(() => {
-		if (!nextEpisodeUrl || !appState.settings?.autoNextEpisode) return;
-		preloadData(nextEpisodeUrl);
-	});
 
 	$effect(() => {
 		if (!element) return;
