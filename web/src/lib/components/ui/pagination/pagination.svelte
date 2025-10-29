@@ -16,10 +16,10 @@
 		currentPage ?? parseInt(page.url.searchParams.get('page') || '1', 10),
 	);
 
-	const defaultPageChange = (newPage: number) => {
+	const defaultPageChange = async (newPage: number) => {
 		const url = new URL(page.url);
 		url.searchParams.set('page', newPage.toString());
-		goto(url.toString());
+		await goto(url.toString());
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	};
 
