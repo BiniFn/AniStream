@@ -29,12 +29,12 @@
 	let { data }: PageProps = $props();
 	const appState = getAppStateContext();
 
-	let selectedServer = $state(data.servers[0] || null);
+	let selectedServer = $derived(data.servers[0] || null);
 
 	const streamResource = resource(
-		[() => data.anime.id, () => selectedServer?.serverId, () => data.episodeNumber],
-		async ([animeId, serverId], _, { signal }) => {
-			const server = data.servers.find((s) => s.serverId === serverId);
+		[() => data.anime.id, () => selectedServer?.serverId, () => selectedServer?.type],
+		async ([animeId, serverId, type], _, { signal }) => {
+			const server = data.servers.find((s) => s.serverId === serverId && s.type === type);
 			if (!server) return null;
 
 			const res = await apiClient.GET('/anime/{id}/episodes/servers/{serverID}', {
@@ -79,13 +79,6 @@
 	let nextEpisodeUrl = $derived(
 		data.episodeNumber < data.episodes.length ? episodeUrl(data.episodeNumber + 1) : null,
 	);
-
-	$effect(() => {
-		const list = data.servers ?? [];
-		if (!selectedServer || !list.some((s) => s.serverId === selectedServer?.serverId)) {
-			selectedServer = list[0] ?? null;
-		}
-	});
 
 	const updateLibrary = async () => {
 		if (!appState.isLoggedIn) return;
