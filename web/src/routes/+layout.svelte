@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Footer from '$lib/components/layout/footer.svelte';
 	import NavBar from '$lib/components/layout/nav-bar.svelte';
+	import TopLoader from '$lib/components/layout/top-loader.svelte';
 	import Sonner from '$lib/components/ui/sonner/sonner.svelte';
 	import { setLayoutStateContext } from '$lib/context/layout.svelte';
 	import { setAppStateContext } from '$lib/context/state.svelte';
@@ -32,6 +33,7 @@
 	<link rel="stylesheet" href={getFontUrlsForTheme(theme?.className ?? '')} />
 </svelte:head>
 
+<TopLoader />
 <div class="sticky top-0 z-50" {@attach layoutState.setHeight('navbar')}>
 	<NavBar />
 </div>
