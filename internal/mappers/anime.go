@@ -155,12 +155,7 @@ func EpisodeServerFromScraper(server hianime.ScrapedEpisodeServerDto) models.Epi
 }
 
 func StreamingDataFromScraper(data hianime.ScrapedStreamData) models.StreamingDataResponse {
-	var server string
-	if strings.HasPrefix(data.Server, "hd") {
-		server = "hd"
-	} else if strings.ToLower(server) == "megaplay" {
-		server = "megaplay"
-	}
+	server := strings.Split(strings.ToLower(data.Server), "-")[0]
 
 	source := models.StreamingSourceResponse{
 		Iframe: data.Source.Iframe,
