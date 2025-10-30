@@ -113,7 +113,12 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 	req.Header = headers
 
-	client := &http.Client{Timeout: 15 * time.Second}
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Error("error fetching upstream", "err", err)

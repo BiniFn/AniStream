@@ -25,6 +25,7 @@ CMD ["/app/entrypoint.sh", "/app/api"]
 FROM alpine:3.20 AS proxy
 WORKDIR /app
 COPY --from=builder /out/proxy /app/proxy
+RUN apk add --no-cache ca-certificates
 RUN adduser -D aniways
 USER aniways
 CMD ["/app/proxy"]
