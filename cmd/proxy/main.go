@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"flag"
 	"io"
@@ -116,6 +117,9 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{
 		Timeout: 15 * time.Second,
 		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
 			DisableKeepAlives: true,
 		},
 	}
