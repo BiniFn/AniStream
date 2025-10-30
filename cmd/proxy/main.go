@@ -75,7 +75,7 @@ func main() {
 func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/proxy/"), "/")
+	parts := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/proxy/"), "/", 2)
 	if len(parts) != 2 {
 		http.Error(w, "not found", http.StatusNotFound)
 		logger.Error("invalid proxy request path", "path", r.URL.Path)
