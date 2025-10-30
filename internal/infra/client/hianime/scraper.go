@@ -361,10 +361,7 @@ func (s *HianimeScraper) GetStreamData(
 		if err != nil {
 			return ScrapedStreamData{}, err
 		}
-		mediaID, exists := doc.Find("#megaplay-player").Attr("data-id")
-		if mediaID == "" || !exists {
-			return ScrapedStreamData{}, fmt.Errorf("no media ID found in Megaplay streaming data")
-		}
+		mediaID := doc.Find("#megaplay-player").AttrOr("data-ep-id", serverID)
 
 		ajax := fmt.Sprintf("https://megaplay.buzz/stream/getSources?id=%s", mediaID)
 		ajaxReq, _ := http.NewRequestWithContext(ctx, "GET", ajax, nil)
