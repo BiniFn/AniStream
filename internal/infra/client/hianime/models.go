@@ -55,10 +55,16 @@ type ScrapedEpisodeSourceDto struct {
 	Iframe string  `json:"iframe"`
 }
 
+type ProxyHeaders struct {
+	Referer string `json:"referer,omitempty"`
+	Origin  string `json:"origin,omitempty"`
+}
+
 type ScrapedStreamData struct {
-	Source ScrapedEpisodeSourceDto `json:"source"`
-	Intro  ScrapedSegment          `json:"intro"`
-	Outro  ScrapedSegment          `json:"outro"`
-	Tracks []ScrapedTrack          `json:"tracks"`
-	Server string                  `json:"server"`
+	Source       ScrapedEpisodeSourceDto `json:"source"`
+	Intro        ScrapedSegment          `json:"intro"`
+	Outro        ScrapedSegment          `json:"outro"`
+	Tracks       []ScrapedTrack          `json:"tracks"`
+	Server       string                  `json:"server"`
+	ProxyHeaders ProxyHeaders            `json:"proxyHeaders"`
 }

@@ -5,7 +5,9 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -75,15 +77,15 @@ func main() {
 func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	parts := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/proxy/"), "/", 2)
-	if len(parts) != 2 {
+	parts := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/proxy/"), "/", 3)
+	if len(parts) != 3 {
 		http.Error(w, "not found", http.StatusNotFound)
 		logger.Error("invalid proxy request path", "path", r.URL.Path)
 		return
 	}
 
 	serverName := parts[0]
-	pEnc := parts[1]
+	pEnc := parts[2]
 	targetURLBytes, err := base64.URLEncoding.DecodeString(pEnc)
 	if err != nil {
 		http.Error(w, "invalid URL encoding", http.StatusBadRequest)
@@ -96,13 +98,31 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 	headers := http.Header{}
 	headers.Set("Accept", "*/*")
-	if isHianime {
-		headers.Set("Referer", "https://megacloud.blog/")
-		headers.Set("Origin", "https://megacloud.blog")
+
+	headersEnc := parts[1]
+	headersBytes, err := base64.StdEncoding.DecodeString(headersEnc)
+	if err != nil {
+		logger.Error("error decoding headers", "err", err, "headersEnc", headersEnc)
+	}
+
+	headersMap := map[string]string{}
+	if err := json.Unmarshal(headersBytes, &headersMap); err != nil {
+		logger.Error("error unmarshaling headers", "err", err)
 	} else {
-		headers.Set("Referer", "https://megaplay.buzz/")
-		headers.Set("Origin", "https://megaplay.buzz")
-		headers.Set("User-Agent", userAgent)
+		for k, v := range headersMap {
+			headers.Set(k, v)
+		}
+	}
+
+	if err != nil || len(headersMap) == 0 {
+		if isHianime {
+			headers.Set("Referer", "https://megacloud.blog/")
+			headers.Set("Origin", "https://megacloud.blog")
+		} else {
+			headers.Set("Referer", "https://megaplay.buzz/")
+			headers.Set("Origin", "https://megaplay.buzz")
+			headers.Set("User-Agent", userAgent)
+		}
 	}
 
 	req, err := http.NewRequestWithContext(ctx, r.Method, targetURL, nil)
@@ -162,7 +182,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 			full = base + next
 		}
 		pEnc := base64.URLEncoding.EncodeToString([]byte(full))
-		return "/proxy/" + serverName + "/" + pEnc
+		return fmt.Sprintf("/proxy/%s/%s/%s", serverName, headersEnc, pEnc)
 	}
 
 	if ext == ".m3u8" || ext == ".vtt" {

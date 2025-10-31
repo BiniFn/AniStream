@@ -348,53 +348,109 @@ func (s *HianimeScraper) GetStreamData(
 	serverID, streamType, serverName string,
 ) (ScrapedStreamData, error) {
 	if strings.ToLower(serverName) == "megaplay" {
-		url := fmt.Sprintf("https://megaplay.buzz/stream/s-2/%s/%s", serverID, streamType)
-		req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
-		req.Header.Set("Referer", "https://megaplay.buzz")
-		resp, err := s.fetcher.Client.Do(req)
+		serversURL := fmt.Sprintf("https://nine.bunniescdn.online/ajax/episode/servers?episodeId=%s&type=%s", serverID, streamType)
+		serversReq, _ := http.NewRequestWithContext(ctx, "GET", serversURL, nil)
+		serversReq.Header.Set("Referer", "https://megaplay.buzz")
+		serversReq.Header.Set("X-Requested-With", "XMLHttpRequest")
+		serversResp, err := s.fetcher.Client.Do(serversReq)
 		if err != nil {
 			return ScrapedStreamData{}, err
 		}
-		defer resp.Body.Close()
+		defer serversResp.Body.Close()
 
-		doc, err := goquery.NewDocumentFromReader(resp.Body)
-		if err != nil {
+		var serversData struct {
+			HTML string `json:"html"`
+		}
+		if err := json.NewDecoder(serversResp.Body).Decode(&serversData); err != nil {
 			return ScrapedStreamData{}, err
 		}
-		mediaID := doc.Find("#megaplay-player").AttrOr("data-ep-id", serverID)
 
-		ajax := fmt.Sprintf("https://megaplay.buzz/stream/getSources?id=%s", mediaID)
-		ajaxReq, _ := http.NewRequestWithContext(ctx, "GET", ajax, nil)
-		ajaxReq.Header.Set("Referer", "https://megaplay.buzz")
-		ajaxReq.Header.Set("Origin", url)
-		ajaxReq.Header.Set("X-Requested-With", "XMLHttpRequest")
-		ajaxResp, err := s.fetcher.Client.Do(ajaxReq)
+		doc, err := goquery.NewDocumentFromReader(strings.NewReader(serversData.HTML))
 		if err != nil {
 			return ScrapedStreamData{}, err
 		}
-		defer ajaxResp.Body.Close()
+
+		var dataID string
+		doc.Find(".server-item").Each(func(i int, sel *goquery.Selection) {
+			if dataID == "" {
+				dataID = sel.AttrOr("data-id", "")
+			}
+		})
+
+		if dataID == "" {
+			return ScrapedStreamData{}, fmt.Errorf("no server data-id found")
+		}
+
+		sourcesURL := fmt.Sprintf("https://nine.bunniescdn.online/ajax/episode/sources?id=%s", dataID)
+		sourcesReq, _ := http.NewRequestWithContext(ctx, "GET", sourcesURL, nil)
+		sourcesReq.Header.Set("Referer", "https://megaplay.buzz")
+		sourcesReq.Header.Set("X-Requested-With", "XMLHttpRequest")
+		sourcesResp, err := s.fetcher.Client.Do(sourcesReq)
+		if err != nil {
+			return ScrapedStreamData{}, err
+		}
+		defer sourcesResp.Body.Close()
+
+		var sourcesData struct {
+			Type   string `json:"type"`
+			Link   string `json:"link"`
+			Server int    `json:"server"`
+		}
+		if err := json.NewDecoder(sourcesResp.Body).Decode(&sourcesData); err != nil {
+			return ScrapedStreamData{}, err
+		}
+
+		parsedURL, err := url.Parse(sourcesData.Link)
+		if err != nil {
+			return ScrapedStreamData{}, err
+		}
+
+		parts := strings.Split(parsedURL.Path, "/")
+		encryptedID := parts[len(parts)-1]
+
+		baseURL := fmt.Sprintf("%s://%s", parsedURL.Scheme, parsedURL.Host)
+		getSourcesURL := fmt.Sprintf("%s/embed-2/v2/e-1/getSources?id=%s", baseURL, encryptedID)
+
+		getSourcesReq, _ := http.NewRequestWithContext(ctx, "GET", getSourcesURL, nil)
+		getSourcesReq.Header.Set("Referer", sourcesData.Link)
+		getSourcesReq.Header.Set("X-Requested-With", "XMLHttpRequest")
+		getSourcesResp, err := s.fetcher.Client.Do(getSourcesReq)
+		if err != nil {
+			return ScrapedStreamData{}, err
+		}
+		defer getSourcesResp.Body.Close()
 
 		var meta struct {
-			Sources struct {
+			Sources []struct {
 				File string `json:"file"`
+				Type string `json:"type"`
 			} `json:"sources"`
-			Tracks []ScrapedTrack `json:"tracks"`
-			Intro  ScrapedSegment `json:"intro"`
-			Outro  ScrapedSegment `json:"outro"`
+			Tracks    []ScrapedTrack `json:"tracks"`
+			Intro     ScrapedSegment `json:"intro"`
+			Outro     ScrapedSegment `json:"outro"`
+			Encrypted bool           `json:"encrypted"`
 		}
-		if err := json.NewDecoder(ajaxResp.Body).Decode(&meta); err != nil {
+		if err := json.NewDecoder(getSourcesResp.Body).Decode(&meta); err != nil {
 			return ScrapedStreamData{}, err
+		}
+
+		if len(meta.Sources) == 0 {
+			return ScrapedStreamData{}, fmt.Errorf("no sources found")
 		}
 
 		return ScrapedStreamData{
 			Source: ScrapedEpisodeSourceDto{
-				Iframe: url,
-				Hls:    &meta.Sources.File,
+				Iframe: sourcesData.Link,
+				Hls:    &meta.Sources[0].File,
 			},
 			Intro:  meta.Intro,
 			Outro:  meta.Outro,
 			Tracks: meta.Tracks,
 			Server: serverName,
+			ProxyHeaders: ProxyHeaders{
+				Referer: baseURL + "/",
+				Origin:  baseURL,
+			},
 		}, nil
 	}
 
@@ -471,6 +527,10 @@ func (s *HianimeScraper) GetStreamData(
 			Outro:  encMetadata.Outro,
 			Tracks: encMetadata.Tracks,
 			Server: serverName,
+			ProxyHeaders: ProxyHeaders{
+				Referer: "https://megacloud.blog/",
+				Origin:  "https://megacloud.blog",
+			},
 		}, nil
 	}
 
@@ -508,6 +568,10 @@ func (s *HianimeScraper) GetStreamData(
 		Outro:  encMetadata.Outro,
 		Tracks: encMetadata.Tracks,
 		Server: serverName,
+		ProxyHeaders: ProxyHeaders{
+			Referer: "https://megacloud.blog/",
+			Origin:  "https://megacloud.blog",
+		},
 	}, nil
 }
 

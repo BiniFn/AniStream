@@ -2,6 +2,7 @@ package mappers
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -156,6 +157,12 @@ func EpisodeServerFromScraper(server hianime.ScrapedEpisodeServerDto) models.Epi
 
 func StreamingDataFromScraper(data hianime.ScrapedStreamData) models.StreamingDataResponse {
 	server := strings.Split(strings.ToLower(data.Server), "-")[0]
+	headers, err := json.Marshal(data.ProxyHeaders)
+	if err != nil {
+		headers = []byte("{}")
+	}
+	headersEnc := base64.StdEncoding.EncodeToString(headers)
+	server = fmt.Sprintf("%s/%s", server, headersEnc)
 
 	source := models.StreamingSourceResponse{
 		Iframe: data.Source.Iframe,
