@@ -6,121 +6,136 @@ import { PUBLIC_STREAMING_URL } from '$env/static/public';
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 
 export const thumbnailPlugin = (thumbnails: { raw: string; url: string }) => {
-	return async (art: Artplayer) => {
+	return (art: Artplayer) => {
 		const {
 			template: { $progress },
 		} = art;
 
 		let timer: NodeJS.Timeout | null = null;
+		const abortController = new AbortController();
 
 		const url = `${PUBLIC_STREAMING_URL}${thumbnails.url}`;
-		if (!url) return;
+		if (!url) return { name: 'thumbnailPlugin' };
 
-		const tns = await fetch(url)
+		art.on('destroy', () => {
+			abortController.abort();
+			if (timer) clearTimeout(timer);
+		});
+
+		fetch(url, { signal: abortController.signal })
 			.then((res) => res.text())
-			.then((res) =>
-				res
+			.then((res) => {
+				const tns = res
 					.split('\n')
 					.filter((line) => line.trim())
-					.slice(1),
-			);
+					.slice(1);
 
-		const data: {
-			start: number;
-			end: number;
-			url: string;
-			x: number;
-			y: number;
-			w: number;
-			h: number;
-		}[] = [];
+				const data: {
+					start: number;
+					end: number;
+					url: string;
+					x: number;
+					y: number;
+					w: number;
+					h: number;
+				}[] = [];
 
-		tns.forEach((_, index) => {
-			if (index % 3 !== 0) return;
-			const time = tns[index + 1];
-			const url = tns[index + 2];
-			if (!time || !url) return;
-			const start = time.split(' --> ')[0]!;
-			const end = time.split(' --> ')[1]!;
+				tns.forEach((_, index) => {
+					if (index % 3 !== 0) return;
+					const time = tns[index + 1];
+					const url = tns[index + 2];
+					if (!time || !url) return;
+					const start = time.split(' --> ')[0]!;
+					const end = time.split(' --> ')[1]!;
 
-			const startSeconds = start.split(':').reduce((acc, time, i) => {
-				return acc + Number(time) * Math.pow(60, 2 - i);
-			}, 0);
+					const startSeconds = start.split(':').reduce((acc, time, i) => {
+						return acc + Number(time) * Math.pow(60, 2 - i);
+					}, 0);
 
-			const endSeconds = end.split(':').reduce((acc, time, i) => {
-				return acc + Number(time) * Math.pow(60, 2 - i);
-			}, 0);
+					const endSeconds = end.split(':').reduce((acc, time, i) => {
+						return acc + Number(time) * Math.pow(60, 2 - i);
+					}, 0);
 
-			const [x, y, w, h] = url.split('#xywh=')[1]!.split(',').map(Number);
+					const [x, y, w, h] = url.split('#xywh=')[1]!.split(',').map(Number);
 
-			data.push({
-				start: startSeconds,
-				end: endSeconds,
-				url: `${PUBLIC_STREAMING_URL}/${url.split('#xywh=')[0]}`,
-				x: x!,
-				y: y!,
-				w: w!,
-				h: h!,
-			});
-		});
-
-		art.controls.add({
-			name: 'vtt-thumbnail',
-			position: 'top',
-			mounted($control) {
-				$control.classList.add('art-control-thumbnails');
-				art.on('setBar', async (type, percentage, event) => {
-					const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-						navigator.userAgent,
-					);
-
-					const isMobileDragging = type === 'played' && event && isMobile;
-
-					if (type === 'hover' || isMobileDragging) {
-						const width = $progress.clientWidth * percentage;
-						const second = percentage * art.duration;
-						$control.style.display = 'flex';
-
-						const find = data.find((item) => item.start <= second && item.end >= second);
-
-						if (!find) {
-							$control.style.display = 'none';
-							return;
-						}
-
-						if (width > 0 && width < $progress.clientWidth) {
-							$control.style.backgroundImage = `url(${find.url})`;
-							$control.style.height = `${find.h}px`;
-							$control.style.width = `${find.w}px`;
-							$control.style.backgroundPosition = `-${find.x}px -${find.y}px`;
-							if (width <= find.w / 2) {
-								$control.style.left = '0px';
-							} else if (width > $progress.clientWidth - find.w / 2) {
-								$control.style.left = `${$progress.clientWidth - find.w}px`;
-							} else {
-								$control.style.left = `${width - find.w / 2}px`;
-							}
-						} else {
-							if (!isMobile) {
-								$control.style.display = 'none';
-							}
-						}
-
-						if (isMobileDragging) {
-							if (timer) clearTimeout(timer);
-							timer = setTimeout(() => {
-								$control.style.display = 'none';
-							}, 1000);
-						}
-					}
+					data.push({
+						start: startSeconds,
+						end: endSeconds,
+						url: `${PUBLIC_STREAMING_URL}/${url.split('#xywh=')[0]}`,
+						x: x!,
+						y: y!,
+						w: w!,
+						h: h!,
+					});
 				});
-			},
-		});
+
+				art.controls.add({
+					name: 'vtt-thumbnail',
+					position: 'top',
+					mounted($control) {
+						$control.classList.add('art-control-thumbnails');
+						art.on('setBar', async (type, percentage, event) => {
+							const isMobile =
+								/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+									navigator.userAgent,
+								);
+
+							const isMobileDragging = type === 'played' && event && isMobile;
+
+							if (type === 'hover' || isMobileDragging) {
+								const width = $progress.clientWidth * percentage;
+								const second = percentage * art.duration;
+								$control.style.display = 'flex';
+
+								const find = data.find((item) => item.start <= second && item.end >= second);
+
+								if (!find) {
+									$control.style.display = 'none';
+									return;
+								}
+
+								if (width > 0 && width < $progress.clientWidth) {
+									$control.style.backgroundImage = `url(${find.url})`;
+									$control.style.height = `${find.h}px`;
+									$control.style.width = `${find.w}px`;
+									$control.style.backgroundPosition = `-${find.x}px -${find.y}px`;
+									if (width <= find.w / 2) {
+										$control.style.left = '0px';
+									} else if (width > $progress.clientWidth - find.w / 2) {
+										$control.style.left = `${$progress.clientWidth - find.w}px`;
+									} else {
+										$control.style.left = `${width - find.w / 2}px`;
+									}
+								} else {
+									if (!isMobile) {
+										$control.style.display = 'none';
+									}
+								}
+
+								if (isMobileDragging) {
+									if (timer) clearTimeout(timer);
+									timer = setTimeout(() => {
+										$control.style.display = 'none';
+									}, 1000);
+								}
+							}
+						});
+					},
+				});
+			})
+			.catch((error) => {
+				if (error instanceof Error && error.name === 'AbortError') {
+					return;
+				}
+				console.error('Thumbnail plugin error:', error);
+			});
+
+		return { name: 'thumbnailPlugin' };
 	};
 };
 
 export const skipPlugin = (source: StreamInfo) => {
-	return async (art: Artplayer) => {
+	return (art: Artplayer) => {
 		art.on('ready', () => {
 			function addElement(title: string, start: number, end: number) {
 				const startPercentage = (start / art.duration) * 100;
@@ -199,12 +214,14 @@ export const skipPlugin = (source: StreamInfo) => {
 				art.controls.remove('ending');
 			}
 		});
+
+		return { name: 'skipPlugin' };
 	};
 };
 
 export const windowKeyBindPlugin = () => {
-	return async (art: Artplayer) => {
-		art.events.proxy(window, 'keydown', (e) => {
+	return (art: Artplayer) => {
+		const keydownHandler = (e: Event) => {
 			if (e instanceof KeyboardEvent === false) return;
 			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
@@ -212,6 +229,12 @@ export const windowKeyBindPlugin = () => {
 				e.preventDefault();
 				art.hotkey.keys[e.code]?.forEach((fn) => fn?.(e));
 			}
+		};
+
+		art.events.proxy(window, 'keydown', keydownHandler);
+
+		art.on('destroy', () => {
+			window.removeEventListener('keydown', keydownHandler);
 		});
 
 		art.on('ready', () => {
@@ -243,32 +266,51 @@ export const windowKeyBindPlugin = () => {
 				art.volume -= 0.1;
 			});
 		});
+
+		return { name: 'windowKeyBindPlugin' };
 	};
 };
 
 export const amplifyVolumePlugin = () => {
-	return async (art: Artplayer) => {
+	return (art: Artplayer) => {
+		let context: AudioContext | null = null;
+		let source: MediaElementAudioSourceNode | null = null;
+		let gainNode: GainNode | null = null;
+
 		art.on('ready', () => {
 			art.volume = 100;
 
-			const context = new AudioContext();
-			const source = context.createMediaElementSource(art.video);
-			const gainNode = context.createGain();
+			context = new AudioContext();
+			source = context.createMediaElementSource(art.video);
+			gainNode = context.createGain();
 			source.connect(gainNode);
 			gainNode.connect(context.destination);
 			gainNode.gain.value = 2;
 
 			art.on('video:play', () => {
-				context.resume();
+				context?.resume();
 			});
 
 			art.on('video:pause', () => {
-				context.suspend();
-			});
-
-			art.on('destroy', () => {
-				context.close();
+				context?.suspend();
 			});
 		});
+
+		art.on('destroy', () => {
+			if (source) {
+				source.disconnect();
+				source = null;
+			}
+			if (gainNode) {
+				gainNode.disconnect();
+				gainNode = null;
+			}
+			if (context && context.state !== 'closed') {
+				context.close();
+				context = null;
+			}
+		});
+
+		return { name: 'amplifyVolumePlugin' };
 	};
 };

@@ -33,11 +33,30 @@ export const createArtPlayer = ({
 	nextEpisodeUrl,
 	updateLibrary,
 }: Props) => {
+	const abortController = new AbortController();
 	const thumbnails = source.tracks.find((track) => track.kind === 'thumbnails');
 	const defaultSubtitle = source.tracks.find((track) => track.default && track.kind === 'captions');
 	const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 		navigator.userAgent,
 	);
+
+	const plugins = [
+		artplayerPluginHlsControl({
+			quality: {
+				setting: true,
+				getName: (level: { height: number }) => `${level.height}p`,
+				title: 'Quality',
+				auto: 'Auto',
+			},
+		}),
+		skipPlugin(source),
+		windowKeyBindPlugin(),
+		amplifyVolumePlugin(),
+	];
+
+	if (thumbnails) {
+		plugins.push(thumbnailPlugin(thumbnails));
+	}
 
 	const art = new Artplayer({
 		id,
@@ -73,31 +92,43 @@ export const createArtPlayer = ({
 				fontSize: isMobile ? '1rem' : '1.8rem',
 			},
 		},
-		plugins: [
-			artplayerPluginHlsControl({
-				quality: {
-					setting: true,
-					getName: (level: { height: number }) => `${level.height}p`,
-					title: 'Quality',
-					auto: 'Auto',
-				},
-			}),
-			thumbnailPlugin(thumbnails!),
-			skipPlugin(source),
-			windowKeyBindPlugin(),
-			amplifyVolumePlugin(),
-		],
+		plugins,
 		customType: {
 			m3u8: (video, url, art) => {
 				console.log('Custom type m3u8', url);
 
 				if (Hls.isSupported()) {
-					if (art.hls) (art.hls as Hls).destroy();
-					const hls = new Hls();
+					if (art.hls) {
+						const existingHls = art.hls as Hls;
+						existingHls.detachMedia();
+						existingHls.stopLoad();
+						existingHls.destroy();
+						art.hls = null;
+					}
+
+					const hls = new Hls({
+						fetchSetup: (context, initParams) => {
+							return new Request(context.url, {
+								...initParams,
+								signal: abortController.signal,
+							});
+						},
+					});
 					hls.loadSource(url);
 					hls.attachMedia(video);
 					art.hls = hls;
-					art.on('destroy', () => hls.destroy());
+
+					const cleanup = () => {
+						abortController.abort();
+						if (hls) {
+							hls.detachMedia();
+							hls.stopLoad();
+							hls.destroy();
+							art.hls = null;
+						}
+					};
+
+					art.once('destroy', cleanup);
 					// update art quality when hls quality changes
 					hls.on(Hls.Events.LEVEL_SWITCHED, () => {
 						const currentLevel = hls.levels[hls.currentLevel]?.height + 'p';
