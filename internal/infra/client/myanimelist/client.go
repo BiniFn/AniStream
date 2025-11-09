@@ -113,9 +113,7 @@ func (c *Client) GetTrailer(ctx context.Context, malID int) (string, error) {
 	if !exists {
 		return "", fmt.Errorf("trailer not found for mal ID %d", malID)
 	}
-	if !strings.Contains(trailerURL, "youtube.com") {
-		return "", fmt.Errorf("trailer is not a YouTube link: %s", trailerURL)
-	}
+
 	return trailerURL, nil
 }
 
