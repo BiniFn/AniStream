@@ -24,6 +24,7 @@ type Env struct {
 	CookieDomain            string `envconfig:"COOKIE_DOMAIN" required:"true"`
 	ResendAPIKey            string `envconfig:"RESEND_API_KEY" required:"true"`
 	ResendFromEmail         string `envconfig:"RESEND_FROM_EMAIL" required:"true"`
+	DesktopReleaseKey       string `envconfig:"DESKTOP_RELEASE_KEY" required:"true"`
 }
 
 func LoadEnv() (*Env, error) {

@@ -4,13 +4,19 @@ import path from "node:path";
 // These values are replaced at build time by tsup
 const BASE_URL = process.env.ANIWAYS_URL!;
 
-// Set app name for macOS menu bar
-app.setName("Aniways");
-
 let mainWindow: BrowserWindow | null = null;
 
-const LOADING_HTML = `
-<!DOCTYPE html>
+const originalLog = console.log;
+console.log = (...args: any[]) => {
+  if (!args.length) return;
+  if (process.env.NODE_ENV === "development") {
+    originalLog("[Main][Dev]", ...args);
+    return;
+  }
+  originalLog("[Main]", ...args);
+};
+
+const LOADING_HTML = `<!DOCTYPE html>
 <html>
 <head>
   <style>
@@ -63,47 +69,44 @@ if (process.env.NODE_ENV === "development") {
   } catch {}
 }
 
-app.whenReady().then(() => {
+function createWindow() {
   const { width: screenWidth, height: screenHeight } =
     screen.getPrimaryDisplay().workAreaSize;
 
   const isMac = process.platform === "darwin";
 
-  mainWindow = new BrowserWindow({
+  const options: Electron.BrowserWindowConstructorOptions = {
     width: Math.round(screenWidth * 0.75),
     height: Math.round(screenHeight * 0.75),
     minWidth: Math.round(screenWidth * 0.75),
     minHeight: Math.round(screenHeight * 0.75),
     show: false,
     backgroundColor: "#0a0a0a",
-    // macOS: custom title bar with traffic lights
-    // Windows/Linux: default title bar
-    ...(isMac
-      ? {
-          titleBarStyle: "hiddenInset",
-          trafficLightPosition: { x: 20, y: 29 },
-        }
-      : {
-          // Use default frame on Windows/Linux
-        }),
     webPreferences: {
       webSecurity: false,
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
     },
-  });
+  };
+
+  if (isMac) {
+    options.titleBarStyle = "hiddenInset";
+    options.trafficLightPosition = { x: 20, y: 29 };
+  }
+
+  mainWindow = new BrowserWindow(options);
 
   // Handle fullscreen events
   mainWindow.on("enter-full-screen", () => {
-    mainWindow.webContents.send("fullscreen-change", true);
+    mainWindow?.webContents.send("fullscreen-change", true);
   });
 
   mainWindow.on("leave-full-screen", () => {
-    mainWindow.webContents.send("fullscreen-change", false);
+    mainWindow?.webContents.send("fullscreen-change", false);
   });
 
   ipcMain.handle("get-fullscreen", () => {
-    return mainWindow.isFullScreen();
+    return mainWindow?.isFullScreen();
   });
 
   // Security: Only allow navigation to the base URL we loaded
@@ -128,10 +131,31 @@ app.whenReady().then(() => {
     `data:text/html;charset=utf-8,${encodeURIComponent(LOADING_HTML)}`,
   );
   mainWindow.once("ready-to-show", () => {
-    mainWindow.show();
+    mainWindow?.show();
   });
 
   // Load the actual URL
   console.log(`Loading URL: ${BASE_URL}`);
   mainWindow.loadURL(BASE_URL);
+}
+
+app.whenReady().then(() => {
+  createWindow();
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    // Create window if none are open (macOS)
+    createWindow();
+  }
+});
+
+app.on("before-quit", () => {
+  mainWindow = null;
 });

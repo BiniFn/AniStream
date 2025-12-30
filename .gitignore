@@ -37,3 +37,6 @@ tmp/*
 schema.graphql
 
 github.secrets
+
+# Planning docs
+plan.md

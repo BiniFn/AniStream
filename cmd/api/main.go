@@ -25,6 +25,10 @@ import (
 // @securityDefinitions.apikey cookieAuth
 // @in cookie
 // @name aniways_session
+
+// @securityDefinitions.apikey bearerAuth
+// @in header
+// @name Authorization
 func main() {
 	deps, err := app.InitDeps(context.Background(), "API")
 	if err != nil {

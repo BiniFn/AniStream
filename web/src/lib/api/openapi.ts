@@ -1961,6 +1961,286 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/desktop/releases': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get all desktop releases
+		 * @description Get all desktop releases grouped by version
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.DesktopReleaseResponse'][];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		/**
+		 * Create desktop release
+		 * @description Create a new desktop release for a specific platform
+		 */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			/** @description Release object */
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['models.CreateDesktopReleaseRequest'];
+				};
+			};
+			responses: {
+				/** @description Created */
+				201: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.DesktopReleaseResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ValidationErrorResponse'];
+					};
+				};
+				/** @description Unauthorized */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/desktop/releases/{version}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get desktop release by version
+		 * @description Get a specific desktop release version with all platform binaries
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Version string (e.g. 1.0.0) */
+					version: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.DesktopVersionResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Not Found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		/**
+		 * Delete desktop releases by version
+		 * @description Delete all desktop releases for a specific version
+		 */
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Version string (e.g. 1.0.0) */
+					version: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description No Content */
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Unauthorized */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/desktop/releases/latest': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get latest desktop release
+		 * @description Get the latest desktop release with all platform binaries
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.DesktopVersionResponse'];
+					};
+				};
+				/** @description Not Found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/health': {
 		parameters: {
 			query?: never;
@@ -3278,6 +3558,21 @@ export interface components {
 			language: string;
 			person: components['schemas']['models.CharacterVoicePersonResponse'];
 		};
+		'models.CreateDesktopReleaseRequest': {
+			downloadUrl: string;
+			fileName: string;
+			fileSize: number;
+			/** @enum {string} */
+			platform:
+				| 'darwin-arm64'
+				| 'darwin-x64'
+				| 'win32-x64'
+				| 'win32-arm64'
+				| 'linux-x64'
+				| 'linux-arm64';
+			releaseNotes?: string;
+			version: string;
+		};
 		'models.CreateUserRequest': {
 			/** @example john@example.com */
 			email: string;
@@ -3289,6 +3584,28 @@ export interface components {
 		'models.DeleteUserRequest': {
 			/** @example password123 */
 			password: string;
+		};
+		'models.DesktopPlatformRelease': {
+			downloadUrl?: string;
+			fileName?: string;
+			fileSize?: number;
+			platform?: string;
+		};
+		'models.DesktopReleaseResponse': {
+			createdAt?: string;
+			downloadUrl?: string;
+			fileName?: string;
+			fileSize?: number;
+			id?: string;
+			platform?: string;
+			releaseNotes?: string;
+			version?: string;
+		};
+		'models.DesktopVersionResponse': {
+			createdAt?: string;
+			platforms?: components['schemas']['models.DesktopPlatformRelease'][];
+			releaseNotes?: string;
+			version?: string;
 		};
 		'models.EpisodeResponse': {
 			/** @example V1StGXR8Z5jdHi6B */

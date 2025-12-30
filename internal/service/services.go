@@ -5,6 +5,7 @@ import (
 	"github.com/coeeter/aniways/internal/service/admin"
 	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/coeeter/aniways/internal/service/auth"
+	"github.com/coeeter/aniways/internal/service/desktop"
 	"github.com/coeeter/aniways/internal/service/library"
 	"github.com/coeeter/aniways/internal/service/settings"
 	"github.com/coeeter/aniways/internal/service/users"
@@ -17,6 +18,7 @@ type Services struct {
 	Users    *users.UserService
 	Settings *settings.SettingsService
 	Admin    *admin.AdminService
+	Desktop  *desktop.DesktopService
 }
 
 func NewServices(deps *app.Deps) *Services {
@@ -27,6 +29,7 @@ func NewServices(deps *app.Deps) *Services {
 	userService := users.NewUserService(deps.Repo, deps.Cld)
 	settingsService := settings.NewSettingsService(deps.Repo)
 	adminService := admin.NewAdminService(deps.Repo, deps.Scraper)
+	desktopService := desktop.NewDesktopService(deps.Repo)
 
 	return &Services{
 		Anime:    animeService,
@@ -35,6 +38,7 @@ func NewServices(deps *app.Deps) *Services {
 		Users:    userService,
 		Settings: settingsService,
 		Admin:    adminService,
+		Desktop:  desktopService,
 	}
 }
 
