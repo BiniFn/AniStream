@@ -4,12 +4,18 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { isElectron } from '$lib/hooks/is-electron';
 	import { isMobile } from '$lib/hooks/is-mobile';
-	import { detectOS, formatFileSize, getOSDisplayName, getPlatformDisplayName } from '$lib/utils/platform';
+	import {
+		detectOS,
+		formatFileSize,
+		getOSDisplayName,
+		getPlatformDisplayName,
+	} from '$lib/utils/platform';
 	import { Apple, Download, Monitor, Smartphone } from 'lucide-svelte';
 	import type { PageProps } from './$types';
+	import { SvelteMap } from 'svelte/reactivity';
+	import { cn } from '$lib/utils';
 
 	type DesktopVersionResponse = components['schemas']['models.DesktopVersionResponse'];
-	type DesktopPlatformRelease = components['schemas']['models.DesktopPlatformRelease'];
 
 	let { data }: PageProps = $props();
 
@@ -49,7 +55,10 @@
 	function groupByVersion(
 		releases: components['schemas']['models.DesktopReleaseResponse'][],
 	): Map<string, components['schemas']['models.DesktopReleaseResponse'][]> {
-		const grouped = new Map<string, components['schemas']['models.DesktopReleaseResponse'][]>();
+		const grouped = new SvelteMap<
+			string,
+			components['schemas']['models.DesktopReleaseResponse'][]
+		>();
 		for (const release of releases) {
 			const version = release.version || 'unknown';
 			if (!grouped.has(version)) {
@@ -111,7 +120,7 @@
 				></div>
 			</div>
 
-			<div class="container relative z-10 mx-auto px-4">
+			<div class="relative z-10 container mx-auto px-4">
 				<div class="mx-auto max-w-2xl text-center">
 					<div class="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
 						<Download class="h-4 w-4 text-primary" />
@@ -131,12 +140,8 @@
 
 					{#if currentOsDownloads.length > 0}
 						<div class="flex flex-wrap justify-center gap-4">
-							{#each currentOsDownloads as download}
-								<Button
-									href={download.downloadUrl}
-									size="lg"
-									class="gap-2 px-6 py-6 text-base"
-								>
+							{#each currentOsDownloads as download (download.platform)}
+								<Button href={download.downloadUrl} size="lg" class="gap-2 px-6 py-6 text-base">
 									<Download class="h-5 w-5" />
 									{getPlatformDisplayName(download.platform || '')}
 								</Button>
@@ -158,14 +163,21 @@
 			{#if otherOsDownloads.length > 0}
 				<div class="mx-auto mb-16 max-w-3xl">
 					<h2 class="mb-6 text-center text-xl font-semibold">Other Platforms</h2>
-					<div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-						{#each otherOsDownloads as download}
+					<div
+						class={cn(
+							'grid gap-4 sm:grid-cols-2 md:grid-cols-3',
+							otherOsDownloads.length < 3 ? 'sm:grid-cols-2 md:grid-cols-2' : '',
+						)}
+					>
+						{#each otherOsDownloads as download (download.platform)}
 							{@const Icon = getOSIcon(download.platform || '')}
 							<a
 								href={download.downloadUrl}
 								class="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-muted/50"
 							>
-								<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted">
+								<div
+									class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted"
+								>
 									<Icon class="h-6 w-6" />
 								</div>
 								<div class="min-w-0 flex-1">
@@ -182,7 +194,7 @@
 			{/if}
 
 			{#if latestRelease.releaseNotes}
-				<div class="mx-auto mb-16 max-w-2xl">
+				<div class="mx-auto mb-16 max-w-3xl">
 					<h2 class="mb-4 text-xl font-semibold">What's New in v{latestRelease.version}</h2>
 					<div class="rounded-lg border border-border bg-card p-6">
 						<p class="whitespace-pre-wrap text-muted-foreground">{latestRelease.releaseNotes}</p>
@@ -194,12 +206,10 @@
 				<div class="mx-auto max-w-2xl">
 					<h2 class="mb-6 text-xl font-semibold">Previous Versions</h2>
 					<div class="space-y-4">
-						{#each [...groupedReleases.entries()] as [version, releases]}
+						{#each [...groupedReleases.entries()] as [version, releases] (version)}
 							{#if version !== latestRelease.version}
 								<details class="group rounded-lg border border-border bg-card">
-									<summary
-										class="flex cursor-pointer items-center justify-between p-4 font-medium"
-									>
+									<summary class="flex cursor-pointer items-center justify-between p-4 font-medium">
 										<span>Version {version}</span>
 										<span class="text-sm text-muted-foreground">
 											{releases.length} platform{releases.length > 1 ? 's' : ''}
@@ -207,7 +217,7 @@
 									</summary>
 									<div class="border-t border-border p-4">
 										<div class="grid gap-2 sm:grid-cols-2">
-											{#each releases as release}
+											{#each releases as release (release.platform)}
 												<a
 													href={release.downloadUrl}
 													class="flex items-center gap-3 rounded-md p-2 text-sm transition-colors hover:bg-muted"
