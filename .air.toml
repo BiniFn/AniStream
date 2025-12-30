@@ -16,6 +16,7 @@ exclude_dir = [
     "testdata",
     "internal/repository",
     "web",
+    "desktop"
 ]
 exclude_file = ["internal/infra/client/anilist/graphql/generated.go"]
 exclude_regex = ["_test.go"]

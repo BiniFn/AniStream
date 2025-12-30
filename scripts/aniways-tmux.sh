@@ -34,6 +34,9 @@ tmux send-keys   -t "$SESSION:4" 'make dev-proxy' C-m
 tmux new-window  -t "$SESSION:5" -n web    -c "$ROOT"
 tmux send-keys   -t "$SESSION:5" 'cd web && bun run dev' C-m
 
+tmux new-window  -t "$SESSION:6" -n desktop -c "$ROOT"
+tmux send-keys   -t "$SESSION:6" 'cd desktop && bun run dev' C-m
+
 tmux select-window -t "$SESSION:0"
 if [ -n "${TMUX-}" ]; then
   exec tmux switch-client -t "$SESSION"

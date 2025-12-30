@@ -72,6 +72,8 @@ app.whenReady().then(() => {
   mainWindow = new BrowserWindow({
     width: Math.round(screenWidth * 0.75),
     height: Math.round(screenHeight * 0.75),
+    minWidth: Math.round(screenWidth * 0.75),
+    minHeight: Math.round(screenHeight * 0.75),
     show: false,
     backgroundColor: "#0a0a0a",
     // macOS: custom title bar with traffic lights
@@ -79,7 +81,7 @@ app.whenReady().then(() => {
     ...(isMac
       ? {
           titleBarStyle: "hiddenInset",
-          trafficLightPosition: { x: 20, y: 30 },
+          trafficLightPosition: { x: 20, y: 29 },
         }
       : {
           // Use default frame on Windows/Linux
@@ -123,7 +125,7 @@ app.whenReady().then(() => {
 
   // Show loading screen first
   mainWindow.loadURL(
-    `data:text/html;charset=utf-8,${encodeURIComponent(LOADING_HTML)}`
+    `data:text/html;charset=utf-8,${encodeURIComponent(LOADING_HTML)}`,
   );
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
