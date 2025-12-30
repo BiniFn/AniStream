@@ -1,7 +1,7 @@
 {
   "name": "aniways",
   "productName": "Aniways",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "dist/index.js",
   "private": true,
   "scripts": {
@@ -33,7 +33,8 @@
     "mac": {
       "category": "public.app-category.entertainment",
       "target": [
-        "dir"
+        "dir",
+        "zip"
       ],
       "identity": null,
       "hardenedRuntime": false,
