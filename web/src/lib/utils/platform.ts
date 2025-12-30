@@ -1,5 +1,3 @@
-export type Platform = 'darwin-arm64' | 'darwin-x64' | 'win32-x64' | 'win32-arm64' | 'linux-x64' | 'linux-arm64';
-
 export type OS = 'macos' | 'windows' | 'linux' | 'unknown';
 
 export function detectOS(): OS {
@@ -19,36 +17,6 @@ export function detectOS(): OS {
 	}
 
 	return 'unknown';
-}
-
-export function detectArch(): 'arm64' | 'x64' {
-	if (typeof navigator === 'undefined') return 'x64';
-
-	// Check for Apple Silicon or ARM indicators
-	const userAgent = navigator.userAgent.toLowerCase();
-
-	// macOS on Apple Silicon
-	if (userAgent.includes('mac') && userAgent.includes('arm64')) {
-		return 'arm64';
-	}
-
-	// Try to detect via userAgentData if available
-	const nav = navigator as Navigator & { userAgentData?: { platform?: string; architecture?: string } };
-	if (nav.userAgentData?.architecture === 'arm') {
-		return 'arm64';
-	}
-
-	// Default to x64 for most systems
-	return 'x64';
-}
-
-export function getRecommendedPlatform(): Platform | null {
-	const os = detectOS();
-	const arch = detectArch();
-
-	if (os === 'unknown') return null;
-
-	return `${os === 'macos' ? 'darwin' : os === 'windows' ? 'win32' : 'linux'}-${arch}` as Platform;
 }
 
 export function getPlatformDisplayName(platform: string): string {

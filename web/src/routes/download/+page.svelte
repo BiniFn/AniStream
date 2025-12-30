@@ -4,13 +4,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { isElectron } from '$lib/hooks/is-electron';
 	import { isMobile } from '$lib/hooks/is-mobile';
-	import {
-		detectOS,
-		formatFileSize,
-		getOSDisplayName,
-		getPlatformDisplayName,
-		getRecommendedPlatform,
-	} from '$lib/utils/platform';
+	import { detectOS, formatFileSize, getOSDisplayName, getPlatformDisplayName } from '$lib/utils/platform';
 	import { Apple, Download, Monitor, Smartphone } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 
@@ -24,18 +18,26 @@
 	const shouldShow = browser ? !inElectron && !onMobile : true;
 
 	const os = browser ? detectOS() : 'unknown';
-	const recommendedPlatform = browser ? getRecommendedPlatform() : null;
 
 	const latestRelease = $derived(data.latestRelease as DesktopVersionResponse | undefined);
 
-	const recommendedDownload = $derived.by(() => {
-		if (!latestRelease?.platforms || !recommendedPlatform) return null;
-		return latestRelease.platforms.find((p) => p.platform === recommendedPlatform);
+	function getPlatformPrefix(os: string): string {
+		if (os === 'macos') return 'darwin';
+		if (os === 'windows') return 'win32';
+		if (os === 'linux') return 'linux';
+		return '';
+	}
+
+	const platformPrefix = getPlatformPrefix(os);
+
+	const currentOsDownloads = $derived.by(() => {
+		if (!latestRelease?.platforms || !platformPrefix) return [];
+		return latestRelease.platforms.filter((p) => p.platform?.startsWith(platformPrefix));
 	});
 
-	const otherDownloads = $derived.by(() => {
-		if (!latestRelease?.platforms) return [];
-		return latestRelease.platforms.filter((p) => p.platform !== recommendedPlatform);
+	const otherOsDownloads = $derived.by(() => {
+		if (!latestRelease?.platforms || !platformPrefix) return latestRelease?.platforms || [];
+		return latestRelease.platforms.filter((p) => !p.platform?.startsWith(platformPrefix));
 	});
 
 	function getOSIcon(platform: string) {
@@ -127,20 +129,25 @@
 						streaming, no ads, and seamless library sync.
 					</p>
 
-					{#if recommendedDownload}
-						<div class="mb-4">
-							<Button
-								href={recommendedDownload.downloadUrl}
-								size="lg"
-								class="gap-2 px-8 py-6 text-lg"
-							>
-								<Download class="h-5 w-5" />
-								Download for {getPlatformDisplayName(recommendedDownload.platform || '')}
-							</Button>
+					{#if currentOsDownloads.length > 0}
+						<div class="flex flex-wrap justify-center gap-4">
+							{#each currentOsDownloads as download}
+								<Button
+									href={download.downloadUrl}
+									size="lg"
+									class="gap-2 px-6 py-6 text-base"
+								>
+									<Download class="h-5 w-5" />
+									{getPlatformDisplayName(download.platform || '')}
+								</Button>
+							{/each}
 						</div>
+						<p class="mt-4 text-sm text-muted-foreground">
+							Version {latestRelease.version}
+						</p>
+					{:else if latestRelease.platforms && latestRelease.platforms.length > 0}
 						<p class="text-sm text-muted-foreground">
-							Version {latestRelease.version} •
-							{formatFileSize(recommendedDownload.fileSize || 0)}
+							Version {latestRelease.version} • Select your platform below
 						</p>
 					{/if}
 				</div>
@@ -148,26 +155,26 @@
 		</div>
 
 		<div class="container mx-auto px-4 py-12">
-			{#if otherDownloads.length > 0}
-				<div class="mx-auto mb-16 max-w-2xl">
+			{#if otherOsDownloads.length > 0}
+				<div class="mx-auto mb-16 max-w-3xl">
 					<h2 class="mb-6 text-center text-xl font-semibold">Other Platforms</h2>
-					<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-						{#each otherDownloads as download}
+					<div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+						{#each otherOsDownloads as download}
 							{@const Icon = getOSIcon(download.platform || '')}
 							<a
 								href={download.downloadUrl}
 								class="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-muted/50"
 							>
-								<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-									<Icon class="h-5 w-5" />
+								<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted">
+									<Icon class="h-6 w-6" />
 								</div>
-								<div class="flex-1">
+								<div class="min-w-0 flex-1">
 									<p class="font-medium">{getPlatformDisplayName(download.platform || '')}</p>
 									<p class="text-sm text-muted-foreground">
 										{formatFileSize(download.fileSize || 0)}
 									</p>
 								</div>
-								<Download class="h-4 w-4 text-muted-foreground" />
+								<Download class="h-5 w-5 shrink-0 text-muted-foreground" />
 							</a>
 						{/each}
 					</div>

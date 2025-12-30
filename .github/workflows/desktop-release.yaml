@@ -36,10 +36,13 @@ jobs:
         include:
           - os: macos-latest
             platform: mac
+            args: --arm64 --x64
           - os: ubuntu-latest
             platform: linux
+            args: --x64
           - os: windows-latest
             platform: win
+            args: --x64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +63,7 @@ jobs:
         working-directory: desktop
         env:
           R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
-        run: bun run dist:${{ matrix.platform }}
+        run: bun run build && electron-builder --${{ matrix.platform }} ${{ matrix.args }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

@@ -1,7 +1,7 @@
 {
   "name": "aniways",
   "productName": "Aniways",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "private": true,
   "scripts": {
@@ -20,17 +20,25 @@
       "dist/**/*"
     ],
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "mac": {
       "category": "public.app-category.entertainment",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Video"
     },
     "nsis": {
