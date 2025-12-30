@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen } from "electron";
+import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
 import path from "node:path";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -102,6 +102,23 @@ app.whenReady().then(() => {
 
   ipcMain.handle("get-fullscreen", () => {
     return mainWindow.isFullScreen();
+  });
+
+  // Security: Only allow navigation to the base URL we loaded
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    const isAllowed = url.startsWith(BASE_URL) || url.startsWith("data:");
+    if (!isAllowed) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
+
+  // Open external links in system browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (!url.startsWith(BASE_URL)) {
+      shell.openExternal(url);
+    }
+    return { action: "deny" };
   });
 
   // Show loading screen first
