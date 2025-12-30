@@ -1,8 +1,8 @@
 import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
 import path from "node:path";
 
-const isDev = process.env.NODE_ENV === "development";
-const BASE_URL = isDev ? "http://localhost:3000" : "https://aniways.xyz";
+// These values are replaced at build time by tsup
+const BASE_URL = process.env.ANIWAYS_URL!;
 
 // Set app name for macOS menu bar
 app.setName("Aniways");
@@ -55,7 +55,7 @@ const LOADING_HTML = `
 </html>
 `;
 
-if (isDev) {
+if (process.env.NODE_ENV === "development") {
   try {
     require("electron-reloader")(module, {
       watchRenderer: false,

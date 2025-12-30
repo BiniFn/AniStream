@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "private": true,
   "scripts": {
-    "build": "tsup",
-    "start": "bun run build && NODE_ENV=production electron .",
-    "dev": "tsup --watch --onSuccess \"NODE_ENV=development electron .\"",
+    "build": "NODE_ENV=production tsup",
+    "start": "bun run build && electron .",
+    "dev": "NODE_ENV=development tsup --watch --onSuccess \"electron .\"",
     "dist": "bun run build && electron-builder",
     "dist:mac": "bun run build && electron-builder --mac",
     "dist:win": "bun run build && electron-builder --win",

@@ -1,5 +1,7 @@
 import { defineConfig } from "tsup";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export default defineConfig({
   entry: {
     index: "src/index.ts",
@@ -13,4 +15,10 @@ export default defineConfig({
   sourcemap: true,
   shims: true,
   external: ["electron"],
+  define: {
+    "process.env.ANIWAYS_URL": JSON.stringify(
+      process.env.ANIWAYS_URL || (isDev ? "http://localhost:3000" : "https://aniways.xyz")
+    ),
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
+  },
 });
