@@ -66,6 +66,24 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: bun run build && npx electron-builder --${{ matrix.platform }} ${{ matrix.args }}
 
+      - name: Ad-hoc sign macOS app (post-build)
+        if: matrix.platform == 'mac'
+        working-directory: desktop/release
+        run: |
+          # Find and sign all .app bundles
+          for app in mac*/*.app; do
+            echo "Signing $app"
+            codesign --force --deep --sign - "$app"
+          done
+
+          # Get version from package.json
+          VERSION=$(node -p "require('../package.json').version")
+
+          # Re-create ZIP with signed app
+          rm -f *.zip
+          cd mac-arm64 && zip -ry ../Aniways-${VERSION}-mac-arm64.zip Aniways.app && cd ..
+          cd mac && zip -ry ../Aniways-${VERSION}-mac-x64.zip Aniways.app && cd ..
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
