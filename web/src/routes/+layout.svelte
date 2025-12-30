@@ -3,6 +3,7 @@
 	import Footer from '$lib/components/layout/footer.svelte';
 	import NavBar from '$lib/components/layout/nav-bar.svelte';
 	import TopLoader from '$lib/components/layout/top-loader.svelte';
+	import UpdateModal from '$lib/components/layout/update-modal.svelte';
 	import Sonner from '$lib/components/ui/sonner/sonner.svelte';
 	import { setLayoutStateContext } from '$lib/context/layout.svelte';
 	import { setAppStateContext } from '$lib/context/state.svelte';
@@ -51,3 +52,7 @@
 	<Footer />
 </div>
 <Sonner richColors />
+
+{#if inElectron}
+	<UpdateModal />
+{/if}

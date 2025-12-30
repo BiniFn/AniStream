@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
 import path from "node:path";
+import { setupAutoUpdater } from "./updater";
 
 // These values are replaced at build time by tsup
 const BASE_URL = process.env.ANIWAYS_URL!;
@@ -139,8 +140,14 @@ function createWindow() {
   mainWindow.loadURL(BASE_URL);
 }
 
+app.setName("Aniways");
+
 app.whenReady().then(() => {
   createWindow();
+
+  if (mainWindow) {
+    setupAutoUpdater(mainWindow);
+  }
 });
 
 app.on("window-all-closed", () => {

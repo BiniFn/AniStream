@@ -19,15 +19,18 @@
     "files": [
       "dist/**/*"
     ],
+    "directories": {
+      "output": "release"
+    },
     "mac": {
       "category": "public.app-category.entertainment",
       "target": ["dmg", "zip"]
     },
     "win": {
-      "target": ["nsis", "portable"]
+      "target": ["nsis"]
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": ["AppImage"],
       "category": "Video"
     },
     "nsis": {
@@ -37,10 +40,14 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/node": "^25.0.3",
     "electron": "^39.2.7",
     "electron-builder": "^26.0.12",
     "electron-reloader": "^1.2.3",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
   }
 }
