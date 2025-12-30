@@ -53,10 +53,8 @@ const DIST_DIR = path.join(__dirname, '..', 'release');
 
 // Platform mapping: file pattern -> platform key
 const PLATFORM_PATTERNS = [
-  { pattern: /-arm64\.dmg$/, platform: 'darwin-arm64', type: 'dmg' },
-  { pattern: /-x64\.dmg$/, platform: 'darwin-x64', type: 'dmg' },
-  { pattern: /-arm64-mac\.zip$/, platform: 'darwin-arm64', type: 'zip' },
-  { pattern: /-mac\.zip$/, platform: 'darwin-x64', type: 'zip' },
+  { pattern: /-mac-arm64\.zip$/, platform: 'darwin-arm64', type: 'zip' },
+  { pattern: /-mac-x64\.zip$/, platform: 'darwin-x64', type: 'zip' },
   { pattern: /-arm64\.exe$/, platform: 'win32-arm64', type: 'exe' },
   { pattern: / Setup .*\.exe$/, platform: 'win32-x64', type: 'exe' },
   { pattern: /-arm64\.AppImage$/, platform: 'linux-arm64', type: 'AppImage' },

@@ -1,7 +1,7 @@
 {
   "name": "aniways",
   "productName": "Aniways",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/index.js",
   "private": true,
   "scripts": {
