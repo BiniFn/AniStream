@@ -76,6 +76,8 @@ function createWindow() {
 
   const isMac = process.platform === "darwin";
 
+  const isDev = process.env.NODE_ENV === "development";
+
   const options: Electron.BrowserWindowConstructorOptions = {
     width: Math.round(screenWidth * 0.75),
     height: Math.round(screenHeight * 0.75),
@@ -87,6 +89,9 @@ function createWindow() {
       webSecurity: false,
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
+      devTools: isDev,
+      nodeIntegration: false,
+      spellcheck: false,
     },
   };
 
@@ -96,6 +101,17 @@ function createWindow() {
   }
 
   mainWindow = new BrowserWindow(options);
+
+  // Performance optimizations for production
+  if (!isDev) {
+    mainWindow.webContents.on("did-finish-load", () => {
+      // Disable hardware acceleration issues
+      mainWindow?.webContents.setZoomFactor(1.0);
+    });
+
+    // Disable background throttling for better performance
+    mainWindow.webContents.setBackgroundThrottling(false);
+  }
 
   // Handle fullscreen events
   mainWindow.on("enter-full-screen", () => {
@@ -141,6 +157,16 @@ function createWindow() {
 }
 
 app.setName("Aniways");
+
+// Performance optimizations for production
+if (process.env.NODE_ENV !== "development") {
+  // Optimize for better performance
+  app.commandLine.appendSwitch("disable-background-timer-throttling");
+  app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
+  app.commandLine.appendSwitch("disable-renderer-backgrounding");
+  // Enable better scrolling performance
+  app.commandLine.appendSwitch("enable-smooth-scrolling");
+}
 
 app.whenReady().then(() => {
   createWindow();

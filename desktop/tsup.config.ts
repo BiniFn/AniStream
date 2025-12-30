@@ -13,7 +13,7 @@ export default defineConfig({
   platform: "node",
   outDir: "dist",
   clean: true,
-  sourcemap: true,
+  sourcemap: isDev,
   shims: true,
   external: ["electron"],
   define: {
