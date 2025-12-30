@@ -174,6 +174,7 @@ async function registerRelease(platform, downloadUrl, fileName, fileSize) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${DESKTOP_RELEASE_KEY}`,
         'Content-Length': Buffer.byteLength(body),
+        'User-Agent': 'Aniways-Desktop-Release/1.0',
       },
     }, (res) => {
       let data = '';

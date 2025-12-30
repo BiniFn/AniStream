@@ -32,7 +32,11 @@ async function getLatestVersion() {
   return new Promise((resolve) => {
     const url = `${API_URL}/desktop/releases/latest`;
     
-    https.get(url, (res) => {
+    https.get(url, {
+      headers: {
+        'User-Agent': 'Aniways-Desktop-Release/1.0',
+      },
+    }, (res) => {
       if (res.statusCode === 404) {
         // No releases yet
         resolve(null);
