@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { onNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { apiClient } from '$lib/api/client';
@@ -7,9 +8,13 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
+	import { getAppStateContext } from '$lib/context/state.svelte';
+	import { isElectron } from '$lib/hooks/is-electron';
+	import { isMobile } from '$lib/hooks/is-mobile';
 	import { cn } from '$lib/utils';
 	import {
 		Dice6,
+		Download,
 		Heart,
 		Library,
 		LogOut,
@@ -19,13 +24,14 @@
 		Swords,
 		User,
 	} from 'lucide-svelte';
-	import ProfilePicture from './profile-picture.svelte';
 	import BrandText from './brand-text.svelte';
-	import { getAppStateContext } from '$lib/context/state.svelte';
+	import ProfilePicture from './profile-picture.svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 
 	const appState = getAppStateContext();
+	const showDownload = browser ? !isElectron() && !isMobile() : false;
+
 	let links = $derived.by(() => {
 		const base = [
 			{ label: 'Catalog', link: '/catalog', Icon: Library },
@@ -35,6 +41,10 @@
 
 		if (appState.isLoggedIn) {
 			base.push({ label: 'My List', link: '/my-list', Icon: Heart });
+		}
+
+		if (showDownload) {
+			base.push({ label: 'Download', link: '/download', Icon: Download });
 		}
 
 		return base;
