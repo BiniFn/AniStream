@@ -83,7 +83,7 @@ function getSignatureKey(key, dateStamp, regionName, serviceName) {
   return kSigning;
 }
 
-async function uploadToR2(filePath, key) {
+async function uploadToR2(filePath, key, originalFileName) {
   const fileContent = fs.readFileSync(filePath);
   const fileSize = fs.statSync(filePath).size;
   
@@ -92,16 +92,22 @@ async function uploadToR2(filePath, key) {
   const service = 's3';
   const method = 'PUT';
   
+  // Content-Disposition header for proper download filename
+  const contentDisposition = `attachment; filename="${originalFileName}"`;
+  
   const now = new Date();
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
   const dateStamp = amzDate.slice(0, 8);
   
   const contentHash = crypto.createHash('sha256').update(fileContent).digest('hex');
   
-  const canonicalUri = `/${R2_BUCKET_NAME}/${key}`;
+  // URI-encode the key for the path, but use unencoded for canonical URI signing
+  const canonicalUri = `/${R2_BUCKET_NAME}/${key.split('/').map(encodeURIComponent).join('/')}`;
+  const encodedPath = `/${R2_BUCKET_NAME}/${key.split('/').map(encodeURIComponent).join('/')}`;
+  
   const canonicalQuerystring = '';
-  const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${contentHash}\nx-amz-date:${amzDate}\n`;
-  const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+  const canonicalHeaders = `content-disposition:${contentDisposition}\nhost:${host}\nx-amz-content-sha256:${contentHash}\nx-amz-date:${amzDate}\n`;
+  const signedHeaders = 'content-disposition;host;x-amz-content-sha256;x-amz-date';
   
   const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQuerystring}\n${canonicalHeaders}\n${signedHeaders}\n${contentHash}`;
   
@@ -117,10 +123,11 @@ async function uploadToR2(filePath, key) {
   return new Promise((resolve, reject) => {
     const req = https.request({
       hostname: host,
-      path: canonicalUri,
+      path: encodedPath,
       method: 'PUT',
       headers: {
         'Host': host,
+        'Content-Disposition': contentDisposition,
         'x-amz-date': amzDate,
         'x-amz-content-sha256': contentHash,
         'Authorization': authorizationHeader,
@@ -131,7 +138,8 @@ async function uploadToR2(filePath, key) {
       res.on('data', (chunk) => (data += chunk));
       res.on('end', () => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(`${R2_PUBLIC_URL}/${key}`);
+          // Return URL with encoded key
+          resolve(`${R2_PUBLIC_URL}/${key.split('/').map(encodeURIComponent).join('/')}`);
         } else {
           reject(new Error(`Upload failed with status ${res.statusCode}: ${data}`));
         }
@@ -212,7 +220,7 @@ async function main() {
       console.log(`Uploading updater file: ${updaterFile}`);
       try {
         const key = updaterFile;
-        await uploadToR2(filePath, key);
+        await uploadToR2(filePath, key, updaterFile);
         console.log(`  ✓ Uploaded ${updaterFile}`);
       } catch (err) {
         console.error(`  ✗ Failed to upload ${updaterFile}:`, err.message);
@@ -239,7 +247,7 @@ async function main() {
       // Upload to R2
       const key = `${VERSION}/${fileName}`;
       console.log(`  Uploading to R2...`);
-      const downloadUrl = await uploadToR2(filePath, key);
+      const downloadUrl = await uploadToR2(filePath, key, fileName);
       console.log(`  ✓ Uploaded to ${downloadUrl}`);
 
       // Register in API
