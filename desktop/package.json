@@ -22,6 +22,10 @@
     "asar": true,
     "asarUnpack": [],
     "compression": "maximum",
+    "publish": {
+      "provider": "generic",
+      "url": "https://placeholder.example.com"
+    },
     "directories": {
       "output": "release",
       "buildResources": "build"

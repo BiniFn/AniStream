@@ -220,10 +220,12 @@ async function main() {
       try {
         const key = updaterFile;
         await uploadToR2(filePath, key, updaterFile);
-        console.log(`  ✓ Uploaded ${updaterFile}`);
+        console.log(`  ✓ Uploaded ${updaterFile} to ${R2_PUBLIC_URL}/${updaterFile}`);
       } catch (err) {
         console.error(`  ✗ Failed to upload ${updaterFile}:`, err.message);
       }
+    } else {
+      console.warn(`  ⚠ Updater manifest not found: ${updaterFile} (this is normal for some platforms)`);
     }
   }
 

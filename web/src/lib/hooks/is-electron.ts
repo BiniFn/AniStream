@@ -13,6 +13,7 @@ type ElectronAPI = {
 	getFullscreen: () => Promise<boolean>;
 	getAppVersion: () => Promise<string>;
 	getUpdateStatus: () => Promise<UpdateStatus>;
+	getLogFilePath: () => Promise<string>;
 	checkForUpdates: () => Promise<void>;
 	startUpdate: () => Promise<void>;
 	quitAndInstall: () => Promise<void>;
@@ -71,6 +72,13 @@ export async function getAppVersion(): Promise<string | null> {
  */
 export async function getUpdateStatus(): Promise<UpdateStatus | null> {
 	return (await getElectronAPI()?.getUpdateStatus()) ?? null;
+}
+
+/**
+ * Get log file path (only works in Electron)
+ */
+export async function getLogFilePath(): Promise<string | null> {
+	return (await getElectronAPI()?.getLogFilePath()) ?? null;
 }
 
 /**

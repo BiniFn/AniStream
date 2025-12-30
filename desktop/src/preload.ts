@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld("electron", {
   // Auto-update APIs
   getAppVersion: () => ipcRenderer.invoke("get-app-version"),
   getUpdateStatus: () => ipcRenderer.invoke("get-update-status"),
+  getLogFilePath: () => ipcRenderer.invoke("get-log-file-path"),
   checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
   startUpdate: () => ipcRenderer.invoke("start-update"),
   quitAndInstall: () => ipcRenderer.invoke("quit-and-install"),

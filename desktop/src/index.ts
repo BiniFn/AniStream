@@ -1,6 +1,7 @@
-import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, screen, shell } from "electron";
 import path from "node:path";
 import { setupAutoUpdater } from "./updater";
+import { getLogFilePathForUser } from "./logger";
 
 // These values are replaced at build time by tsup
 const BASE_URL = process.env.ANIWAYS_URL!;
@@ -158,6 +159,66 @@ function createWindow() {
 
 app.setName("Aniways");
 
+function createMenu() {
+  const isMac = process.platform === "darwin";
+  const isDev = process.env.NODE_ENV === "development";
+
+  const template: Electron.MenuItemConstructorOptions[] = [];
+
+  if (isMac) {
+    template.push({
+      label: app.getName(),
+      submenu: [
+        { role: "about" },
+        { type: "separator" },
+        { role: "services" },
+        { type: "separator" },
+        { role: "hide" },
+        { role: "hideOthers" },
+        { role: "unhide" },
+        { type: "separator" },
+        { role: "quit" },
+      ],
+    });
+  }
+
+  template.push({
+    label: "View",
+    submenu: [
+      { role: "reload" },
+      { role: "forceReload" },
+      { role: "toggleDevTools", visible: isDev },
+      { type: "separator" },
+      { role: "resetZoom" },
+      { role: "zoomIn" },
+      { role: "zoomOut" },
+      { type: "separator" },
+      { role: "togglefullscreen" },
+      {
+        label: "View Logs",
+        click: () => {
+          const logPath = getLogFilePathForUser();
+          shell.openPath(logPath).catch((err) => {
+            console.error("Failed to open log file:", err);
+          });
+        },
+      },
+    ],
+  });
+
+  template.push({
+    label: "Window",
+    submenu: [
+      { role: "minimize" },
+      { role: "close" },
+      ...(isMac ? ([{ type: "separator" }, { role: "front" }] as const) : []),
+    ],
+  });
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
 // Performance optimizations for production
 if (process.env.NODE_ENV !== "development") {
   // Optimize for better performance
@@ -169,6 +230,7 @@ if (process.env.NODE_ENV !== "development") {
 }
 
 app.whenReady().then(() => {
+  createMenu();
   createWindow();
 
   if (mainWindow) {
