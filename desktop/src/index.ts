@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain, Menu, screen, shell } from "electron";
 import path from "node:path";
-import { setupAutoUpdater } from "./updater";
 import { getLogFilePathForUser } from "./logger";
 
 // These values are replaced at build time by tsup
@@ -232,10 +231,6 @@ if (process.env.NODE_ENV !== "development") {
 app.whenReady().then(() => {
   createMenu();
   createWindow();
-
-  if (mainWindow) {
-    setupAutoUpdater(mainWindow);
-  }
 });
 
 app.on("window-all-closed", () => {
