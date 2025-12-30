@@ -1,7 +1,7 @@
 {
   "name": "aniways",
   "productName": "Aniways",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "private": true,
   "scripts": {
@@ -29,7 +29,9 @@
         "dmg",
         "zip"
       ],
-      "identity": null
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
     "win": {
       "target": [

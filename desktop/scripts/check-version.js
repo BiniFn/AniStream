@@ -2,17 +2,27 @@
 
 /**
  * Checks if the current package.json version is newer than what's in the API.
- * Exits with code 0 if should release, 1 if not.
+ * Writes outputs to GITHUB_OUTPUT file.
  */
 
 const pkg = require('../package.json');
 const https = require('https');
+const http = require('http');
+const fs = require('fs');
 
 const API_URL = process.env.API_URL;
+const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 
 if (!API_URL) {
   console.error('API_URL environment variable is required');
   process.exit(1);
+}
+
+function writeOutput(name, value) {
+  console.log(`${name}=${value}`);
+  if (GITHUB_OUTPUT) {
+    fs.appendFileSync(GITHUB_OUTPUT, `${name}=${value}\n`);
+  }
 }
 
 function compareVersions(a, b) {
@@ -31,14 +41,15 @@ function compareVersions(a, b) {
 async function getLatestVersion() {
   return new Promise((resolve) => {
     const url = `${API_URL}/desktop/releases/latest`;
+    const client = url.startsWith('https') ? https : http;
     
-    https.get(url, {
+    const req = client.get(url, {
       headers: {
         'User-Agent': 'Aniways-Desktop-Release/1.0',
       },
+      timeout: 30000,
     }, (res) => {
       if (res.statusCode === 404) {
-        // No releases yet
         resolve(null);
         return;
       }
@@ -59,8 +70,16 @@ async function getLatestVersion() {
           resolve(null);
         }
       });
-    }).on('error', (err) => {
+    });
+
+    req.on('error', (err) => {
       console.error('Failed to fetch latest version:', err.message);
+      resolve(null);
+    });
+
+    req.on('timeout', () => {
+      console.error('Request timed out');
+      req.destroy();
       resolve(null);
     });
   });
@@ -74,8 +93,8 @@ async function main() {
   
   if (latestVersion === null) {
     console.log('No existing releases found. Should release.');
-    console.log(`::set-output name=should_release::true`);
-    console.log(`::set-output name=version::${currentVersion}`);
+    writeOutput('should_release', 'true');
+    writeOutput('version', currentVersion);
     process.exit(0);
   }
 
@@ -83,12 +102,12 @@ async function main() {
 
   if (compareVersions(currentVersion, latestVersion) > 0) {
     console.log(`Version ${currentVersion} is newer than ${latestVersion}. Should release.`);
-    console.log(`::set-output name=should_release::true`);
-    console.log(`::set-output name=version::${currentVersion}`);
+    writeOutput('should_release', 'true');
+    writeOutput('version', currentVersion);
     process.exit(0);
   } else {
     console.log(`Version ${currentVersion} is not newer than ${latestVersion}. Skipping release.`);
-    console.log(`::set-output name=should_release::false`);
+    writeOutput('should_release', 'false');
     process.exit(0);
   }
 }
