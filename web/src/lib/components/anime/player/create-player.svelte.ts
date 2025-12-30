@@ -9,6 +9,7 @@ import type { components } from '$lib/api/openapi';
 import { PUBLIC_STREAMING_URL } from '$env/static/public';
 import type { AppState } from '$lib/context/state.svelte';
 import Artplayer from 'artplayer';
+import { isElectron } from '$lib/hooks/is-electron';
 
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 
@@ -39,6 +40,22 @@ export const createArtPlayer = ({
 	const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 		navigator.userAgent,
 	);
+	const inElectron = isElectron();
+
+	// In Electron, use raw URLs directly (no CORS issues). In browser, use proxy.
+	const getStreamUrl = () => {
+		if (inElectron && source.source.hls) {
+			return source.source.hls;
+		}
+		return `${PUBLIC_STREAMING_URL}${source.source.proxyHls}`;
+	};
+
+	const getTrackUrl = (track: { raw: string; url: string }) => {
+		if (inElectron) {
+			return track.raw;
+		}
+		return `${PUBLIC_STREAMING_URL}${track.url}`;
+	};
 
 	const plugins = [
 		artplayerPluginHlsControl({
@@ -55,14 +72,14 @@ export const createArtPlayer = ({
 	];
 
 	if (thumbnails) {
-		plugins.push(thumbnailPlugin(thumbnails));
+		plugins.push(thumbnailPlugin(getTrackUrl(thumbnails)));
 	}
 
 	const art = new Artplayer({
 		id,
 		container,
 		hotkey: false,
-		url: `${PUBLIC_STREAMING_URL}${source.source.proxyHls}`,
+		url: getStreamUrl(),
 		setting: true,
 		theme: 'var(--primary)',
 		fullscreen: true,
@@ -84,7 +101,7 @@ export const createArtPlayer = ({
 			}),
 		},
 		subtitle: {
-			url: defaultSubtitle ? `${PUBLIC_STREAMING_URL}${defaultSubtitle.url}` : '',
+			url: defaultSubtitle ? getTrackUrl(defaultSubtitle) : '',
 			type: 'vtt',
 			encoding: 'utf-8',
 			escape: false,
@@ -203,7 +220,7 @@ export const createArtPlayer = ({
 				.map((track) => ({
 					default: track.default,
 					html: track.label ?? 'Unknown',
-					url: `${PUBLIC_STREAMING_URL}${track.url}`,
+					url: getTrackUrl(track),
 				})),
 		],
 		onSelect: (item) => {

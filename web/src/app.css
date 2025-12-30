@@ -464,3 +464,12 @@
 [class^='art'] {
 	z-index: 0 !important;
 }
+
+/* Electron desktop app drag regions */
+.electron-drag {
+	-webkit-app-region: drag;
+}
+
+.electron-no-drag {
+	-webkit-app-region: no-drag;
+}

@@ -1,11 +1,10 @@
 import { buttonVariants } from '$lib/components/ui/button';
 import type Artplayer from 'artplayer';
 import type { components } from '$lib/api/openapi';
-import { PUBLIC_STREAMING_URL } from '$env/static/public';
 
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 
-export const thumbnailPlugin = (thumbnails: { raw: string; url: string }) => {
+export const thumbnailPlugin = (url: string) => {
 	return (art: Artplayer) => {
 		const {
 			template: { $progress },
@@ -14,7 +13,6 @@ export const thumbnailPlugin = (thumbnails: { raw: string; url: string }) => {
 		let timer: NodeJS.Timeout | null = null;
 		const abortController = new AbortController();
 
-		const url = `${PUBLIC_STREAMING_URL}${thumbnails.url}`;
 		if (!url) return { name: 'thumbnailPlugin' };
 
 		art.on('destroy', () => {
@@ -40,34 +38,38 @@ export const thumbnailPlugin = (thumbnails: { raw: string; url: string }) => {
 					h: number;
 				}[] = [];
 
-				tns.forEach((_, index) => {
-					if (index % 3 !== 0) return;
-					const time = tns[index + 1];
-					const url = tns[index + 2];
-					if (!time || !url) return;
-					const start = time.split(' --> ')[0]!;
-					const end = time.split(' --> ')[1]!;
+			// Get the base URL (everything before the VTT filename)
+			const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
 
-					const startSeconds = start.split(':').reduce((acc, time, i) => {
-						return acc + Number(time) * Math.pow(60, 2 - i);
-					}, 0);
+			tns.forEach((_, index) => {
+				if (index % 3 !== 0) return;
+				const time = tns[index + 1];
+				const spriteUrl = tns[index + 2];
+				if (!time || !spriteUrl) return;
+				const start = time.split(' --> ')[0]!;
+				const end = time.split(' --> ')[1]!;
 
-					const endSeconds = end.split(':').reduce((acc, time, i) => {
-						return acc + Number(time) * Math.pow(60, 2 - i);
-					}, 0);
+				const startSeconds = start.split(':').reduce((acc, time, i) => {
+					return acc + Number(time) * Math.pow(60, 2 - i);
+				}, 0);
 
-					const [x, y, w, h] = url.split('#xywh=')[1]!.split(',').map(Number);
+				const endSeconds = end.split(':').reduce((acc, time, i) => {
+					return acc + Number(time) * Math.pow(60, 2 - i);
+				}, 0);
 
-					data.push({
-						start: startSeconds,
-						end: endSeconds,
-						url: `${PUBLIC_STREAMING_URL}/${url.split('#xywh=')[0]}`,
-						x: x!,
-						y: y!,
-						w: w!,
-						h: h!,
-					});
+				const [x, y, w, h] = spriteUrl.split('#xywh=')[1]!.split(',').map(Number);
+				const spritePath = spriteUrl.split('#xywh=')[0];
+
+				data.push({
+					start: startSeconds,
+					end: endSeconds,
+					url: `${baseUrl}${spritePath}`,
+					x: x!,
+					y: y!,
+					w: w!,
+					h: h!,
 				});
+			});
 
 				art.controls.add({
 					name: 'vtt-thumbnail',

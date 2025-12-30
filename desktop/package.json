@@ -1,0 +1,46 @@
+{
+  "name": "aniways",
+  "productName": "Aniways",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "private": true,
+  "scripts": {
+    "build": "tsup",
+    "start": "bun run build && NODE_ENV=production electron .",
+    "dev": "tsup --watch --onSuccess \"NODE_ENV=development electron .\"",
+    "dist": "bun run build && electron-builder",
+    "dist:mac": "bun run build && electron-builder --mac",
+    "dist:win": "bun run build && electron-builder --win",
+    "dist:linux": "bun run build && electron-builder --linux"
+  },
+  "build": {
+    "appId": "xyz.aniways.desktop",
+    "productName": "Aniways",
+    "files": [
+      "dist/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.entertainment",
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Video"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12",
+    "electron-reloader": "^1.2.3",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}
