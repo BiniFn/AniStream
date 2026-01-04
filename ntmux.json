@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Coeeter/ntmux/refs/heads/main/schema.json",
+  "sessions": [
+    {
+      "name": "aniways-backend",
+      "default": true,
+      "windows": [
+        {
+          "name": "editor",
+          "cmd": "nvim ."
+        },
+        {
+          "name": "terminal",
+          "cmd": "make dev-docker-up"
+        },
+        {
+          "name": "api",
+          "cmd": "make dev-api"
+        },
+        {
+          "name": "worker",
+          "cmd": "make dev-worker"
+        },
+        {
+          "name": "proxy",
+          "cmd": "make dev-proxy"
+        }
+      ]
+    },
+    {
+      "name": "aniways-frontend",
+      "dir": "./web",
+      "windows": [
+        {
+          "name": "editor",
+          "cmd": "nvim ."
+        },
+        {
+          "name": "terminal"
+        },
+        {
+          "name": "frontend",
+          "cmd": "bun run dev"
+        }
+      ]
+    }
+  ]
+}

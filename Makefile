@@ -61,7 +61,9 @@ dev-docker-logs: ## View logs for all containers
 # ----- Tmux Commands ----- #
 .PHONY: tmux
 tmux: ## Start tmux session
-	@./scripts/aniways-tmux.sh
+	@command -v ntmux >/dev/null 2>&1 && \
+		{ echo "ntmux found, applying template..."; ntmux apply ntmux.json; } || \
+		{ echo "ntmux not found, falling back to script..."; ./scripts/aniways-tmux.sh; }
 
 # ----- Setup ----- #
 .PHONY: setup
