@@ -1,12 +1,21 @@
 #[cfg(target_os = "macos")]
 use tauri::TitleBarStyle;
-use tauri::{window::Color, Url, WebviewUrl, WebviewWindowBuilder};
+use tauri::{window::Color, Manager, Url, WebviewUrl, WebviewWindowBuilder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            // Check if window already exists (shouldn't happen in setup, but just in case)
+            if let Some(existing_window) = app.get_webview_window("main") {
+                // Window exists, focus it and bring to front
+                let _ = existing_window.set_focus();
+                let _ = existing_window.show();
+                return Ok(());
+            }
+
+            // Window doesn't exist, create it
             let url = get_webview_url();
             let win_builder = WebviewWindowBuilder::new(
                 app,
@@ -18,7 +27,9 @@ pub fn run() {
             .fullscreen(false)
             .decorations(true)
             .background_color(Color::from([0, 0, 0, 255]))
-            .visible(true);
+            .visible(true)
+            // Disable devtools in production builds (only enable in debug)
+            .devtools(cfg!(debug_assertions));
 
             #[cfg(target_os = "macos")]
             let win_builder = win_builder.title_bar_style(TitleBarStyle::Transparent);
