@@ -3,18 +3,13 @@
   "productName": "aniways",
   "version": "0.1.0",
   "identifier": "xyz.aniways.desktop",
-  "build": {
-    "devUrl": "https://aniways.xyz"
-  },
   "app": {
     "withGlobalTauri": true,
     "windows": [
       {
+        "label": "main",
         "title": "aniways",
-        "minWidth": 1024,
-        "minHeight": 768,
-        "titleBarStyle": "Overlay",
-        "hiddenTitle": true
+        "url": "https://aniways.xyz"
       }
     ],
     "security": {
