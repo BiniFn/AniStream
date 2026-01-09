@@ -38,38 +38,38 @@ export const thumbnailPlugin = (url: string) => {
 					h: number;
 				}[] = [];
 
-			// Get the base URL (everything before the VTT filename)
-			const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+				// Get the base URL (everything before the VTT filename)
+				const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
 
-			tns.forEach((_, index) => {
-				if (index % 3 !== 0) return;
-				const time = tns[index + 1];
-				const spriteUrl = tns[index + 2];
-				if (!time || !spriteUrl) return;
-				const start = time.split(' --> ')[0]!;
-				const end = time.split(' --> ')[1]!;
+				tns.forEach((_, index) => {
+					if (index % 3 !== 0) return;
+					const time = tns[index + 1];
+					const spriteUrl = tns[index + 2];
+					if (!time || !spriteUrl) return;
+					const start = time.split(' --> ')[0]!;
+					const end = time.split(' --> ')[1]!;
 
-				const startSeconds = start.split(':').reduce((acc, time, i) => {
-					return acc + Number(time) * Math.pow(60, 2 - i);
-				}, 0);
+					const startSeconds = start.split(':').reduce((acc, time, i) => {
+						return acc + Number(time) * Math.pow(60, 2 - i);
+					}, 0);
 
-				const endSeconds = end.split(':').reduce((acc, time, i) => {
-					return acc + Number(time) * Math.pow(60, 2 - i);
-				}, 0);
+					const endSeconds = end.split(':').reduce((acc, time, i) => {
+						return acc + Number(time) * Math.pow(60, 2 - i);
+					}, 0);
 
-				const [x, y, w, h] = spriteUrl.split('#xywh=')[1]!.split(',').map(Number);
-				const spritePath = spriteUrl.split('#xywh=')[0];
+					const [x, y, w, h] = spriteUrl.split('#xywh=')[1]!.split(',').map(Number);
+					const spritePath = spriteUrl.split('#xywh=')[0];
 
-				data.push({
-					start: startSeconds,
-					end: endSeconds,
-					url: `${baseUrl}${spritePath}`,
-					x: x!,
-					y: y!,
-					w: w!,
-					h: h!,
+					data.push({
+						start: startSeconds,
+						end: endSeconds,
+						url: `${baseUrl}${spritePath}`,
+						x: x!,
+						y: y!,
+						w: w!,
+						h: h!,
+					});
 				});
-			});
 
 				art.controls.add({
 					name: 'vtt-thumbnail',

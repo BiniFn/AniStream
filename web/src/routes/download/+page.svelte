@@ -2,7 +2,6 @@
 	import { browser } from '$app/environment';
 	import type { components } from '$lib/api/openapi';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { isElectron } from '$lib/hooks/is-electron';
 	import { isMobile } from '$lib/hooks/is-mobile';
 	import {
 		detectOS,
@@ -19,9 +18,8 @@
 
 	let { data }: PageProps = $props();
 
-	const inElectron = browser ? isElectron() : false;
 	const onMobile = browser ? isMobile() : false;
-	const shouldShow = browser ? !inElectron && !onMobile : true;
+	const shouldShow = browser ? !onMobile : true;
 
 	const os = browser ? detectOS() : 'unknown';
 
@@ -86,12 +84,8 @@
 			<Smartphone class="mx-auto mb-6 h-16 w-16 text-muted-foreground" />
 			<h1 class="mb-4 text-2xl font-bold">Desktop App Not Available</h1>
 			<p class="text-muted-foreground">
-				{#if inElectron}
-					You're already using the desktop app!
-				{:else}
-					The desktop app is only available for desktop devices. Please visit this page from a
-					computer to download.
-				{/if}
+				The desktop app is only available for desktop devices. Please visit this page from a
+				computer to download.
 			</p>
 		</div>
 	</div>

@@ -4,14 +4,7 @@
   "version": "0.1.0",
   "identifier": "xyz.aniways.desktop",
   "app": {
-    "withGlobalTauri": true,
-    "windows": [
-      {
-        "label": "main",
-        "title": "aniways",
-        "url": "https://aniways.xyz"
-      }
-    ],
+    "withGlobalTauri": false,
     "security": {
       "csp": null
     }

@@ -9,7 +9,6 @@ import type { components } from '$lib/api/openapi';
 import { PUBLIC_STREAMING_URL } from '$env/static/public';
 import type { AppState } from '$lib/context/state.svelte';
 import Artplayer from 'artplayer';
-import { isElectron } from '$lib/hooks/is-electron';
 
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 
@@ -40,20 +39,13 @@ export const createArtPlayer = ({
 	const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
 		navigator.userAgent,
 	);
-	const inElectron = isElectron();
 
-	// In Electron, use raw URLs directly (no CORS issues). In browser, use proxy.
+	// Use proxy URLs for browser
 	const getStreamUrl = () => {
-		if (inElectron && source.source.hls) {
-			return source.source.hls;
-		}
 		return `${PUBLIC_STREAMING_URL}${source.source.proxyHls}`;
 	};
 
 	const getTrackUrl = (track: { raw: string; url: string }) => {
-		if (inElectron) {
-			return track.raw;
-		}
 		return `${PUBLIC_STREAMING_URL}${track.url}`;
 	};
 

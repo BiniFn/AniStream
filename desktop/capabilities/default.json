@@ -6,14 +6,17 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "core:window:allow-set-fullscreen",
-    "core:window:allow-is-fullscreen",
-    "core:window:allow-toggle-maximize",
-    "core:window:allow-maximize",
-    "core:window:allow-unmaximize"
+    "core:window:allow-center",
+    "core:window:allow-set-size",
+    "core:window:allow-set-min-size"
   ],
   "remote": {
-    "urls": ["https://aniways.xyz"],
-    "secure": true
+    "urls": [
+      "https://aniways.xyz",
+      "http://localhost:3000",
+      "http://localhost:8080",
+      "https://api.aniways.xyz"
+    ],
+    "secure": false
   }
 }

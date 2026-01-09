@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { getAppStateContext } from '$lib/context/state.svelte';
-	import { isElectron } from '$lib/hooks/is-electron';
 	import { isMobile } from '$lib/hooks/is-mobile';
 	import { Heart } from 'lucide-svelte';
 	import BrandText from './brand-text.svelte';
 
 	const appState = getAppStateContext();
-	const showDownload = browser ? !isElectron() && !isMobile() : false;
+	const showDownload = browser ? !isMobile() : false;
 </script>
 
 <footer class="border-t border-border bg-background">

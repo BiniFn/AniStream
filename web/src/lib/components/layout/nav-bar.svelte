@@ -9,7 +9,6 @@
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { getAppStateContext } from '$lib/context/state.svelte';
-	import { isElectron } from '$lib/hooks/is-electron';
 	import { isMobile } from '$lib/hooks/is-mobile';
 	import { cn } from '$lib/utils';
 	import {
@@ -30,7 +29,7 @@
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 
 	const appState = getAppStateContext();
-	const showDownload = browser ? !isElectron() && !isMobile() : false;
+	const showDownload = browser ? !isMobile() : false;
 
 	let links = $derived.by(() => {
 		const base = [

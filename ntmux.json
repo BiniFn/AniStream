@@ -57,7 +57,7 @@
         },
         {
           "name": "desktop",
-          "cmd": "bun run tauri dev"
+          "cmd": "cargo tauri dev"
         }
       ]
     }
