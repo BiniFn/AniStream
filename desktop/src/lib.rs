@@ -1,6 +1,6 @@
 #[cfg(target_os = "macos")]
 use tauri::TitleBarStyle;
-use tauri::{Url, WebviewUrl, WebviewWindowBuilder};
+use tauri::{window::Color, Url, WebviewUrl, WebviewWindowBuilder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -17,6 +17,7 @@ pub fn run() {
             .resizable(true)
             .fullscreen(false)
             .decorations(true)
+            .background_color(Color::from([0, 0, 0, 255]))
             .visible(true);
 
             #[cfg(target_os = "macos")]
