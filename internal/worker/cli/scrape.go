@@ -80,4 +80,3 @@ func init() {
 	scrapeCmd.AddCommand(allRecentlyUpdatedCmd)
 	scrapeCmd.AddCommand(fullSeedCmd)
 }
-

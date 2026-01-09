@@ -2,8 +2,10 @@ package scraper
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -15,9 +17,9 @@ import (
 
 const (
 	maxConcurrency = 20
-	retryCount     = 3
-	retryDelay     = 500 * time.Millisecond
-	pageDelay      = 1 * time.Second
+	retryCount     = 5
+	retryDelay     = 1500 * time.Millisecond
+	pageDelay      = 2 * time.Second
 	updateSpacing  = 20 * time.Millisecond
 )
 
@@ -148,6 +150,14 @@ func ScrapeAllRecentlyUpdated(
 	sem := make(chan struct{}, maxConcurrency)
 	start := time.Now()
 
+	erroredAnimes := struct {
+		sync.Mutex
+		animes []struct {
+			HiAnimeID string
+			Error     error
+		}
+	}{}
+
 	for page := total; page >= 1; page-- {
 		listing, err := scraper.GetRecentlyUpdatedAnime(ctx, page)
 		if err != nil {
@@ -187,6 +197,12 @@ func ScrapeAllRecentlyUpdated(
 				info, err := retryFetchDetail(ctx, scraper, scraped.HiAnimeID)
 				if err != nil {
 					child.Warn("detail fetch failed", "err", err)
+					erroredAnimes.Lock()
+					erroredAnimes.animes = append(erroredAnimes.animes, struct {
+						HiAnimeID string
+						Error     error
+					}{HiAnimeID: scraped.HiAnimeID, Error: err})
+					erroredAnimes.Unlock()
 					return
 				}
 
@@ -232,7 +248,25 @@ func ScrapeAllRecentlyUpdated(
 		}
 
 		wg.Wait()
+		log.Info("finished RU page", "page", page)
 		time.Sleep(pageDelay)
+	}
+
+	if len(erroredAnimes.animes) > 0 {
+		log.Warn("some RU animes failed to scrape",
+			"count", len(erroredAnimes.animes),
+		)
+		json, err := json.MarshalIndent(erroredAnimes.animes, "", "  ")
+		if err != nil {
+			log.Error("failed to marshal errored animes", "err", err)
+			return nil
+		}
+		err = os.WriteFile("errored_ru_animes.json", json, os.ModePerm)
+		if err != nil {
+			log.Error("failed to write errored animes to file", "err", err)
+			return nil
+		}
+		log.Info("wrote errored animes to errored_ru_animes.json")
 	}
 
 	log.Info("finished RU scrape",
@@ -241,4 +275,3 @@ func ScrapeAllRecentlyUpdated(
 	)
 	return nil
 }
-
