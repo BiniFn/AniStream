@@ -1,13 +1,45 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { components } from '$lib/api/openapi';
 
 	type Props = components['schemas']['models.GenrePreview'];
 
 	let { name, previews = [] }: Props = $props();
+
+	let cardElement = $state<HTMLDivElement | null>(null);
+	let shouldLoadImages = $state(false);
+
+	onMount(() => {
+		if (!cardElement || typeof IntersectionObserver === 'undefined') {
+			// Fallback: load immediately if IntersectionObserver not available
+			shouldLoadImages = true;
+			return;
+		}
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						shouldLoadImages = true;
+						observer.disconnect();
+					}
+				});
+			},
+			{
+				// Start loading when card is 100px away from viewport
+				rootMargin: '100px',
+			},
+		);
+
+		observer.observe(cardElement);
+
+		return () => observer.disconnect();
+	});
 </script>
 
 {#if name != null && previews.length}
 	<div
+		bind:this={cardElement}
 		class="group relative overflow-hidden rounded-xl border bg-card transition hover:scale-[1.05] hover:shadow-lg"
 	>
 		<a
@@ -18,9 +50,22 @@
 
 		{#if previews.length > 0}
 			<div class="grid aspect-video grid-cols-3 grid-rows-2 gap-0.5">
-				{#each previews as url (url)}
-					<img src={url} alt={name} class="h-full w-full object-cover" loading="lazy" />
-				{/each}
+				{#if shouldLoadImages}
+					{#each previews as url (url)}
+						<img
+							src={url}
+							alt={name}
+							class="h-full w-full object-cover"
+							loading="lazy"
+							decoding="async"
+						/>
+					{/each}
+				{:else}
+					<!-- Placeholder while waiting to load -->
+					{#each previews as _ (name + _)}
+						<div class="h-full w-full bg-muted animate-pulse"></div>
+					{/each}
+				{/if}
 			</div>
 		{:else}
 			<div class="flex aspect-video items-center justify-center bg-muted">
