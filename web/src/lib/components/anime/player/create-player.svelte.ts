@@ -64,7 +64,9 @@ export const createArtPlayer = ({
 	];
 
 	if (thumbnails) {
-		plugins.push(thumbnailPlugin(getTrackUrl(thumbnails)));
+		plugins.push(
+			thumbnailPlugin(getTrackUrl(thumbnails), (path) => `${PUBLIC_STREAMING_URL}${path}`),
+		);
 	}
 
 	const art = new Artplayer({

@@ -4,7 +4,7 @@ import type { components } from '$lib/api/openapi';
 
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 
-export const thumbnailPlugin = (url: string) => {
+export const thumbnailPlugin = (url: string, getUrl: (path: string) => string) => {
 	return (art: Artplayer) => {
 		const {
 			template: { $progress },
@@ -38,9 +38,6 @@ export const thumbnailPlugin = (url: string) => {
 					h: number;
 				}[] = [];
 
-				// Get the base URL (everything before the VTT filename)
-				const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
-
 				tns.forEach((_, index) => {
 					if (index % 3 !== 0) return;
 					const time = tns[index + 1];
@@ -63,7 +60,7 @@ export const thumbnailPlugin = (url: string) => {
 					data.push({
 						start: startSeconds,
 						end: endSeconds,
-						url: `${baseUrl}${spritePath}`,
+						url: getUrl(spritePath),
 						x: x!,
 						y: y!,
 						w: w!,
