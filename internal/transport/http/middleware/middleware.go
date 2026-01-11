@@ -1,8 +1,11 @@
 package middleware
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cloudinary/cloudinary-go/v2"
@@ -15,6 +18,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httplog/v3"
+	"github.com/go-chi/httprate"
+	httprateredis "github.com/go-chi/httprate-redis"
 )
 
 type MiddlewareConfig struct {
@@ -38,12 +43,77 @@ func UseMiddlewares(c MiddlewareConfig) {
 	c.Router.Use(
 		middleware.RealIP,
 		middleware.RequestID,
+		rateLimiter(c.Env),
 		injectUser(userService),
 		injectLogger(c.Logger),
 		requestLogger,
 		middleware.Recoverer,
 		middleware.Timeout(60*time.Second),
 	)
+}
+
+func rateLimiter(env *config.Env) func(http.Handler) http.Handler {
+	redisHost := strings.Split(env.RedisAddr, ":")[0]
+	redisPort, err := strconv.Atoi(strings.Split(env.RedisAddr, ":")[1])
+	if err != nil {
+		redisPort = 6379
+	}
+
+	nosessionLimiter := httprate.Limit(
+		60, 1*time.Minute,
+		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
+			ip := strings.TrimSpace(r.Header.Get("CF-Connecting-IP"))
+			if ip == "" {
+				ip, _ = httprate.KeyByIP(r)
+			}
+			return fmt.Sprintf("ip:%s", ip), nil
+		}),
+		httprateredis.WithRedisLimitCounter(
+			&httprateredis.Config{
+				Host:      redisHost,
+				Port:      uint16(redisPort),
+				Password:  env.RedisPassword,
+				PrefixKey: "aniways_rl_ip_nosession:",
+			},
+		),
+	)
+
+	sessionLimiter := httprate.Limit(
+		120, 1*time.Minute,
+		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
+			ip := strings.TrimSpace(r.Header.Get("CF-Connecting-IP"))
+			if ip == "" {
+				ip, _ = httprate.KeyByIP(r)
+			}
+			session, _ := r.Cookie("aniways_session")
+			return fmt.Sprintf("ip:%s:session:%s", ip, session), nil
+		}),
+		httprateredis.WithRedisLimitCounter(
+			&httprateredis.Config{
+				Host:      redisHost,
+				Port:      uint16(redisPort),
+				Password:  env.RedisPassword,
+				PrefixKey: "aniways_rl_ip_session:",
+			},
+		),
+	)
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+
+			session, err := r.Cookie("aniways_session")
+			if err != nil || session == nil || session.Value == "" {
+				nosessionLimiter(next).ServeHTTP(w, r)
+				return
+			}
+
+			sessionLimiter(next).ServeHTTP(w, r)
+		})
+	}
 }
 
 func injectLogger(logger *slog.Logger) func(http.Handler) http.Handler {
