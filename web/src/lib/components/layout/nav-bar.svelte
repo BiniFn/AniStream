@@ -67,6 +67,7 @@
 	let searchResults = $state<AnimeResponse[]>([]);
 	let isSearching = $state(false);
 	let searchTimeout: NodeJS.Timeout;
+	let searchAbortController: AbortController | null = null;
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
@@ -82,7 +83,14 @@
 			return;
 		}
 
+		// Cancel any in-flight search request
+		if (searchAbortController) {
+			searchAbortController.abort();
+		}
+
+		searchAbortController = new AbortController();
 		isSearching = true;
+
 		try {
 			const response = await apiClient.GET('/anime/listings/search', {
 				params: {
@@ -92,21 +100,37 @@
 						itemsPerPage: 3,
 					},
 				},
+				signal: searchAbortController.signal,
 			});
 
-			if (response.data?.items) {
+			// Only update results if this request wasn't cancelled
+			if (!searchAbortController.signal.aborted && response.data?.items) {
 				searchResults = response.data.items;
 			}
 		} catch (error) {
+			// Ignore abort errors
+			if (error instanceof Error && error.name === 'AbortError') {
+				return;
+			}
 			console.error('Search failed:', error);
-			searchResults = [];
+			if (!searchAbortController?.signal.aborted) {
+				searchResults = [];
+			}
+		} finally {
+			if (!searchAbortController?.signal.aborted) {
+				isSearching = false;
+			}
 		}
-		isSearching = false;
 	}
 
 	function handleSearchInput(value: string) {
 		searchQuery = value;
 		clearTimeout(searchTimeout);
+
+		if (searchAbortController) {
+			searchAbortController.abort();
+			searchAbortController = null;
+		}
 
 		if (value.length < 3) {
 			searchResults = [];
@@ -117,13 +141,19 @@
 		isSearching = true;
 		searchTimeout = setTimeout(() => {
 			performSearch(value);
-		}, 500);
+		}, 700);
 	}
 
 	$effect(() => {
 		if (!isSearchOpen) {
 			searchQuery = '';
 			searchResults = [];
+			if (searchAbortController) {
+				searchAbortController.abort();
+				searchAbortController = null;
+			}
+			clearTimeout(searchTimeout);
+			isSearching = false;
 		}
 	});
 

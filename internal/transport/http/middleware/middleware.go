@@ -105,6 +105,12 @@ func rateLimiter(env *config.Env) func(http.Handler) http.Handler {
 				return
 			}
 
+			// Exclude anime listings search from rate limiting
+			if r.URL.Path == "/anime/listings/search" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			session, err := r.Cookie("aniways_session")
 			if err != nil || session == nil || session.Value == "" {
 				nosessionLimiter(next).ServeHTTP(w, r)
