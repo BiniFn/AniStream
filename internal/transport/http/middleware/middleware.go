@@ -59,6 +59,7 @@ func rateLimiter(env *config.Env) func(http.Handler) http.Handler {
 		redisPort = 6379
 	}
 
+	// General rate limiters for non-auth endpoints
 	nosessionLimiter := httprate.Limit(
 		60, 5*time.Minute,
 		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
@@ -98,6 +99,26 @@ func rateLimiter(env *config.Env) func(http.Handler) http.Handler {
 		),
 	)
 
+	// Stricter rate limiter for login endpoint (security-critical)
+	loginLimiter := httprate.Limit(
+		5, 3*time.Minute, // e.g., 5 login attempts every 3 minutes
+		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
+			ip := strings.TrimSpace(r.Header.Get("CF-Connecting-IP"))
+			if ip == "" {
+				ip, _ = httprate.KeyByIP(r)
+			}
+			return fmt.Sprintf("ip:%s", ip), nil
+		}),
+		httprateredis.WithRedisLimitCounter(
+			&httprateredis.Config{
+				Host:      redisHost,
+				Port:      uint16(redisPort),
+				Password:  env.RedisPassword,
+				PrefixKey: "aniways_rl_login:",
+			},
+		),
+	)
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodOptions {
@@ -105,12 +126,18 @@ func rateLimiter(env *config.Env) func(http.Handler) http.Handler {
 				return
 			}
 
-			// Exclude anime listings search from rate limiting
-			if r.URL.Path == "/anime/listings/search" {
+			// Separate rate limiting for login endpoint (security-critical)
+			if r.URL.Path == "/auth/login" && r.Method == http.MethodPost {
+				loginLimiter(next).ServeHTTP(w, r)
+				return
+			}
+
+			if r.URL.Path == "/anime/listings" || r.URL.Path == "/anime/listings/search" {
 				next.ServeHTTP(w, r)
 				return
 			}
 
+			// Apply general rate limiting to other endpoints
 			session, err := r.Cookie("aniways_session")
 			if err != nil || session == nil || session.Value == "" {
 				nosessionLimiter(next).ServeHTTP(w, r)
