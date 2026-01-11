@@ -303,6 +303,46 @@ paths:
       summary: Get anime franchise relations
       tags:
         - Anime
+  "/anime/{id}/full":
+    get:
+      description: Get all anime details in a single response including anime data,
+        banner, trailer, episodes, franchise, characters, and library status (if
+        authenticated)
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.AnimeFullResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get full anime details
+      tags:
+        - Anime
   "/anime/{id}/trailer":
     get:
       description: Get anime trailer
@@ -1374,6 +1414,27 @@ paths:
       summary: Comprehensive health check
       tags:
         - health
+  /home:
+    get:
+      description: Get all home page data in a single response including trending,
+        popular, recently updated, seasonal anime, and user library sections (if
+        authenticated)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.HomeResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get home page data
+      tags:
+        - Anime Listings
   /library:
     delete:
       description: Clear user's library
@@ -1729,6 +1790,27 @@ paths:
       summary: Get plan to watch list
       tags:
         - Library
+  /library/stats:
+    get:
+      description: Get library statistics including watching, planning, and completed counts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryStatsResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Get library statistics
+      tags:
+        - Library
   /settings:
     get:
       description: Get user settings
@@ -2052,6 +2134,29 @@ components:
         version:
           example: 1.0.0
           type: string
+      type: object
+    models.AnimeFullResponse:
+      properties:
+        anime:
+          $ref: "#/components/schemas/models.AnimeWithMetadataResponse"
+        banner:
+          $ref: "#/components/schemas/models.BannerResponse"
+        characters:
+          items:
+            $ref: "#/components/schemas/models.CharacterResponse"
+          type: array
+        episodes:
+          items:
+            $ref: "#/components/schemas/models.EpisodeResponse"
+          type: array
+        franchise:
+          $ref: "#/components/schemas/models.RelationsResponse"
+        libraryStatus:
+          $ref: "#/components/schemas/models.LibraryResponse"
+        trailer:
+          $ref: "#/components/schemas/models.TrailerResponse"
+      required:
+        - anime
       type: object
     models.AnimeListResponse:
       properties:
@@ -2555,6 +2660,40 @@ components:
             type: string
           type: array
       type: object
+    models.HomeResponse:
+      properties:
+        continueWatching:
+          items:
+            $ref: "#/components/schemas/models.LibraryResponse"
+          type: array
+        featuredAnime:
+          $ref: "#/components/schemas/models.AnimeWithMetadataResponse"
+        planning:
+          items:
+            $ref: "#/components/schemas/models.LibraryResponse"
+          type: array
+        popular:
+          items:
+            $ref: "#/components/schemas/models.AnimeResponse"
+          type: array
+        recentlyUpdated:
+          items:
+            $ref: "#/components/schemas/models.AnimeResponse"
+          type: array
+        seasonal:
+          items:
+            $ref: "#/components/schemas/models.SeasonalAnimeResponse"
+          type: array
+        trending:
+          items:
+            $ref: "#/components/schemas/models.AnimeResponse"
+          type: array
+      required:
+        - popular
+        - recentlyUpdated
+        - seasonal
+        - trending
+      type: object
     models.ImportJobResponse:
       properties:
         id:
@@ -2686,6 +2825,22 @@ components:
         - updatedAt
         - userId
         - watchedEpisodes
+      type: object
+    models.LibraryStatsResponse:
+      properties:
+        completed:
+          example: 150
+          type: integer
+        planning:
+          example: 10
+          type: integer
+        watching:
+          example: 25
+          type: integer
+      required:
+        - completed
+        - planning
+        - watching
       type: object
     models.LibraryStatus:
       enum:

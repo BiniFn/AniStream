@@ -50,7 +50,8 @@ func InitDeps(ctx context.Context, svcName string) (*Deps, error) {
 	}
 
 	cacheLog := rootLogger.With("component", "cache")
-	cache, err := cache.NewRedisClient(ctx, env.AppEnv, env.RedisAddr, env.RedisPassword, cacheLog)
+	useCache := env.AppEnv != "development" || env.UseCache
+	cache, err := cache.NewRedisClient(ctx, env.AppEnv, env.RedisAddr, env.RedisPassword, cacheLog, useCache)
 	if err != nil {
 		return &Deps{Log: rootLogger}, err
 	}

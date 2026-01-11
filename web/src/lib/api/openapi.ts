@@ -496,6 +496,75 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/anime/{id}/full': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get full anime details
+		 * @description Get all anime details in a single response including anime data, banner, trailer, episodes, franchise, characters, and library status (if authenticated)
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Anime ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.AnimeFullResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Not Found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/anime/{id}/trailer': {
 		parameters: {
 			query?: never;
@@ -2328,6 +2397,54 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/home': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get home page data
+		 * @description Get all home page data in a single response including trending, popular, recently updated, seasonal anime, and user library sections (if authenticated)
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.HomeResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/library': {
 		parameters: {
 			query?: never;
@@ -2874,6 +2991,54 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/library/stats': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get library statistics
+		 * @description Get library statistics including watching, planning, and completed counts
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.LibraryStatsResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/settings': {
 		parameters: {
 			query?: never;
@@ -3382,6 +3547,15 @@ export interface components {
 			/** @example 1.0.0 */
 			version?: string;
 		};
+		'models.AnimeFullResponse': {
+			anime: components['schemas']['models.AnimeWithMetadataResponse'];
+			banner?: components['schemas']['models.BannerResponse'];
+			characters?: components['schemas']['models.CharacterResponse'][];
+			episodes?: components['schemas']['models.EpisodeResponse'][];
+			franchise?: components['schemas']['models.RelationsResponse'];
+			libraryStatus?: components['schemas']['models.LibraryResponse'];
+			trailer?: components['schemas']['models.TrailerResponse'];
+		};
 		'models.AnimeListResponse': {
 			items: components['schemas']['models.AnimeResponse'][];
 			pageInfo: components['schemas']['models.PageInfo'];
@@ -3637,6 +3811,15 @@ export interface components {
 			name?: string;
 			previews?: string[];
 		};
+		'models.HomeResponse': {
+			continueWatching?: components['schemas']['models.LibraryResponse'][];
+			featuredAnime?: components['schemas']['models.AnimeWithMetadataResponse'];
+			planning?: components['schemas']['models.LibraryResponse'][];
+			popular: components['schemas']['models.AnimeResponse'][];
+			recentlyUpdated: components['schemas']['models.AnimeResponse'][];
+			seasonal: components['schemas']['models.SeasonalAnimeResponse'][];
+			trending: components['schemas']['models.AnimeResponse'][];
+		};
 		'models.ImportJobResponse': {
 			/** @example V1StGXR8Z5jdHi6BmyT23 */
 			id: string;
@@ -3693,6 +3876,14 @@ export interface components {
 			userId: string;
 			/** @example 12 */
 			watchedEpisodes: number;
+		};
+		'models.LibraryStatsResponse': {
+			/** @example 150 */
+			completed: number;
+			/** @example 10 */
+			planning: number;
+			/** @example 25 */
+			watching: number;
 		};
 		/** @enum {string} */
 		'models.LibraryStatus': 'planning' | 'watching' | 'completed' | 'dropped' | 'paused';

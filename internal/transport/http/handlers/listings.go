@@ -3,8 +3,10 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/coeeter/aniways/internal/models"
+	"github.com/coeeter/aniways/internal/service/library"
 	"github.com/coeeter/aniways/internal/transport/http/middleware"
 	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"
@@ -389,4 +391,144 @@ func (h *Handler) popularAnimes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.jsonOK(w, resp)
+}
+
+// @Summary Get home page data
+// @Description Get all home page data in a single response including trending, popular, recently updated, seasonal anime, and user library sections (if authenticated)
+// @Tags Anime Listings
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.HomeResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /home [get]
+func (h *Handler) getHome(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	var (
+		trending         []models.AnimeResponse
+		popular          []models.AnimeResponse
+		recentlyUpdated  []models.AnimeResponse
+		seasonal         []models.SeasonalAnimeResponse
+		continueWatching []models.LibraryResponse
+		planning         []models.LibraryResponse
+		featuredAnime    *models.AnimeWithMetadataResponse
+
+		trendingErr         error
+		popularErr          error
+		recentlyUpdatedErr  error
+		seasonalErr         error
+		continueWatchingErr error
+		planningErr         error
+		featuredErr         error
+	)
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		trending, trendingErr = h.services.Anime.GetTrendingAnimes(r.Context())
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		popular, popularErr = h.services.Anime.GetPopularAnimes(r.Context())
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		recentlyUpdatedResp, err := h.services.Anime.GetRecentlyUpdatedAnimes(r.Context(), 1, 6)
+		if err == nil {
+			recentlyUpdated = recentlyUpdatedResp.Items
+		} else {
+			recentlyUpdatedErr = err
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		seasonal, seasonalErr = h.services.Anime.GetSeasonalAnimes(r.Context())
+	}()
+
+	user := middleware.GetUser(r)
+	if user != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			continueWatchingResp, err := h.services.Library.GetContinueWatching(r.Context(), library.GetContinueWatchingAnimeParams{
+				UserID:       user.ID,
+				Page:         1,
+				ItemsPerPage: 6,
+			})
+			if err == nil {
+				continueWatching = continueWatchingResp.Items
+			} else {
+				continueWatchingErr = err
+			}
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			planningResp, err := h.services.Library.GetPlanToWatch(r.Context(), library.GetPlanToWatchAnimeParams{
+				UserID:       user.ID,
+				Page:         1,
+				ItemsPerPage: 6,
+			})
+			if err == nil {
+				planning = planningResp.Items
+			} else {
+				planningErr = err
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	if trendingErr != nil {
+		log.Warn("failed to fetch trending", "err", trendingErr)
+		trending = []models.AnimeResponse{}
+	}
+	if popularErr != nil {
+		log.Warn("failed to fetch popular", "err", popularErr)
+		popular = []models.AnimeResponse{}
+	}
+	if recentlyUpdatedErr != nil {
+		log.Warn("failed to fetch recently updated", "err", recentlyUpdatedErr)
+		recentlyUpdated = []models.AnimeResponse{}
+	}
+	if seasonalErr != nil {
+		log.Warn("failed to fetch seasonal", "err", seasonalErr)
+		seasonal = []models.SeasonalAnimeResponse{}
+	}
+	if continueWatchingErr != nil {
+		log.Warn("failed to fetch continue watching", "err", continueWatchingErr)
+		continueWatching = []models.LibraryResponse{}
+	}
+	if planningErr != nil {
+		log.Warn("failed to fetch planning", "err", planningErr)
+		planning = []models.LibraryResponse{}
+	}
+
+	if len(trending) > 0 {
+		featuredAnime, featuredErr = h.services.Anime.GetAnimeByID(r.Context(), trending[0].ID)
+		if featuredErr != nil {
+			log.Warn("failed to fetch featured anime", "id", trending[0].ID, "err", featuredErr)
+		}
+	}
+
+	response := models.HomeResponse{
+		Trending:         trending,
+		Popular:          popular,
+		RecentlyUpdated:  recentlyUpdated,
+		Seasonal:         seasonal,
+		ContinueWatching: continueWatching,
+		Planning:         planning,
+		FeaturedAnime:    featuredAnime,
+	}
+
+	h.jsonOK(w, response)
 }

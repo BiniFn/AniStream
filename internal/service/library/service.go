@@ -272,6 +272,37 @@ func (s *LibraryService) GetPlanToWatch(ctx context.Context, params GetPlanToWat
 	}, nil
 }
 
+func (s *LibraryService) GetLibraryStats(ctx context.Context, userID string) (models.LibraryStatsResponse, error) {
+	var stats models.LibraryStatsResponse
+	var err error
+
+	watchingCount, err := s.repo.GetLibraryCount(ctx, repository.GetLibraryCountParams{
+		UserID: userID,
+		Status: repository.LibraryStatusWatching,
+	})
+	if err != nil {
+		return stats, err
+	}
+	stats.Watching = watchingCount
+
+	planningCount, err := s.repo.GetPlanToWatchAnimeCount(ctx, userID)
+	if err != nil {
+		return stats, err
+	}
+	stats.Planning = planningCount
+
+	completedCount, err := s.repo.GetLibraryCount(ctx, repository.GetLibraryCountParams{
+		UserID: userID,
+		Status: repository.LibraryStatusCompleted,
+	})
+	if err != nil {
+		return stats, err
+	}
+	stats.Completed = completedCount
+
+	return stats, nil
+}
+
 type SyncPayload struct {
 	Status          *string `json:"status,omitempty"`
 	WatchedEpisodes *int32  `json:"watched_episodes,omitempty"`

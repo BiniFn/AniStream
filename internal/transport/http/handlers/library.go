@@ -12,6 +12,7 @@ import (
 func (h *Handler) LibraryRoutes() {
 	h.r.With(middleware.RequireUser).Route("/library", func(r chi.Router) {
 		r.Get("/", h.getLibrary)
+		r.Get("/stats", h.getLibraryStats)
 		r.Delete("/", h.clearLibrary)
 		r.Get("/{animeID}", h.getAnimeStatus)
 		r.Get("/continue-watching", h.getContinueWatching)
@@ -70,6 +71,29 @@ func (h *Handler) getLibrary(w http.ResponseWriter, r *http.Request) {
 		log.Error("failed to get library", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to get library")
 	}
+}
+
+// @Summary Get library statistics
+// @Description Get library statistics including watching, planning, and completed counts
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Success 200 {object} models.LibraryStatsResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/stats [get]
+func (h *Handler) getLibraryStats(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+	user := middleware.GetUser(r)
+
+	stats, err := h.services.Library.GetLibraryStats(r.Context(), user.ID)
+	if err != nil {
+		log.Error("failed to get library stats", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to get library stats")
+		return
+	}
+
+	h.jsonOK(w, stats)
 }
 
 // @Summary Get anime status in library

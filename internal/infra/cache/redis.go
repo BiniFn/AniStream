@@ -11,15 +11,17 @@ import (
 )
 
 type RedisClient struct {
-	r      redis.Cmdable
-	appEnv string
-	log    *slog.Logger
+	r        redis.Cmdable
+	appEnv   string
+	log      *slog.Logger
+	useCache bool // If false, cache will be bypassed even if available
 }
 
 func NewRedisClient(
 	ctx context.Context,
 	appEnv, addr, pass string,
 	log *slog.Logger,
+	useCache bool,
 ) (*RedisClient, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:         addr,
@@ -33,9 +35,9 @@ func NewRedisClient(
 		return nil, fmt.Errorf("redis ping: %w", err)
 	}
 
-	log.Info("connected to redis", "addr", addr)
+	log.Info("connected to redis", "addr", addr, "useCache", useCache)
 
-	return &RedisClient{r: rdb, appEnv: appEnv, log: log}, nil
+	return &RedisClient{r: rdb, appEnv: appEnv, log: log, useCache: useCache}, nil
 }
 
 func (c *RedisClient) Close() error {
@@ -71,7 +73,7 @@ func (c *RedisClient) Del(ctx context.Context, key string) error {
 }
 
 func (c *RedisClient) Pipeline() *RedisClient {
-	return &RedisClient{r: c.r.Pipeline(), appEnv: c.appEnv, log: c.log}
+	return &RedisClient{r: c.r.Pipeline(), appEnv: c.appEnv, log: c.log, useCache: c.useCache}
 }
 
 func (c *RedisClient) Exec(ctx context.Context) ([]redis.Cmder, error) {
@@ -90,12 +92,18 @@ func GetOrFill[T any](
 ) (val T, err error) {
 	var zero T
 
+	shouldUseCache := rc.appEnv != "development" || rc.useCache
+
 	var tmp T
-	if ok, err := rc.Get(ctx, key, &tmp); err == nil && ok && rc.appEnv != "development" {
-		rc.log.Debug("cache hit", "key", key)
-		return tmp, nil
-	} else if err != nil {
-		rc.log.Warn("cache get failed, fetching", "key", key, "err", err)
+	if shouldUseCache {
+		if ok, err := rc.Get(ctx, key, &tmp); err == nil && ok {
+			rc.log.Debug("cache hit", "key", key)
+			return tmp, nil
+		} else if err != nil {
+			rc.log.Warn("cache get failed, fetching", "key", key, "err", err)
+		}
+	} else {
+		rc.log.Debug("cache bypassed", "key", key, "useCache", rc.useCache, "appEnv", rc.appEnv)
 	}
 
 	tmp, err = fetch(ctx)
@@ -103,8 +111,11 @@ func GetOrFill[T any](
 		return zero, err
 	}
 
-	if err = rc.Set(ctx, key, tmp, ttl); err != nil {
-		rc.log.Warn("cache set failed", "key", key, "err", err)
+	// Only set cache if we're using it
+	if shouldUseCache {
+		if err = rc.Set(ctx, key, tmp, ttl); err != nil {
+			rc.log.Warn("cache set failed", "key", key, "err", err)
+		}
 	}
 
 	return tmp, nil

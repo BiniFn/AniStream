@@ -132,6 +132,26 @@ type LibraryInfo struct {
 	UpdatedAt       string        `json:"updatedAt" validate:"required" example:"2023-01-01T00:00:00Z"`
 }
 
+type AnimeFullResponse struct {
+	Anime         AnimeWithMetadataResponse `json:"anime" validate:"required"`
+	Banner        *BannerResponse           `json:"banner,omitempty"`
+	Trailer       *TrailerResponse          `json:"trailer,omitempty"`
+	Episodes      EpisodeListResponse       `json:"episodes,omitempty"`
+	Franchise     *RelationsResponse        `json:"franchise,omitempty"`
+	LibraryStatus *LibraryResponse          `json:"libraryStatus,omitempty"`
+	Characters    CharactersResponse        `json:"characters,omitempty"`
+}
+
+type HomeResponse struct {
+	Trending         []AnimeResponse            `json:"trending" validate:"required"`
+	Popular          []AnimeResponse            `json:"popular" validate:"required"`
+	RecentlyUpdated  []AnimeResponse            `json:"recentlyUpdated" validate:"required"`
+	Seasonal         []SeasonalAnimeResponse    `json:"seasonal" validate:"required"`
+	ContinueWatching []LibraryResponse          `json:"continueWatching,omitempty"`
+	Planning         []LibraryResponse          `json:"planning,omitempty"`
+	FeaturedAnime    *AnimeWithMetadataResponse `json:"featuredAnime,omitempty"`
+}
+
 type AnimeListResponse = Pagination[AnimeResponse]
 type AnimeWithLibraryListResponse = Pagination[AnimeWithLibraryResponse]
 type SeasonalAnimeListResponse = []SeasonalAnimeResponse

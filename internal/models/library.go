@@ -31,4 +31,10 @@ type LibraryImportJobResponse struct {
 	CompletedAt time.Time           `json:"completedAt" validate:"required" example:"2023-01-01T00:00:00Z"`
 }
 
+type LibraryStatsResponse struct {
+	Watching  int64 `json:"watching" validate:"required" example:"25"`
+	Planning  int64 `json:"planning" validate:"required" example:"10"`
+	Completed int64 `json:"completed" validate:"required" example:"150"`
+}
+
 type LibraryListResponse = Pagination[LibraryResponse]

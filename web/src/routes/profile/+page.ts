@@ -9,48 +9,26 @@ export const load: PageLoad = async ({ fetch, parent }) => {
 		redirect(302, '/login');
 	}
 
-	const libraryStats = await apiClient.GET('/library', {
-		fetch,
-		params: {
-			query: {
-				status: 'watching',
-				page: 1,
-				itemsPerPage: 1,
-			},
-		},
-	});
+	const response = await apiClient.GET('/library/stats', { fetch });
 
-	const planningStats = await apiClient.GET('/library/planning', {
-		fetch,
-		params: {
-			query: {
-				page: 1,
-				itemsPerPage: 1,
+	if (response.error || !response.data) {
+		// Fallback to zero stats if endpoint fails
+		return {
+			user,
+			stats: {
+				watching: 0,
+				planning: 0,
+				completed: 0,
 			},
-		},
-	});
-
-	const completedStats = await apiClient.GET('/library', {
-		fetch,
-		params: {
-			query: {
-				status: 'completed',
-				page: 1,
-				itemsPerPage: 1,
-			},
-		},
-	});
+		};
+	}
 
 	return {
 		user,
 		stats: {
-			watching: libraryStats.data?.pageInfo?.totalPages ? libraryStats.data.pageInfo.totalPages : 0,
-			planning: planningStats.data?.pageInfo?.totalPages
-				? planningStats.data.pageInfo.totalPages
-				: 0,
-			completed: completedStats.data?.pageInfo?.totalPages
-				? completedStats.data.pageInfo.totalPages
-				: 0,
+			watching: response.data.watching || 0,
+			planning: response.data.planning || 0,
+			completed: response.data.completed || 0,
 		},
 	};
 };

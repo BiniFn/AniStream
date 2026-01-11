@@ -60,7 +60,7 @@ func rateLimiter(env *config.Env) func(http.Handler) http.Handler {
 	}
 
 	nosessionLimiter := httprate.Limit(
-		60, 1*time.Minute,
+		60, 5*time.Minute,
 		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
 			ip := strings.TrimSpace(r.Header.Get("CF-Connecting-IP"))
 			if ip == "" {
@@ -79,7 +79,7 @@ func rateLimiter(env *config.Env) func(http.Handler) http.Handler {
 	)
 
 	sessionLimiter := httprate.Limit(
-		120, 1*time.Minute,
+		120, 5*time.Minute,
 		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
 			ip := strings.TrimSpace(r.Header.Get("CF-Connecting-IP"))
 			if ip == "" {

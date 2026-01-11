@@ -22,11 +22,11 @@
 
 <HeroSection
 	anime={data.anime}
-	banner={data.banner?.data?.url ?? null}
-	trailer={data.trailer?.data?.trailer ?? null}
+	banner={data.banner?.url ?? null}
+	trailer={data.trailer?.trailer ?? null}
 	ratingLabel={data.ratingLabel}
-	totalEpisodes={data.episodes?.data?.length}
-	libraryEntry={data.libraryStatus?.data ?? null}
+	totalEpisodes={data.episodes?.length}
+	libraryEntry={data.libraryStatus ?? null}
 />
 
 <div
@@ -58,9 +58,9 @@
 		<TabContent
 			{selectedTab}
 			anime={data.anime}
-			episodes={data.episodes?.data ?? []}
-			franchise={data.franchise?.data ?? null}
-			characters={data.characters?.data ?? null}
+			episodes={data.episodes ?? []}
+			franchise={data.franchise ?? null}
+			characters={data.characters ?? null}
 		/>
 
 		<InfoSidebar anime={data.anime} ratingLabel={data.ratingLabel} {selectedTab} />

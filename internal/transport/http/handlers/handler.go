@@ -39,6 +39,7 @@ func New(deps *app.Deps, r *chi.Mux) *Handler {
 
 func (h *Handler) RegisterRoutes() {
 	h.r.Get("/", h.home)
+	h.r.Get("/home", h.getHome)
 	h.r.Get("/admin", h.serveAdminPage)
 
 	h.HealthRoutes()
