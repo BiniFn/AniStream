@@ -61,7 +61,7 @@
 				return;
 			}
 
-			await invalidate((url) => url.pathname.startsWith('/library'));
+			await invalidate('app:library');
 			toast.success('Added to library');
 			isOpen = false;
 		} catch {
@@ -85,7 +85,7 @@
 				return;
 			}
 
-			await invalidate((url) => url.pathname.startsWith('/library'));
+			await invalidate('app:library');
 			toast.success('Removed from library');
 			isOpen = false;
 		} catch {
@@ -131,7 +131,7 @@
 					return;
 				}
 
-				await invalidate((url) => url.pathname.startsWith('/library'));
+				await invalidate('app:library');
 				toast.success('Library updated');
 				isOpen = false;
 			} catch {

@@ -1,7 +1,9 @@
 import { apiClient } from '$lib/api/client';
-import type { LayoutServerLoad } from './$types';
+import type { LayoutLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ fetch }) => {
+export const load: LayoutLoad = async ({ fetch, depends }) => {
+	depends('app:user');
+
 	try {
 		const [user, settings] = await Promise.all([
 			apiClient.GET('/auth/me', { fetch }),

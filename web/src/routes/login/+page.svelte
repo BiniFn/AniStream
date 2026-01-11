@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import * as Form from '$lib/components/ui/form';
@@ -27,7 +27,8 @@
 				});
 
 				if (res.response.status === 200 && res.data) {
-					await goto('/', { invalidateAll: true });
+					await invalidate('app:user');
+					await goto('/');
 					toast.success('Successfully logged in');
 					return;
 				}

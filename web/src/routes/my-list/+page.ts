@@ -3,7 +3,8 @@ import type { PageLoad } from './$types';
 import { apiClient } from '$lib/api/client';
 import { filtersToApiQuery, searchParamsToFilters } from '$lib/utils/filters';
 
-export const load: PageLoad = async ({ fetch, parent, url }) => {
+export const load: PageLoad = async ({ fetch, parent, url, depends }) => {
+	depends('app:library');
 	const { user } = await parent();
 
 	if (!user) {

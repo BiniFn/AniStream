@@ -37,9 +37,7 @@
 					path: { provider },
 				},
 			});
-			await invalidate(
-				(url) => url.pathname.startsWith('/auth') || url.pathname.startsWith('/settings'),
-			);
+			await invalidate('app:user');
 			toast.success('OAuth provider disconnected successfully');
 		} catch (error) {
 			console.error('Failed to disconnect OAuth provider:', error);

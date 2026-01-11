@@ -2,7 +2,8 @@ import { apiClient } from '$lib/api/client';
 import type { PageLoad } from './$types';
 import { redirectToErrorPage } from '$lib/errors';
 
-export const load: PageLoad = async ({ fetch, params }) => {
+export const load: PageLoad = async ({ fetch, params, depends }) => {
+	depends('app:library');
 	const response = await apiClient.GET('/anime/{id}/full', {
 		fetch,
 		params: { path: params },

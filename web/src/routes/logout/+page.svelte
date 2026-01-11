@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { ArrowLeft, LogOut, Sparkles } from 'lucide-svelte';
@@ -11,7 +11,8 @@
 		isLoggingOut = true;
 		try {
 			await apiClient.POST('/auth/logout');
-			await goto('/', { invalidateAll: true });
+			await invalidate('app:user');
+			await goto('/');
 			toast.success('Successfully logged out');
 		} catch (error) {
 			console.error('Logout error:', error);

@@ -51,7 +51,7 @@
 
 				if (res.response.status === 200 && res.data) {
 					toast.success('Account created successfully!');
-					await goto('/login', { invalidateAll: true });
+					await goto('/login');
 					return;
 				}
 

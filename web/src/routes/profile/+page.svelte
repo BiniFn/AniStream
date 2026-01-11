@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidate, invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import Button, { buttonVariants } from '$lib/components/ui/button/button.svelte';
@@ -48,9 +48,7 @@
 				});
 
 				if (res.response.status === 200) {
-					await invalidate(
-						(url) => url.pathname.startsWith('/auth') || url.pathname.startsWith('/users'),
-					);
+					await invalidate('app:user');
 					toast.success('Profile updated successfully');
 					return;
 				}
@@ -113,7 +111,7 @@
 			});
 
 			if (res.response.ok) {
-				await invalidateAll();
+				await invalidate('app:user');
 				toast.success('Profile picture updated successfully');
 			} else {
 				toast.error('Failed to update profile picture');
@@ -127,7 +125,7 @@
 
 	async function removeProfilePicture() {
 		await apiClient.DELETE('/users/image');
-		await invalidateAll();
+		await invalidate('app:user');
 		toast.success('Profile picture removed successfully');
 	}
 </script>

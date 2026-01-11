@@ -91,7 +91,7 @@
 				body: { watchedEpisodes: data.episodeNumber, status: 'watching' },
 			});
 
-			await invalidate((url) => url.pathname.startsWith('/library'));
+			await invalidate('app:library');
 			toast.success('Library status updated');
 		} catch {
 			toast.error('Failed to update library status');
