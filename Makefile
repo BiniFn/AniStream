@@ -6,6 +6,9 @@ TMP_DIR := ./tmp
 DOCKER_COMPOSE_FILE := docker/docker-compose.dev.yaml
 ENV_FILE := .env.local
 
+# Default target
+.DEFAULT_GOAL := help
+
 # ----- Local Dev ----- #
 .PHONY: dev-api dev-proxy dev-worker
 dev-api: ## Run API with Air
@@ -44,6 +47,25 @@ openapi: ## Generate full openapi docs + ts client
 	@./scripts/create-openapi.sh
 
 migrate: ## Generate migration files
+	@# Check if API or Worker binaries are running
+	@API_RUNNING=$$(pgrep -f "tmp/api" >/dev/null 2>&1 && echo "yes" || echo "no"); \
+	WORKER_RUNNING=$$(pgrep -f "tmp/worker" >/dev/null 2>&1 && echo "yes" || echo "no"); \
+	if [ "$$API_RUNNING" = "yes" ] || [ "$$WORKER_RUNNING" = "yes" ]; then \
+		echo "❌ Error: API or Worker binary is currently running."; \
+		echo ""; \
+		echo "Please close the running binaries (stop air/dev processes) before creating migration files."; \
+		echo "This prevents air from auto-running blank migrations."; \
+		echo ""; \
+		if [ "$$API_RUNNING" = "yes" ]; then \
+			echo "  - API is running (found process matching 'tmp/api')"; \
+		fi; \
+		if [ "$$WORKER_RUNNING" = "yes" ]; then \
+			echo "  - Worker is running (found process matching 'tmp/worker')"; \
+		fi; \
+		echo ""; \
+		echo "Run: pkill -f 'tmp/api' or pkill -f 'tmp/worker' to stop them."; \
+		exit 1; \
+	fi
 	@./scripts/migrate.sh
 
 # ----- Docker Compose (Dev) ----- #
