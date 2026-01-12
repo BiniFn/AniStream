@@ -34,5 +34,6 @@ export const load: PageLoad = async ({ fetch, params, depends }) => {
 		franchise: data.franchise,
 		libraryStatus: data.libraryStatus,
 		characters: data.characters,
+		variations: data.variations ?? [],
 	};
 };

@@ -83,6 +83,21 @@ func scrapeRecentlyUpdated(
 				return nil
 			}
 
+			// If mal_id is missing but anilist_id exists, try to find related anime and copy mal_id
+			if info.MalID == 0 && info.AnilistID > 0 {
+				relatedAnimes, err := repo.GetAnimeByAnilistId(ctx, pgtype.Int4{Int32: int32(info.AnilistID), Valid: true})
+				if err == nil {
+					// Find anime with same anilist_id that has a mal_id
+					for _, related := range relatedAnimes {
+						if related.MalID.Valid && related.MalID.Int32 > 0 {
+							info.MalID = int(related.MalID.Int32)
+							child.Info("copied mal_id from related anime", "mal_id", info.MalID, "anilist_id", info.AnilistID, "from_hi_id", related.HiAnimeID)
+							break
+						}
+					}
+				}
+			}
+
 			updatedAt := now.Add(time.Duration(offset) * updateSpacing)
 
 			if hasExisting {
@@ -124,7 +139,7 @@ func scrapeRecentlyUpdated(
 					SeasonYear:  int32(info.SeasonYear),
 				}
 				if err := repo.InsertAnime(ctx, params); err != nil {
-					child.Error("insert failed", "err", err)
+					child.Error("insert failed", "err", err, "hi_anime_id", scraped.HiAnimeID, "mal_id", info.MalID)
 					atomic.AddInt32(&failed, 1)
 					return nil
 				}

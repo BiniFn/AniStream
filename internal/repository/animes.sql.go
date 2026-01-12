@@ -41,6 +41,53 @@ func (q *Queries) GetAllGenres(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
+const getAnimeByAnilistId = `-- name: GetAnimeByAnilistId :many
+SELECT
+    id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr
+FROM
+    animes
+WHERE
+    anilist_id = $1
+ORDER BY
+    created_at ASC
+`
+
+func (q *Queries) GetAnimeByAnilistId(ctx context.Context, anilistID pgtype.Int4) ([]Anime, error) {
+	rows, err := q.db.Query(ctx, getAnimeByAnilistId, anilistID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Anime
+	for rows.Next() {
+		var i Anime
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ename,
+			&i.Jname,
+			&i.ImageUrl,
+			&i.Genre,
+			&i.HiAnimeID,
+			&i.MalID,
+			&i.AnilistID,
+			&i.LastEpisode,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SearchVector,
+			&i.Season,
+			&i.SeasonYear,
+			&i.GenresArr,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAnimeByGenre = `-- name: GetAnimeByGenre :many
 SELECT
     id, ename, jname, image_url, genre, hi_anime_id, mal_id, anilist_id, last_episode, created_at, updated_at, search_vector, season, season_year, genres_arr

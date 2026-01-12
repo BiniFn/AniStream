@@ -634,6 +634,75 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/anime/{id}/variations': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get anime variations
+		 * @description Get all variations of an anime (same MAL ID)
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Anime ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.AnimeResponse'][];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Not Found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/anime/listings': {
 		parameters: {
 			query?: never;
@@ -2738,6 +2807,77 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/library/{animeID}/switch/{variationID}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		/**
+		 * Switch library entry to different variation
+		 * @description Switch user's library entry from current anime to a variation (same MAL ID)
+		 */
+		put: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Current Anime ID */
+					animeID: string;
+					/** @description Target Variation Anime ID */
+					variationID: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.LibraryResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Not Found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+				/** @description Internal Server Error */
+				500: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['models.ErrorResponse'];
+					};
+				};
+			};
+		};
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/library/continue-watching': {
 		parameters: {
 			query?: never;
@@ -3555,6 +3695,7 @@ export interface components {
 			franchise?: components['schemas']['models.RelationsResponse'];
 			libraryStatus?: components['schemas']['models.LibraryResponse'];
 			trailer?: components['schemas']['models.TrailerResponse'];
+			variations?: components['schemas']['models.AnimeResponse'][];
 		};
 		'models.AnimeListResponse': {
 			items: components['schemas']['models.AnimeResponse'][];

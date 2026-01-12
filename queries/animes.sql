@@ -94,6 +94,16 @@ FROM
 WHERE
     mal_id = $1;
 
+-- name: GetAnimeByAnilistId :many
+SELECT
+    *
+FROM
+    animes
+WHERE
+    anilist_id = $1
+ORDER BY
+    created_at ASC;
+
 -- name: GetAnimeByHiAnimeId :one
 SELECT
     *
