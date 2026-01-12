@@ -22,9 +22,13 @@ func (q *Queries) DeleteDesktopReleasesByVersion(ctx context.Context, version st
 }
 
 const getAllDesktopReleases = `-- name: GetAllDesktopReleases :many
-SELECT id, version, platform, download_url, file_name, file_size, release_notes, created_at
-FROM desktop_releases
-ORDER BY version DESC, platform ASC
+SELECT
+    id, version, platform, download_url, file_name, file_size, release_notes, created_at
+FROM
+    desktop_releases
+ORDER BY
+    version DESC,
+    platform ASC
 `
 
 func (q *Queries) GetAllDesktopReleases(ctx context.Context) ([]DesktopRelease, error) {
@@ -57,10 +61,13 @@ func (q *Queries) GetAllDesktopReleases(ctx context.Context) ([]DesktopRelease, 
 }
 
 const getDesktopReleaseByVersionAndPlatform = `-- name: GetDesktopReleaseByVersionAndPlatform :one
-SELECT id, version, platform, download_url, file_name, file_size, release_notes, created_at
-FROM desktop_releases
-WHERE version = $1
-  AND platform = $2
+SELECT
+    id, version, platform, download_url, file_name, file_size, release_notes, created_at
+FROM
+    desktop_releases
+WHERE
+    version = $1
+    AND platform = $2
 `
 
 type GetDesktopReleaseByVersionAndPlatformParams struct {
@@ -85,10 +92,14 @@ func (q *Queries) GetDesktopReleaseByVersionAndPlatform(ctx context.Context, arg
 }
 
 const getDesktopReleasesByVersion = `-- name: GetDesktopReleasesByVersion :many
-SELECT id, version, platform, download_url, file_name, file_size, release_notes, created_at
-FROM desktop_releases
-WHERE version = $1
-ORDER BY platform ASC
+SELECT
+    id, version, platform, download_url, file_name, file_size, release_notes, created_at
+FROM
+    desktop_releases
+WHERE
+    version = $1
+ORDER BY
+    platform ASC
 `
 
 func (q *Queries) GetDesktopReleasesByVersion(ctx context.Context, version string) ([]DesktopRelease, error) {
@@ -121,15 +132,21 @@ func (q *Queries) GetDesktopReleasesByVersion(ctx context.Context, version strin
 }
 
 const getLatestDesktopReleases = `-- name: GetLatestDesktopReleases :many
-SELECT id, version, platform, download_url, file_name, file_size, release_notes, created_at
-FROM desktop_releases
-WHERE version = (
-  SELECT version
-  FROM desktop_releases
-  ORDER BY created_at DESC
-  LIMIT 1
-)
-ORDER BY platform ASC
+SELECT
+    id, version, platform, download_url, file_name, file_size, release_notes, created_at
+FROM
+    desktop_releases
+WHERE
+    version = (
+        SELECT
+            version
+        FROM
+            desktop_releases
+        ORDER BY
+            created_at DESC
+        LIMIT 1)
+ORDER BY
+    platform ASC
 `
 
 func (q *Queries) GetLatestDesktopReleases(ctx context.Context) ([]DesktopRelease, error) {
@@ -163,8 +180,9 @@ func (q *Queries) GetLatestDesktopReleases(ctx context.Context) ([]DesktopReleas
 
 const insertDesktopRelease = `-- name: InsertDesktopRelease :one
 INSERT INTO desktop_releases (version, platform, download_url, file_name, file_size, release_notes)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, version, platform, download_url, file_name, file_size, release_notes, created_at
+    VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+    id, version, platform, download_url, file_name, file_size, release_notes, created_at
 `
 
 type InsertDesktopReleaseParams struct {

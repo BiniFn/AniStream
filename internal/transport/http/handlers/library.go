@@ -19,6 +19,7 @@ func (h *Handler) LibraryRoutes() {
 		r.Get("/planning", h.getPlanning)
 		r.Post("/{animeID}", h.createLibrary)
 		r.Put("/{animeID}", h.updateLibrary)
+		r.Put("/{animeID}/switch/{variationID}", h.switchLibraryVariation)
 		r.Delete("/{animeID}", h.deleteAnimeFromLib)
 
 		r.Post("/import", h.importLibrary)
@@ -319,6 +320,49 @@ func (h *Handler) updateLibrary(w http.ResponseWriter, r *http.Request) {
 	default:
 		log.Error("failed to update anime in library", "err", err)
 		h.jsonError(w, http.StatusInternalServerError, "failed to update anime in library")
+	}
+}
+
+// @Summary Switch library entry to different variation
+// @Description Switch user's library entry from current anime to a variation (same MAL ID)
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security cookieAuth
+// @Param animeID path string true "Current Anime ID"
+// @Param variationID path string true "Target Variation Anime ID"
+// @Success 200 {object} models.LibraryResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /library/{animeID}/switch/{variationID} [put]
+func (h *Handler) switchLibraryVariation(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+	user := middleware.GetUser(r)
+
+	currentAnimeID, err := h.pathParam(r, "animeID")
+	if err != nil {
+		h.jsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	variationID, err := h.pathParam(r, "variationID")
+	if err != nil {
+		h.jsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	lib, err := h.services.Library.SwitchLibraryVariation(r.Context(), user.ID, currentAnimeID, variationID)
+	switch err {
+	case library.ErrLibraryNotFound:
+		h.jsonError(w, http.StatusNotFound, "library entry not found")
+	case library.ErrVariationMismatch:
+		h.jsonError(w, http.StatusBadRequest, "variations must have the same MAL ID")
+	case nil:
+		h.jsonOK(w, lib)
+	default:
+		log.Error("failed to switch library variation", "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to switch library variation")
 	}
 }
 

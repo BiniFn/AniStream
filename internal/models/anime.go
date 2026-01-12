@@ -140,6 +140,7 @@ type AnimeFullResponse struct {
 	Franchise     *RelationsResponse        `json:"franchise,omitempty"`
 	LibraryStatus *LibraryResponse          `json:"libraryStatus,omitempty"`
 	Characters    CharactersResponse        `json:"characters,omitempty"`
+	Variations    []AnimeResponse           `json:"variations,omitempty"`
 }
 
 type HomeResponse struct {

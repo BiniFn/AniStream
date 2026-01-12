@@ -333,6 +333,20 @@ func (s *AnimeService) GetCharacterFull(ctx context.Context, malID int32) (model
 	})
 }
 
+func (s *AnimeService) GetAnimeVariations(ctx context.Context, id string) ([]models.AnimeResponse, error) {
+	variations, err := s.repo.GetAnimeVariations(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.AnimeResponse, len(variations))
+	for i, v := range variations {
+		result[i] = mappers.AnimeFromRepository(v)
+	}
+
+	return result, nil
+}
+
 func (s *AnimeService) GetPersonFull(ctx context.Context, malID int32) (models.PersonFullResponse, error) {
 	return cache.GetOrFill(ctx, s.redis, fmt.Sprintf("person:%d", malID), 7*24*time.Hour, func(ctx context.Context) (models.PersonFullResponse, error) {
 		person, err := s.jikanClient.GetPersonFull(ctx, int(malID))
