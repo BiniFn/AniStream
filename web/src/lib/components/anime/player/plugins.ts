@@ -95,24 +95,24 @@ export const thumbnailPlugin = (url: string, getUrl: (path: string) => string) =
 								const second = percentage * art.duration;
 								$control.style.display = 'flex';
 
-								const find = data.find((item) => item.start <= second && item.end >= second);
+								const thumbnail = data.find((item) => item.start <= second && item.end >= second);
 
-								if (!find) {
+								if (!thumbnail) {
 									$control.style.display = 'none';
 									return;
 								}
 
 								if (width > 0 && width < $progress.clientWidth) {
-									$control.style.backgroundImage = `url(${find.url})`;
-									$control.style.height = `${find.h}px`;
-									$control.style.width = `${find.w}px`;
-									$control.style.backgroundPosition = `-${find.x}px -${find.y}px`;
-									if (width <= find.w / 2) {
+									$control.style.backgroundImage = `url(${thumbnail.url})`;
+									$control.style.height = `${thumbnail.h}px`;
+									$control.style.width = `${thumbnail.w}px`;
+									$control.style.backgroundPosition = `-${thumbnail.x}px -${thumbnail.y}px`;
+									if (width <= thumbnail.w / 2) {
 										$control.style.left = '0px';
-									} else if (width > $progress.clientWidth - find.w / 2) {
-										$control.style.left = `${$progress.clientWidth - find.w}px`;
+									} else if (width > $progress.clientWidth - thumbnail.w / 2) {
+										$control.style.left = `${$progress.clientWidth - thumbnail.w}px`;
 									} else {
-										$control.style.left = `${width - find.w / 2}px`;
+										$control.style.left = `${width - thumbnail.w / 2}px`;
 									}
 								} else {
 									if (!isMobile) {
@@ -175,10 +175,14 @@ export const skipPlugin = (source: StreamInfo) => {
 				art.controls.add({
 					name: 'opening',
 					position: 'top',
-					html: `<button class="${buttonVariants({ class: 'absolute bottom-6 right-0' })}">Skip Opening</button>`,
+					html: `<button class="${buttonVariants({ class: 'absolute bottom-6 right-0 pointer-events-auto touch-manipulation' })}">Skip Opening</button>`,
 					click: (_, e) => {
 						e.preventDefault();
 						e.stopPropagation();
+
+						if (e instanceof TouchEvent) {
+							e.stopImmediatePropagation();
+						}
 
 						art.seek = source.intro!.end;
 						art.notice.show = 'Skipped Opening';
@@ -195,10 +199,14 @@ export const skipPlugin = (source: StreamInfo) => {
 				art.controls.add({
 					name: 'ending',
 					position: 'top',
-					html: `<button class="${buttonVariants({ class: 'absolute bottom-6 right-0' })}">Skip Ending</button>`,
+					html: `<button class="${buttonVariants({ class: 'absolute bottom-6 right-0 pointer-events-auto touch-manipulation' })}">Skip Ending</button>`,
 					click: (_, e) => {
 						e.preventDefault();
 						e.stopPropagation();
+
+						if (e instanceof TouchEvent) {
+							e.stopImmediatePropagation();
+						}
 
 						art.seek = source.outro!.end;
 						art.notice.show = 'Skipped Ending';
