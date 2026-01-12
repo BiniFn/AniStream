@@ -2,6 +2,7 @@
 	import type { components } from '$lib/api/openapi';
 	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
 	import { cn } from '$lib/utils';
 	import { CirclePlay, Play, Share2, Star } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
@@ -29,6 +30,8 @@
 					.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
 					.join(' ');
 	});
+
+	let isTrailerDialogOpen = $state(false);
 </script>
 
 <section class="relative -mt-32 bg-background md:-mt-17">
@@ -62,7 +65,7 @@
 					/>
 					{#if trailer}
 						<button
-							onclick={() => window.open(trailer, '_blank')}
+							onclick={() => (isTrailerDialogOpen = true)}
 							class="absolute inset-0 flex cursor-pointer flex-col items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
 						>
 							<CirclePlay class="h-12 w-12 text-white" />
@@ -131,8 +134,8 @@
 						<Button
 							size="default"
 							variant="outline"
-							onclick={() => window.open(trailer, '_blank')}
 							class="col-span-2 gap-2 md:col-auto"
+							onclick={() => (isTrailerDialogOpen = true)}
 						>
 							<CirclePlay class="h-4 w-4" />
 							Trailer
@@ -178,3 +181,27 @@
 		</div>
 	</div>
 </section>
+
+<Dialog bind:open={isTrailerDialogOpen}>
+	<DialogContent class="max-w-none sm:max-w-none">
+		<DialogHeader>
+			<DialogTitle>
+				Trailer - {anime.jname || anime.ename}
+			</DialogTitle>
+		</DialogHeader>
+		{#if trailer}
+			<div class="aspect-video w-full">
+				<iframe
+					src={trailer.replace('watch?v=', 'embed/')}
+					title="YouTube video player"
+					frameborder="0"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+					allowfullscreen
+					class="h-full w-full"
+				></iframe>
+			</div>
+		{:else}
+			<p>Trailer not available.</p>
+		{/if}
+	</DialogContent>
+</Dialog>
