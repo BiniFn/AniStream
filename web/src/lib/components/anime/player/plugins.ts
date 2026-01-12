@@ -60,13 +60,22 @@ export const thumbnailPlugin = (url: string, getUrl: (path: string) => string) =
 					data.push({
 						start: startSeconds,
 						end: endSeconds,
-						url: getUrl(spritePath),
+						url: spritePath ? getUrl(spritePath) : '',
 						x: x!,
 						y: y!,
 						w: w!,
 						h: h!,
 					});
 				});
+
+				// Preload images for smoother experience
+				data
+					.map((item) => item.url)
+					.filter((src) => src)
+					.forEach((src) => {
+						const img = new Image();
+						img.src = src;
+					});
 
 				art.controls.add({
 					name: 'vtt-thumbnail',
