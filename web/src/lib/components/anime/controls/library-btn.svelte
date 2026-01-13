@@ -197,7 +197,9 @@
 				<form use:enhance class="flex flex-col justify-center gap-2">
 					{#if variations && variations.length > 0 && libraryEntry}
 						<div class="px-4">
-							<Form.Label>Version</Form.Label>
+							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
+								Version
+							</label>
 							<Select.Root
 								type="single"
 								value={animeId}
@@ -366,7 +368,9 @@
 				<form use:enhance class="flex flex-col justify-center gap-2">
 					{#if variations && variations.length > 0 && libraryEntry}
 						<div>
-							<Form.Label>Version</Form.Label>
+							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
+								Version
+							</label>
 							<Select.Root
 								type="single"
 								value={animeId}
