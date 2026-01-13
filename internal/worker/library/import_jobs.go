@@ -162,13 +162,25 @@ func importFromMal(
 				continue
 			}
 
-			inLibraryAlready, err := repo.IsAnimeInLibrary(ctx, repository.IsAnimeInLibraryParams{
-				UserID:  payload.UserID,
-				AnimeID: anime.ID,
-			})
+			var inLibraryAlready bool
+			var animeID string
+			for _, a := range anime {
+				inLibraryAlready, err = repo.IsAnimeInLibrary(ctx, repository.IsAnimeInLibraryParams{
+					UserID:  payload.UserID,
+					AnimeID: a.ID,
+				})
+				if inLibraryAlready {
+					animeID = a.ID
+				}
+			}
+
 			if err != nil {
-				log.Error("failed to check if anime is in library", "anime_id", anime.ID, "err", err)
+				log.Error("failed to check if anime is in library", "anime_id", animeID, "err", err)
 				continue
+			}
+
+			if animeID == "" {
+				animeID = anime[0].ID
 			}
 
 			status := myanimelist.MalListStatus(item.ListStatus.Status)
@@ -181,20 +193,20 @@ func importFromMal(
 			if !inLibraryAlready {
 				err = repo.InsertLibrary(ctx, repository.InsertLibraryParams{
 					UserID:          payload.UserID,
-					AnimeID:         anime.ID,
+					AnimeID:         animeID,
 					Status:          repository.LibraryStatus(status.ToRepository()),
 					WatchedEpisodes: watchedEpisodes,
 					UpdatedAt:       updatedAt,
 				})
 				if err != nil {
-					log.Error("failed to insert library entry", "anime_id", anime.ID, "err", err)
+					log.Error("failed to insert library entry", "anime_id", animeID, "err", err)
 				}
 				continue
 			}
 
 			err = repo.UpdateLibrary(ctx, repository.UpdateLibraryParams{
 				UserID:          payload.UserID,
-				AnimeID:         anime.ID,
+				AnimeID:         animeID,
 				Status:          repository.LibraryStatus(status.ToRepository()),
 				WatchedEpisodes: watchedEpisodes,
 				UpdatedAt: pgtype.Timestamp{
@@ -203,7 +215,7 @@ func importFromMal(
 				},
 			})
 			if err != nil {
-				log.Error("failed to update library entry", "anime_id", anime.ID, "err", err)
+				log.Error("failed to update library entry", "anime_id", animeID, "err", err)
 				continue
 			}
 		}
@@ -250,13 +262,25 @@ func importFromAnilist(
 				continue
 			}
 
-			inLibraryAlready, err := repo.IsAnimeInLibrary(ctx, repository.IsAnimeInLibraryParams{
-				UserID:  payload.UserID,
-				AnimeID: anime.ID,
-			})
+			var inLibraryAlready bool
+			var animeID string
+			for _, a := range anime {
+				inLibraryAlready, err = repo.IsAnimeInLibrary(ctx, repository.IsAnimeInLibraryParams{
+					UserID:  payload.UserID,
+					AnimeID: a.ID,
+				})
+				if inLibraryAlready {
+					animeID = a.ID
+				}
+			}
+
 			if err != nil {
-				log.Error("failed to check if anime is in library", "anime_id", anime.ID, "err", err)
+				log.Error("failed to check if anime is in library", "anime_id", animeID, "err", err)
 				continue
+			}
+
+			if animeID == "" {
+				animeID = anime[0].ID
 			}
 
 			status := aniClient.ConvertToRepoStatus(item.GetStatus())
@@ -265,24 +289,24 @@ func importFromAnilist(
 			if !inLibraryAlready {
 				err = repo.InsertLibrary(ctx, repository.InsertLibraryParams{
 					UserID:          payload.UserID,
-					AnimeID:         anime.ID,
+					AnimeID:         animeID,
 					Status:          repository.LibraryStatus(status),
 					WatchedEpisodes: int32(watchedEpisodes),
 				})
 				if err != nil {
-					log.Error("failed to insert library entry", "anime_id", anime.ID, "err", err)
+					log.Error("failed to insert library entry", "anime_id", animeID, "err", err)
 				}
 				continue
 			}
 
 			err = repo.UpdateLibrary(ctx, repository.UpdateLibraryParams{
 				UserID:          payload.UserID,
-				AnimeID:         anime.ID,
+				AnimeID:         animeID,
 				Status:          repository.LibraryStatus(status),
 				WatchedEpisodes: int32(watchedEpisodes),
 			})
 			if err != nil {
-				log.Error("failed to update library entry", "anime_id", anime.ID, "err", err)
+				log.Error("failed to update library entry", "anime_id", animeID, "err", err)
 				continue
 			}
 		}
@@ -290,4 +314,3 @@ func importFromAnilist(
 
 	return nil
 }
-

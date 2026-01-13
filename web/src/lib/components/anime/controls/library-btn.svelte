@@ -29,15 +29,25 @@
 	import { arktype } from 'sveltekit-superforms/adapters';
 
 	type LibraryResponse = components['schemas']['models.LibraryResponse'];
+	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 
 	type Props = {
 		animeId: string;
 		libraryEntry: LibraryResponse | null;
 		class?: string;
 		iconOnly?: boolean;
+		variations?: AnimeResponse[];
+		currentAnimeName?: string;
 	};
 
-	let { animeId, libraryEntry, class: className, iconOnly = false }: Props = $props();
+	let {
+		animeId,
+		libraryEntry,
+		class: className,
+		iconOnly = false,
+		variations = [],
+		currentAnimeName = 'Current Version',
+	}: Props = $props();
 	const appState = getAppStateContext();
 
 	let isOpen = $state(false);
@@ -185,6 +195,54 @@
 				</Drawer.Header>
 
 				<form use:enhance class="flex flex-col justify-center gap-2">
+					{#if variations && variations.length > 0 && libraryEntry}
+						<div class="px-4">
+							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
+								Version
+							</label>
+							<Select.Root
+								type="single"
+								value={animeId}
+								onValueChange={async (value) => {
+									if (!value || value === animeId) return;
+									const id = toast.loading('Switching version...');
+									try {
+										const result = await apiClient.PUT('/library/{animeID}/switch/{variationID}', {
+											params: {
+												path: { animeID: animeId, variationID: value },
+											},
+										});
+										if (result.response.ok) {
+											toast.success('Version switched', { id });
+											await invalidate('app:library');
+											await goto(`/anime/${value}`);
+										} else {
+											toast.error('Failed to switch version', { id });
+										}
+									} catch {
+										toast.error('Failed to switch version', { id });
+									}
+								}}
+							>
+								<Select.Trigger class="w-full capitalize">
+									{currentAnimeName}
+								</Select.Trigger>
+								<Select.Content>
+									{#each variations as variation (variation.id)}
+										{@const isCurrent = variation.id === animeId}
+										<Select.Item value={variation.id} class="capitalize" disabled={isCurrent}>
+											{variation.jname || variation.ename}
+											{#if isCurrent}
+												<span class="ml-2 text-xs text-muted-foreground">(Current)</span>
+											{/if}
+										</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						</div>
+						<Separator orientation="horizontal" class="my-2" />
+					{/if}
+
 					<Form.Field {form} name="status" class="px-4">
 						<Form.Control>
 							{#snippet children({ props })}
@@ -308,6 +366,54 @@
 					<Dialog.Description>Update your progress for this anime.</Dialog.Description>
 				</Dialog.Header>
 				<form use:enhance class="flex flex-col justify-center gap-2">
+					{#if variations && variations.length > 0 && libraryEntry}
+						<div>
+							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
+								Version
+							</label>
+							<Select.Root
+								type="single"
+								value={animeId}
+								onValueChange={async (value) => {
+									if (!value || value === animeId) return;
+									const id = toast.loading('Switching version...');
+									try {
+										const result = await apiClient.PUT('/library/{animeID}/switch/{variationID}', {
+											params: {
+												path: { animeID: animeId, variationID: value },
+											},
+										});
+										if (result.response.ok) {
+											toast.success('Version switched', { id });
+											await invalidate('app:library');
+											await goto(`/anime/${value}`);
+										} else {
+											toast.error('Failed to switch version', { id });
+										}
+									} catch {
+										toast.error('Failed to switch version', { id });
+									}
+								}}
+							>
+								<Select.Trigger class="w-full capitalize">
+									{currentAnimeName}
+								</Select.Trigger>
+								<Select.Content>
+									{#each variations as variation (variation.id)}
+										{@const isCurrent = variation.id === animeId}
+										<Select.Item value={variation.id} class="capitalize" disabled={isCurrent}>
+											{variation.jname || variation.ename}
+											{#if isCurrent}
+												<span class="ml-2 text-xs text-muted-foreground">(Current)</span>
+											{/if}
+										</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						</div>
+						<Separator orientation="horizontal" class="my-2" />
+					{/if}
+
 					<Form.Field {form} name="status">
 						<Form.Control>
 							{#snippet children({ props })}

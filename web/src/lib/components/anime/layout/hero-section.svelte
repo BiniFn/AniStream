@@ -9,6 +9,7 @@
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
 	type LibraryReponse = components['schemas']['models.LibraryResponse'];
+	type AnimeVariation = components['schemas']['models.AnimeResponse'];
 
 	interface Props {
 		anime: AnimeResponse;
@@ -17,9 +18,18 @@
 		ratingLabel: string;
 		totalEpisodes?: number;
 		libraryEntry: LibraryReponse | null;
+		variations?: AnimeVariation[];
 	}
 
-	let { anime, banner, trailer, totalEpisodes, ratingLabel, libraryEntry }: Props = $props();
+	let {
+		anime,
+		banner,
+		trailer,
+		totalEpisodes,
+		ratingLabel,
+		libraryEntry,
+		variations = [],
+	}: Props = $props();
 
 	let mediaType = $derived.by(() => {
 		const type = anime.metadata?.mediaType || 'tv';
@@ -128,7 +138,12 @@
 						</Button>
 					{/if}
 
-					<LibraryBtn {libraryEntry} animeId={anime.id} />
+					<LibraryBtn
+						{libraryEntry}
+						animeId={anime.id}
+						{variations}
+						currentAnimeName={anime.jname || anime.ename || 'Current Version'}
+					/>
 
 					{#if trailer}
 						<Button

@@ -11,6 +11,7 @@ import (
 	"github.com/coeeter/aniways/internal/service/anime"
 	"github.com/coeeter/aniways/internal/utils"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type LibraryService struct {
@@ -359,4 +360,82 @@ func (s *LibraryService) GetImportLibraryStatus(ctx context.Context, jobID strin
 
 func (s *LibraryService) ClearLibrary(ctx context.Context, userID string) error {
 	return s.repo.ClearLibrary(ctx, userID)
+}
+
+var ErrVariationMismatch = errors.New("variations must have the same MAL ID")
+
+func (s *LibraryService) SwitchLibraryVariation(ctx context.Context, userID, currentAnimeID, variationID string) (models.LibraryResponse, error) {
+	// Get both animes to validate they share the same MAL ID
+	currentAnime, err := s.repo.GetAnimeById(ctx, currentAnimeID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.LibraryResponse{}, anime.ErrAnimeNotFound
+		}
+		return models.LibraryResponse{}, err
+	}
+
+	variationAnime, err := s.repo.GetAnimeById(ctx, variationID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.LibraryResponse{}, anime.ErrAnimeNotFound
+		}
+		return models.LibraryResponse{}, err
+	}
+
+	// Validate both have MAL IDs and they match
+	if !currentAnime.MalID.Valid || !variationAnime.MalID.Valid {
+		return models.LibraryResponse{}, ErrVariationMismatch
+	}
+	if currentAnime.MalID.Int32 != variationAnime.MalID.Int32 {
+		return models.LibraryResponse{}, ErrVariationMismatch
+	}
+
+	malID := currentAnime.MalID.Int32
+
+	// Get current library entry to preserve status and episodes
+	currentLib, err := s.GetLibraryByAnimeID(ctx, userID, currentAnimeID)
+	if err != nil {
+		return models.LibraryResponse{}, err
+	}
+
+	// Get all animes with the same MAL ID
+	allVariations, err := s.repo.GetAnimeByMalId(ctx, pgtype.Int4{Int32: malID, Valid: true})
+	if err != nil {
+		return models.LibraryResponse{}, err
+	}
+
+	// Delete ALL library entries for this user that have the same MAL ID
+	// This ensures only one library entry per MAL ID at any time
+	for _, variation := range allVariations {
+		// Try to get library entry for this variation
+		_, err := s.GetLibraryByAnimeID(ctx, userID, variation.ID)
+		if err == nil {
+			// Entry exists, delete it
+			err = s.repo.DeleteLibrary(ctx, repository.DeleteLibraryParams{
+				UserID:  userID,
+				AnimeID: variation.ID,
+			})
+			if err != nil {
+				return models.LibraryResponse{}, err
+			}
+		} else if !errors.Is(err, ErrLibraryNotFound) {
+			// Some other error occurred
+			return models.LibraryResponse{}, err
+		}
+		// If ErrLibraryNotFound, just continue - nothing to delete
+	}
+
+	// Insert new entry with variation ID, preserving status and episodes
+	err = s.repo.InsertLibrary(ctx, repository.InsertLibraryParams{
+		UserID:          userID,
+		AnimeID:         variationID,
+		Status:          repository.LibraryStatus(currentLib.Status),
+		WatchedEpisodes: currentLib.WatchedEpisodes,
+	})
+	if err != nil {
+		return models.LibraryResponse{}, err
+	}
+
+	// Return the new library entry
+	return s.GetLibraryByAnimeID(ctx, userID, variationID)
 }

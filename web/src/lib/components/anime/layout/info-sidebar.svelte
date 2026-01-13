@@ -10,9 +10,10 @@
 		anime: AnimeResponse;
 		ratingLabel: string;
 		selectedTab?: string;
+		variations?: AnimeResponse[];
 	}
 
-	let { anime, ratingLabel, selectedTab }: Props = $props();
+	let { anime, ratingLabel, selectedTab, variations = [] }: Props = $props();
 	let mediaType = $derived.by(() => {
 		const type = anime.metadata?.mediaType || 'tv';
 		return type === 'tv'
@@ -183,6 +184,61 @@
 			{/if}
 		</dl>
 	</div>
+
+	{#if variations && variations.length > 0}
+		<div class="rounded-xl border bg-card p-6 shadow-sm">
+			<h3 class="mb-4 text-lg font-bold">Other Versions</h3>
+			<div class="space-y-2">
+				{#each variations as variation (variation.id)}
+					{@const isCurrent = variation.id === anime.id}
+					<a
+						href={isCurrent ? undefined : `/anime/${variation.id}`}
+						class={cn(
+							'group flex items-center gap-3 rounded-lg border p-3 transition-all',
+							isCurrent
+								? 'cursor-default border-primary bg-primary/10'
+								: 'bg-background hover:border-primary/50 hover:bg-accent',
+						)}
+					>
+						<img
+							src={variation.imageUrl}
+							alt={variation.jname || variation.ename}
+							class="h-16 w-12 rounded object-cover"
+						/>
+						<div class="min-w-0 flex-1">
+							<div class="flex items-center gap-2">
+								<h4
+									class={cn(
+										'line-clamp-1 text-sm font-semibold',
+										!isCurrent && 'group-hover:text-primary',
+									)}
+								>
+									{variation.jname || variation.ename}
+								</h4>
+								{#if isCurrent}
+									<span
+										class="rounded bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground"
+									>
+										Current
+									</span>
+								{/if}
+							</div>
+							{#if variation.ename && variation.jname}
+								<p class="line-clamp-1 text-xs text-muted-foreground">
+									{variation.ename}
+								</p>
+							{/if}
+						</div>
+						{#if !isCurrent}
+							<ExternalLink
+								class="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+							/>
+						{/if}
+					</a>
+				{/each}
+			</div>
+		</div>
+	{/if}
 
 	<div class="rounded-xl border bg-card p-6 shadow-sm">
 		<h3 class="mb-4 text-lg font-bold">You Might Also Like</h3>

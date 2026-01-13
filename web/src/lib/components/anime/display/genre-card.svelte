@@ -63,7 +63,7 @@
 				{:else}
 					<!-- Placeholder while waiting to load -->
 					{#each previews as _ (name + _)}
-						<div class="h-full w-full bg-muted animate-pulse"></div>
+						<div class="h-full w-full animate-pulse bg-muted"></div>
 					{/each}
 				{/if}
 			</div>

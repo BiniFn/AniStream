@@ -27,6 +27,7 @@
 	ratingLabel={data.ratingLabel}
 	totalEpisodes={data.episodes?.length}
 	libraryEntry={data.libraryStatus ?? null}
+	variations={data.variations}
 />
 
 <div
@@ -63,6 +64,11 @@
 			characters={data.characters ?? null}
 		/>
 
-		<InfoSidebar anime={data.anime} ratingLabel={data.ratingLabel} {selectedTab} />
+		<InfoSidebar
+			anime={data.anime}
+			ratingLabel={data.ratingLabel}
+			{selectedTab}
+			variations={data.variations}
+		/>
 	</div>
 </div>

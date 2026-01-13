@@ -381,6 +381,46 @@ paths:
       summary: Get anime trailer
       tags:
         - Anime
+  "/anime/{id}/variations":
+    get:
+      description: Get all variations of an anime (same MAL ID)
+      parameters:
+        - description: Anime ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/models.AnimeResponse"
+                type: array
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      summary: Get anime variations
+      tags:
+        - Anime
   /anime/listings:
     get:
       description: Get anime catalog. When authenticated, includes library status.
@@ -1640,6 +1680,53 @@ paths:
       summary: Update anime in library
       tags:
         - Library
+  "/library/{animeID}/switch/{variationID}":
+    put:
+      description: Switch user's library entry from current anime to a variation (same
+        MAL ID)
+      parameters:
+        - description: Current Anime ID
+          in: path
+          name: animeID
+          required: true
+          schema:
+            type: string
+        - description: Target Variation Anime ID
+          in: path
+          name: variationID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.LibraryResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/models.ErrorResponse"
+      security:
+        - cookieAuth: []
+      summary: Switch library entry to different variation
+      tags:
+        - Library
   /library/continue-watching:
     get:
       description: Get continue watching list
@@ -2155,6 +2242,10 @@ components:
           $ref: "#/components/schemas/models.LibraryResponse"
         trailer:
           $ref: "#/components/schemas/models.TrailerResponse"
+        variations:
+          items:
+            $ref: "#/components/schemas/models.AnimeResponse"
+          type: array
       required:
         - anime
       type: object

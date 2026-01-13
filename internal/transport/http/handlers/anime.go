@@ -20,6 +20,7 @@ func (h *Handler) AnimeDetailsRoutes() {
 	h.r.With(httpin.NewInput(GetAnimeByIDInput{})).Route("/anime/{id}", func(r chi.Router) {
 		r.Get("/", h.getAnimeByID)
 		r.Get("/full", h.getAnimeFull)
+		r.Get("/variations", h.getAnimeVariations)
 		r.Get("/trailer", h.getAnimeTrailer)
 		r.Get("/banner", h.getAnimeBanner)
 		r.Get("/franchise", h.getAnimeFranchise)
@@ -200,6 +201,33 @@ func (h *Handler) getAnimeCharacters(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get anime variations
+// @Description Get all variations of an anime (same MAL ID)
+// @Tags Anime
+// @Accept json
+// @Produce json
+// @Param id path string true "Anime ID"
+// @Success 200 {array} models.AnimeResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /anime/{id}/variations [get]
+func (h *Handler) getAnimeVariations(w http.ResponseWriter, r *http.Request) {
+	log := h.logger(r)
+
+	input := h.getHttpInput(r).(*GetAnimeByIDInput)
+	id := input.ID
+
+	variations, err := h.services.Anime.GetAnimeVariations(r.Context(), id)
+	if err != nil {
+		log.Error("failed to fetch anime variations", "id", id, "err", err)
+		h.jsonError(w, http.StatusInternalServerError, "failed to fetch anime variations")
+		return
+	}
+
+	h.jsonOK(w, variations)
+}
+
 // @Summary Get full anime details
 // @Description Get all anime details in a single response including anime data, banner, trailer, episodes, franchise, characters, and library status (if authenticated)
 // @Tags Anime
@@ -224,6 +252,7 @@ func (h *Handler) getAnimeFull(w http.ResponseWriter, r *http.Request) {
 		episodes      models.EpisodeListResponse
 		franchise     *models.RelationsResponse
 		characters    models.CharactersResponse
+		variations    []models.AnimeResponse
 		libStatus     *models.LibraryResponse
 		animeErr      error
 		bannerErr     error
@@ -231,6 +260,7 @@ func (h *Handler) getAnimeFull(w http.ResponseWriter, r *http.Request) {
 		episodesErr   error
 		franchiseErr  error
 		charactersErr error
+		variationsErr error
 		libErr        error
 	)
 
@@ -293,6 +323,15 @@ func (h *Handler) getAnimeFull(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		variations, variationsErr = h.services.Anime.GetAnimeVariations(r.Context(), id)
+		if variationsErr != nil {
+			variations = nil
+		}
+	}()
+
 	user := middleware.GetUser(r)
 	if user != nil {
 		wg.Add(1)
@@ -337,6 +376,9 @@ func (h *Handler) getAnimeFull(w http.ResponseWriter, r *http.Request) {
 	if charactersErr != nil {
 		log.Warn("failed to fetch characters", "id", id, "err", charactersErr)
 	}
+	if variationsErr != nil {
+		log.Warn("failed to fetch variations", "id", id, "err", variationsErr)
+	}
 	if libErr != nil {
 		log.Warn("failed to fetch library status", "id", id, "err", libErr)
 	}
@@ -349,6 +391,7 @@ func (h *Handler) getAnimeFull(w http.ResponseWriter, r *http.Request) {
 		Franchise:     franchise,
 		LibraryStatus: libStatus,
 		Characters:    characters,
+		Variations:    variations,
 	}
 
 	h.jsonOK(w, response)
