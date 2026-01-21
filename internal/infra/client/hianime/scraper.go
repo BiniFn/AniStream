@@ -348,7 +348,7 @@ func (s *HianimeScraper) GetStreamData(
 	serverID, streamType, serverName string,
 ) (ScrapedStreamData, error) {
 	if strings.ToLower(serverName) == "megaplay" {
-		serversURL := fmt.Sprintf("https://nine.bunniescdn.online/ajax/episode/servers?episodeId=%s&type=%s", serverID, streamType)
+		serversURL := fmt.Sprintf("https://nine.mewcdn.online/ajax/episode/servers?episodeId=%s&type=%s", serverID, streamType)
 		serversReq, _ := http.NewRequestWithContext(ctx, "GET", serversURL, nil)
 		serversReq.Header.Set("Referer", "https://megaplay.buzz")
 		serversReq.Header.Set("X-Requested-With", "XMLHttpRequest")
@@ -381,7 +381,7 @@ func (s *HianimeScraper) GetStreamData(
 			return ScrapedStreamData{}, fmt.Errorf("no server data-id found")
 		}
 
-		sourcesURL := fmt.Sprintf("https://nine.bunniescdn.online/ajax/episode/sources?id=%s", dataID)
+		sourcesURL := fmt.Sprintf("https://nine.mewcdn.online/ajax/episode/sources?id=%s", dataID)
 		sourcesReq, _ := http.NewRequestWithContext(ctx, "GET", sourcesURL, nil)
 		sourcesReq.Header.Set("Referer", "https://megaplay.buzz")
 		sourcesReq.Header.Set("X-Requested-With", "XMLHttpRequest")
