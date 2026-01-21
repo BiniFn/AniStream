@@ -29,7 +29,8 @@
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 
 	const appState = getAppStateContext();
-	const showDownload = browser ? !isMobile() : false;
+	// const showDownload = browser ? !isMobile() : false;
+	const showDownload = false;
 
 	let links = $derived.by(() => {
 		const base = [
