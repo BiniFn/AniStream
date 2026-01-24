@@ -40,81 +40,79 @@ func InitDeps(ctx context.Context, svcName string) (*Deps, error) {
 	env, err := config.LoadEnv()
 	rootLogger := NewLogger(svcName) // if env is loaded wrongly just use json handler (prod way)
 	if err != nil {
-		return &Deps{Log: rootLogger}, err
+		return &Deps{Log: rootLogger}, fmt.Errorf("failed to load environment variables: %w", err)
+	}
+
+	deps := &Deps{
+		Env: env,
+		Log: rootLogger,
 	}
 
 	dbLog := rootLogger.With("component", "database")
 	db, err := database.New(env, dbLog)
 	if err != nil {
-		return &Deps{Log: rootLogger}, err
+		return deps, fmt.Errorf("failed to initialize database: %w", err)
 	}
+	deps.Db = db
 
 	cacheLog := rootLogger.With("component", "cache")
 	useCache := env.AppEnv != "development" || env.UseCache
-	cache, err := cache.NewRedisClient(ctx, env.AppEnv, env.RedisAddr, env.RedisPassword, cacheLog, useCache)
+	redisCache, err := cache.NewRedisClient(ctx, env.AppEnv, env.RedisAddr, env.RedisPassword, cacheLog, useCache)
 	if err != nil {
-		return &Deps{Log: rootLogger}, err
+		deps.Close()
+		return deps, fmt.Errorf("failed to initialize redis cache: %w", err)
 	}
+	deps.Cache = redisCache
 
-	repo := repository.New(db)
-	scraper := hianime.NewHianimeScraper()
-	malClient := myanimelist.NewClient(env.MyAnimeListClientID)
-	jikanClient := jikan.NewClient()
-	anilistClient := anilist.New()
-	shiki := shikimori.NewClient(cache)
-	emailClient := email.NewClient(env.ResendAPIKey, env.ResendFromEmail)
+	deps.Repo = repository.New(db)
+	deps.Scraper = hianime.NewHianimeScraper()
+	deps.MAL = myanimelist.NewClient(env.MyAnimeListClientID)
+	deps.Jikan = jikan.NewClient()
+	deps.Anilist = anilist.New()
+	deps.Shiki = shikimori.NewClient(redisCache)
+	deps.EmailClient = email.NewClient(env.ResendAPIKey, env.ResendFromEmail)
 
 	cld, err := cloudinary.NewFromParams(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinaryAPISecret)
 	if err != nil {
-		return &Deps{Log: rootLogger}, err
+		deps.Close()
+		return deps, fmt.Errorf("failed to initialize cloudinary client: %w", err)
 	}
+	deps.Cld = cld
 
 	malOauthProvider := oauth.NewMALProvider(
 		env.MyAnimeListClientID,
 		env.MyAnimeListClientSecret,
 		fmt.Sprintf("%s/auth/oauth/myanimelist/callback", env.ApiURL),
-		repo,
-		cache,
+		deps.Repo,
+		redisCache,
 	)
 
 	anilistOauthProvider := oauth.NewAnilistProvider(
 		env.AnilistClientID,
 		env.AnilistClientSecret,
 		fmt.Sprintf("%s/auth/oauth/anilist/callback", env.ApiURL),
-		repo,
+		deps.Repo,
 	)
 
-	providers := map[string]oauth.Provider{
+	deps.Providers = map[string]oauth.Provider{
 		malOauthProvider.Name():     malOauthProvider,
 		anilistOauthProvider.Name(): anilistOauthProvider,
 	}
 
-	return &Deps{
-		Env:         env,
-		Log:         rootLogger,
-		Db:          db,
-		Repo:        repo,
-		Cache:       cache,
-		Scraper:     scraper,
-		MAL:         malClient,
-		Jikan:       jikanClient,
-		Anilist:     anilistClient,
-		Shiki:       shiki,
-		Cld:         cld,
-		EmailClient: emailClient,
-		Providers:   providers,
-	}, nil
+	return deps, nil
 }
 
 func (d *Deps) Close() error {
-	d.Db.Close()
-	d.Log.Info("Closed db connections", "component", "database")
-
-	if err := d.Cache.Close(); err != nil {
-		d.Log.Error("Failed to close cache", "error", err)
-		return err
+	if d.Db != nil {
+		d.Db.Close()
 	}
-	d.Log.Info("Closed cache connections", "component", "cache")
+
+	if d.Cache != nil {
+		if err := d.Cache.Close(); err != nil {
+			d.Log.Error("Failed to close cache", "error", err)
+			return err
+		}
+	}
 
 	return nil
 }

@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,14 +13,7 @@ var daemonCmd = &cobra.Command{
 	Use:   "daemon",
 	Short: "Run daemon mode",
 	Run: func(cmd *cobra.Command, args []string) {
-		deps, err := initDeps()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error initializing dependencies: %v\n", err)
-			os.Exit(1)
-		}
-		defer deps.Close()
-
-		ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 		defer cancel()
 
 		mgr := worker.NewManager(
@@ -47,8 +38,3 @@ var daemonCmd = &cobra.Command{
 		deps.Log.Info("Worker daemon stopped")
 	},
 }
-
-func init() {
-	rootCmd.AddCommand(daemonCmd)
-}
-

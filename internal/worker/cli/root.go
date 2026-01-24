@@ -1,30 +1,50 @@
 package cli
 
 import (
-	"context"
+	"fmt"
 	"os"
 
 	"github.com/coeeter/aniways/internal/app"
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "worker",
-	Short: "Aniways worker",
-	Run: func(cmd *cobra.Command, args []string) {
-		daemonCmd.Run(cmd, args)
-	},
-}
+var deps *app.Deps
 
 func Execute() {
+	var rootCmd = &cobra.Command{
+		Use:               "worker",
+		Short:             "Aniways worker",
+		PersistentPreRunE: initDepsOnce,
+	}
+
+	rootCmd.AddCommand(daemonCmd, authCmd, scrapeCmd, libraryCmd)
+
+	if len(os.Args) == 1 {
+		rootCmd.SetArgs([]string{"daemon"})
+	}
+
 	err := rootCmd.Execute()
+
+	if deps != nil {
+		deps.Close()
+	}
+
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func initDeps() (*app.Deps, error) {
-	ctx := context.Background()
-	return app.InitDeps(ctx, "WORKER")
-}
+func initDepsOnce(cmd *cobra.Command, args []string) error {
+	if deps != nil {
+		return nil
+	}
 
+	d, err := app.InitDeps(cmd.Context(), "WORKER")
+	if err != nil {
+		return fmt.Errorf("error initializing dependencies: %w", err)
+	}
+
+	deps = d
+	return nil
+}
