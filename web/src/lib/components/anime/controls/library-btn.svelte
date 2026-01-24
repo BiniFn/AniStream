@@ -197,7 +197,11 @@
 				<form use:enhance class="flex flex-col justify-center gap-2">
 					{#if variations && variations.length > 0 && libraryEntry}
 						<div class="px-4">
-							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
+							svelte-ignore a11y_label_has_associated_control
+							<label
+								class="mb-2 block text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="version-select"
+							>
 								Version
 							</label>
 							<Select.Root
@@ -224,7 +228,7 @@
 									}
 								}}
 							>
-								<Select.Trigger class="w-full capitalize">
+								<Select.Trigger class="w-full capitalize" id="version-select">
 									{currentAnimeName}
 								</Select.Trigger>
 								<Select.Content>
@@ -368,7 +372,9 @@
 				<form use:enhance class="flex flex-col justify-center gap-2">
 					{#if variations && variations.length > 0 && libraryEntry}
 						<div>
-							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
+							<label
+								class="mb-2 block text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+							>
 								Version
 							</label>
 							<Select.Root

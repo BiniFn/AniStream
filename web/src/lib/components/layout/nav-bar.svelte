@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { onNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { apiClient } from '$lib/api/client';
@@ -9,7 +8,6 @@
 	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { getAppStateContext } from '$lib/context/state.svelte';
-	import { isMobile } from '$lib/hooks/is-mobile';
 	import { cn } from '$lib/utils';
 	import {
 		Dice6,
@@ -29,7 +27,6 @@
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 
 	const appState = getAppStateContext();
-	// const showDownload = browser ? !isMobile() : false;
 	const showDownload = false;
 
 	let links = $derived.by(() => {

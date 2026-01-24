@@ -2,7 +2,6 @@
 	import { browser } from '$app/environment';
 	import type { components } from '$lib/api/openapi';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { isMobile } from '$lib/hooks/is-mobile';
 	import {
 		detectOS,
 		formatFileSize,
@@ -18,8 +17,7 @@
 
 	let { data }: PageProps = $props();
 
-	const onMobile = browser ? isMobile() : false;
-	const shouldShow = browser ? !onMobile : true;
+	const shouldShow = false;
 
 	const os = browser ? detectOS() : 'unknown';
 

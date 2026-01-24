@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { getAppStateContext } from '$lib/context/state.svelte';
-	import { isMobile } from '$lib/hooks/is-mobile';
 	import { Heart } from 'lucide-svelte';
 	import BrandText from './brand-text.svelte';
 
 	const appState = getAppStateContext();
-	const showDownload = browser ? !isMobile() : false;
 </script>
 
 <footer class="border-t border-border bg-background">
@@ -100,16 +97,6 @@
 			<div>
 				<h4 class="mb-4 text-sm font-semibold tracking-wide text-foreground uppercase">More</h4>
 				<ul class="space-y-3 text-sm">
-					{#if showDownload}
-						<li>
-							<a
-								href="/download"
-								class="text-muted-foreground transition-colors hover:text-primary"
-							>
-								Desktop App
-							</a>
-						</li>
-					{/if}
 					<li>
 						<a
 							href="https://github.com/coeeter/aniways"
