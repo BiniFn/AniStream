@@ -131,12 +131,18 @@ export const createArtPlayer = ({
 
 					const cleanup = () => {
 						abortController.abort();
-						if (hls) {
-							hls.detachMedia();
-							hls.stopLoad();
-							hls.destroy();
+
+						if (art.hls) {
+							const artHls = art.hls as Hls;
+							artHls.stopLoad();
+							artHls.detachMedia();
+							artHls.destroy();
 							art.hls = null;
 						}
+
+						video.pause();
+						video.src = '';
+						video.load();
 					};
 
 					art.once('destroy', cleanup);
