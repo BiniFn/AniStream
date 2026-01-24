@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { invalidate } from '$app/navigation';
 	import Footer from '$lib/components/layout/footer.svelte';
 	import NavBar from '$lib/components/layout/nav-bar.svelte';
 	import TopLoader from '$lib/components/layout/top-loader.svelte';
@@ -25,24 +24,6 @@
 	$effect(() => {
 		appState.setUser(data.user);
 		appState.setSettings(data.settings);
-	});
-
-	// Check auth status when tab becomes visible (user switches back to tab)
-	$effect(() => {
-		if (typeof document === 'undefined') return;
-
-		const handleVisibilityChange = () => {
-			if (!document.hidden && appState.isLoggedIn) {
-				const timeoutId = setTimeout(() => {
-					invalidate('app:user');
-				}, 1000);
-
-				return () => clearTimeout(timeoutId);
-			}
-		};
-
-		document.addEventListener('visibilitychange', handleVisibilityChange);
-		return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
 	});
 </script>
 
