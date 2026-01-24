@@ -68,4 +68,3 @@ type PersonCharacterResponse struct {
 }
 
 type PersonFullListResponse = Pagination[PersonFullResponse]
-

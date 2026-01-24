@@ -41,4 +41,3 @@ func NewServices(deps *app.Deps) *Services {
 		Desktop:  desktopService,
 	}
 }
-

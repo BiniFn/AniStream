@@ -50,4 +50,3 @@ func ValidateAdminKey(providedKey string) bool {
 	}
 	return providedKey == storedKey
 }
-

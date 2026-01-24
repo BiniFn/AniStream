@@ -152,4 +152,3 @@ func (h *Handler) HealthRoutes() {
 		r.Get("/z", h.healthz)
 	})
 }
-

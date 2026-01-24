@@ -160,4 +160,3 @@ func scrapeRecentlyUpdated(
 	)
 	return nil
 }
-

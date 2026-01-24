@@ -87,4 +87,3 @@ func (h *Handler) getPersonByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-

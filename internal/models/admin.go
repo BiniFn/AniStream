@@ -60,17 +60,17 @@ type BulkJobStatus struct {
 }
 
 type BulkJobResult struct {
-	JobID     string             `json:"jobId"`
-	Status    JobStatus          `json:"status"`
-	Total     int                `json:"total"`
-	Processed int                `json:"processed"`
-	Success   int                `json:"success"`
-	Failed    int                `json:"failed"`
-	StartedAt string             `json:"startedAt"`
-	UpdatedAt string             `json:"updatedAt"`
-	Results   []ReprocessResult  `json:"results"`
-	Errors    []ReprocessError   `json:"errors"`
-	FailedIDs []string           `json:"failedIds"`
+	JobID     string            `json:"jobId"`
+	Status    JobStatus         `json:"status"`
+	Total     int               `json:"total"`
+	Processed int               `json:"processed"`
+	Success   int               `json:"success"`
+	Failed    int               `json:"failed"`
+	StartedAt string            `json:"startedAt"`
+	UpdatedAt string            `json:"updatedAt"`
+	Results   []ReprocessResult `json:"results"`
+	Errors    []ReprocessError  `json:"errors"`
+	FailedIDs []string          `json:"failedIds"`
 }
 
 func (job *BulkJob) GetProgress() float64 {
@@ -124,4 +124,3 @@ func (job *BulkJob) ToResultResponse() BulkJobResult {
 		FailedIDs: failedIDs,
 	}
 }
-
