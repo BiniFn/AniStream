@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { LoaderCircle } from 'lucide-svelte';
+	import { goto } from '$app/navigation';
 	import type { PageProps } from './$types';
 
 	let props: PageProps = $props();

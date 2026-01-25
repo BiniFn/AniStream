@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { Clock } from 'lucide-svelte';
 	import AnimeCard from '$lib/components/anime/display/anime-card.svelte';
 	import EmptyState from '$lib/components/anime/display/empty-state.svelte';
 	import PageHeader from '$lib/components/layout/page-header.svelte';
 	import { Pagination } from '$lib/components/ui/pagination';
-	import { Clock } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

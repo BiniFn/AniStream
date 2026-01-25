@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { Calendar, Hash, Search, Sparkles, X } from 'lucide-svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import { Calendar, Hash, Search, Sparkles, X } from 'lucide-svelte';
 	import type { FilterManager } from '$lib/utils/filter-manager.svelte';
 
 	interface Props {

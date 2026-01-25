@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { ArrowLeft, LogOut, Sparkles } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 	import { goto, invalidate } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { ArrowLeft, LogOut, Sparkles } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 
 	let isLoggingOut = $state(false);
 

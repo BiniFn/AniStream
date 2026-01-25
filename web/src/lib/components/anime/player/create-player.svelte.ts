@@ -1,14 +1,14 @@
-import { goto } from '$app/navigation';
-import { convertComponentToHTML } from '$lib/utils';
 import { ArkErrors, type } from 'arktype';
+import Artplayer from 'artplayer';
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
 import Hls from 'hls.js';
 import { Captions, LoaderCircle, Pause, SkipForward } from 'lucide-svelte';
-import { amplifyVolumePlugin, skipPlugin, thumbnailPlugin, windowKeyBindPlugin } from './plugins';
-import type { components } from '$lib/api/openapi';
+import { goto } from '$app/navigation';
 import { PUBLIC_STREAMING_URL } from '$env/static/public';
+import type { components } from '$lib/api/openapi';
 import type { AppState } from '$lib/context/state.svelte';
-import Artplayer from 'artplayer';
+import { convertComponentToHTML } from '$lib/utils';
+import { amplifyVolumePlugin, skipPlugin, thumbnailPlugin, windowKeyBindPlugin } from './plugins';
 
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 

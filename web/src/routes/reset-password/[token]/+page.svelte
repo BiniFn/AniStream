@@ -1,10 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { apiClient } from '$lib/api/client';
-	import type { components } from '$lib/api/openapi';
-	import * as Form from '$lib/components/ui/form';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import { cn } from '$lib/utils';
 	import { type } from 'arktype';
 	import {
 		ArrowLeft,
@@ -19,6 +13,12 @@
 	import { toast } from 'svelte-sonner';
 	import { defaults, setError, superForm } from 'sveltekit-superforms';
 	import { arktype, arktypeClient } from 'sveltekit-superforms/adapters';
+	import { goto } from '$app/navigation';
+	import { apiClient } from '$lib/api/client';
+	import type { components } from '$lib/api/openapi';
+	import * as Form from '$lib/components/ui/form';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import { cn } from '$lib/utils';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
-import type { PageLoad } from './$types';
 import { apiClient } from '$lib/api/client';
 import { filtersToApiQuery, searchParamsToFilters } from '$lib/utils/filters';
+import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, parent, url, depends }) => {
 	depends('app:library');

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import nProgress from 'nprogress';
 	import { onMount } from 'svelte';
+	import { beforeNavigate, afterNavigate } from '$app/navigation';
 
 	let timeout: NodeJS.Timeout | null = null;
 

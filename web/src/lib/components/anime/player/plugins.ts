@@ -1,6 +1,6 @@
-import { buttonVariants } from '$lib/components/ui/button';
 import type Artplayer from 'artplayer';
 import type { components } from '$lib/api/openapi';
+import { buttonVariants } from '$lib/components/ui/button';
 
 type StreamInfo = components['schemas']['models.StreamingDataResponse'];
 

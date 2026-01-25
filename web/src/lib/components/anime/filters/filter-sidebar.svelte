@@ -1,12 +1,12 @@
 <script lang="ts">
+	import { X } from 'lucide-svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as Select from '$lib/components/ui/select';
-	import { cn } from '$lib/utils';
-	import { X } from 'lucide-svelte';
 	import { getLayoutStateContext } from '$lib/context/layout.svelte';
+	import { cn } from '$lib/utils';
 	import type { FilterManager } from '$lib/utils/filter-manager.svelte';
 
 	interface Props {

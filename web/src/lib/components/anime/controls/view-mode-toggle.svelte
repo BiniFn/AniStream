@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
 	import { LayoutGrid, LayoutList } from 'lucide-svelte';
+	import { Button } from '$lib/components/ui/button';
 
 	interface Props {
 		viewMode: 'grid' | 'list';

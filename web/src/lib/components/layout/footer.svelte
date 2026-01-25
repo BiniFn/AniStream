@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getAppStateContext } from '$lib/context/state.svelte';
 	import { Heart } from 'lucide-svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
 	import BrandText from './brand-text.svelte';
 
 	const appState = getAppStateContext();

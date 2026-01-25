@@ -1,14 +1,14 @@
 <script lang="ts">
-	import PageHeader from '$lib/components/layout/page-header.svelte';
-	import { cn } from '$lib/utils';
 	import { Funnel } from 'lucide-svelte';
-	import ActiveFilters from '$lib/components/anime/filters/active-filters.svelte';
+	import { useDebounce } from 'runed';
 	import SearchBar from '$lib/components/anime/controls/search-bar.svelte';
 	import SortControls from '$lib/components/anime/controls/sort-controls.svelte';
 	import ViewModeToggle from '$lib/components/anime/controls/view-mode-toggle.svelte';
+	import ActiveFilters from '$lib/components/anime/filters/active-filters.svelte';
+	import PageHeader from '$lib/components/layout/page-header.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { cn } from '$lib/utils';
 	import type { FilterManager } from '$lib/utils/filter-manager.svelte';
-	import { useDebounce } from 'runed';
 
 	interface SortOption {
 		value: string;

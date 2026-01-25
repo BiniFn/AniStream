@@ -1,12 +1,12 @@
 <script lang="ts">
+	import { Check, Palette } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 	import type { components } from '$lib/api/openapi';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
-	import { cn } from '$lib/utils';
-	import { Check, Palette } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 	import { getAppStateContext } from '$lib/context/state.svelte';
+	import { cn } from '$lib/utils';
 	import type { PageProps } from './$types';
 
 	type Theme = components['schemas']['models.Theme'];

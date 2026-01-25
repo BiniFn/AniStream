@@ -1,4 +1,9 @@
 <script lang="ts">
+	import { type } from 'arktype';
+	import { Database, Eye, EyeOff, LoaderCircle, Trash2, TriangleAlert } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { defaults, setError, superForm } from 'sveltekit-superforms';
+	import { arktype, arktypeClient } from 'sveltekit-superforms/adapters';
 	import { goto, invalidate } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
@@ -8,11 +13,6 @@
 	import * as Form from '$lib/components/ui/form';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { cn } from '$lib/utils';
-	import { type } from 'arktype';
-	import { Database, Eye, EyeOff, LoaderCircle, Trash2, TriangleAlert } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
-	import { defaults, setError, superForm } from 'sveltekit-superforms';
-	import { arktype, arktypeClient } from 'sveltekit-superforms/adapters';
 
 	const deleteFormSchema = type({
 		password: type('string').describe('current password'),

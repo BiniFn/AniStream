@@ -1,4 +1,9 @@
 <script lang="ts">
+	import { type } from 'arktype';
+	import { Eye, EyeOff, LoaderCircle, Shield } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { defaults, setError, superForm } from 'sveltekit-superforms';
+	import { arktype, arktypeClient } from 'sveltekit-superforms/adapters';
 	import { apiClient } from '$lib/api/client';
 	import type { components } from '$lib/api/openapi';
 	import Button from '$lib/components/ui/button/button.svelte';
@@ -6,11 +11,6 @@
 	import * as Form from '$lib/components/ui/form';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { cn } from '$lib/utils';
-	import { type } from 'arktype';
-	import { Eye, EyeOff, LoaderCircle, Shield } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
-	import { defaults, setError, superForm } from 'sveltekit-superforms';
-	import { arktype, arktypeClient } from 'sveltekit-superforms/adapters';
 
 	const passwordFormSchema = type({
 		oldPassword: type('string>=1').describe('current password'),

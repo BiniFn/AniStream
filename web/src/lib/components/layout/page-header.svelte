@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getLayoutStateContext } from '$lib/context/layout.svelte';
 	import type { Snippet } from 'svelte';
+	import { getLayoutStateContext } from '$lib/context/layout.svelte';
 
 	interface Props {
 		title: string;

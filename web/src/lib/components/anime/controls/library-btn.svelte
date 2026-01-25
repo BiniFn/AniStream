@@ -1,18 +1,4 @@
 <script lang="ts">
-	import { goto, invalidate } from '$app/navigation';
-	import { apiClient } from '$lib/api/client';
-	import type { components } from '$lib/api/openapi';
-	import { buttonVariants } from '$lib/components/ui/button';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Drawer from '$lib/components/ui/drawer';
-	import * as Form from '$lib/components/ui/form';
-	import { Input } from '$lib/components/ui/input';
-	import * as Select from '$lib/components/ui/select';
-	import Separator from '$lib/components/ui/separator/separator.svelte';
-	import { getAppStateContext } from '$lib/context/state.svelte';
-	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
-	import { cn } from '$lib/utils';
 	import { type } from 'arktype';
 	import {
 		Check,
@@ -27,6 +13,20 @@
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { arktype } from 'sveltekit-superforms/adapters';
+	import { goto, invalidate } from '$app/navigation';
+	import { apiClient } from '$lib/api/client';
+	import type { components } from '$lib/api/openapi';
+	import { buttonVariants } from '$lib/components/ui/button';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Drawer from '$lib/components/ui/drawer';
+	import * as Form from '$lib/components/ui/form';
+	import { Input } from '$lib/components/ui/input';
+	import * as Select from '$lib/components/ui/select';
+	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
+	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
+	import { cn } from '$lib/utils';
 
 	type LibraryResponse = components['schemas']['models.LibraryResponse'];
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];

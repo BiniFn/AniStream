@@ -1,17 +1,17 @@
 <script lang="ts">
+	import { Apple, Download, Monitor, Smartphone } from 'lucide-svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 	import { browser } from '$app/environment';
 	import type { components } from '$lib/api/openapi';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { cn } from '$lib/utils';
 	import {
 		detectOS,
 		formatFileSize,
 		getOSDisplayName,
 		getPlatformDisplayName,
 	} from '$lib/utils/platform';
-	import { Apple, Download, Monitor, Smartphone } from 'lucide-svelte';
 	import type { PageProps } from './$types';
-	import { SvelteMap } from 'svelte/reactivity';
-	import { cn } from '$lib/utils';
 
 	type DesktopVersionResponse = components['schemas']['models.DesktopVersionResponse'];
 

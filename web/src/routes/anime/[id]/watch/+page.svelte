@@ -1,12 +1,4 @@
 <script lang="ts">
-	import { invalidate } from '$app/navigation';
-	import { apiClient } from '$lib/api/client';
-	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
-	import Player from '$lib/components/anime/player/index.svelte';
-	import { Badge } from '$lib/components/ui/badge';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import { cn } from '$lib/utils';
 	import {
 		ArrowLeft,
 		ChevronLeft,
@@ -20,11 +12,19 @@
 		Server,
 		Star,
 	} from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
-	import type { PageProps } from './$types';
-	import { getAppStateContext } from '$lib/context/state.svelte';
-	import { flip } from 'svelte/animate';
 	import { resource } from 'runed';
+	import { toast } from 'svelte-sonner';
+	import { flip } from 'svelte/animate';
+	import { invalidate } from '$app/navigation';
+	import { apiClient } from '$lib/api/client';
+	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
+	import Player from '$lib/components/anime/player/index.svelte';
+	import { Badge } from '$lib/components/ui/badge';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import { getAppStateContext } from '$lib/context/state.svelte';
+	import { cn } from '$lib/utils';
+	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 	const appState = getAppStateContext();

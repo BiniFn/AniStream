@@ -1,8 +1,4 @@
 <script lang="ts">
-	import { onNavigate } from '$app/navigation';
-	import type { components } from '$lib/api/openapi';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import { cn } from '$lib/utils';
 	import {
 		ArrowRight,
 		BookOpen,
@@ -14,8 +10,12 @@
 		Heart,
 	} from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
-	import { Button } from '$lib/components/ui/button';
+	import { onNavigate } from '$app/navigation';
+	import type { components } from '$lib/api/openapi';
 	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import { cn } from '$lib/utils';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
 	type EpisodeResponse = components['schemas']['models.EpisodeResponse'];

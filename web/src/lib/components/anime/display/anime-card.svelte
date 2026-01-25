@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { components } from '$lib/api/openapi';
 	import { Play } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
+	import type { components } from '$lib/api/openapi';
 	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
 	import { cn } from '$lib/utils';
 

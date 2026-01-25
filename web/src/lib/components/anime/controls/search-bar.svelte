@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { Search, X } from 'lucide-svelte';
 	import { Input } from '$lib/components/ui/input';
 	import { cn } from '$lib/utils';
-	import { Search, X } from 'lucide-svelte';
 
 	interface Props {
 		value: string;

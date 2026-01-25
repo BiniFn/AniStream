@@ -1,6 +1,6 @@
 import { apiClient } from '$lib/api/client';
-import type { PageLoad } from './$types';
 import { redirectToErrorPage } from '$lib/errors';
+import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, params, depends }) => {
 	depends('app:library');

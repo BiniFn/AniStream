@@ -1,11 +1,11 @@
 <script lang="ts">
+	import { ArrowLeft, ExternalLink, Mic, Music } from 'lucide-svelte';
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Pagination } from '$lib/components/ui/pagination';
-	import { ArrowLeft, ExternalLink, Mic, Music } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
-	import { browser } from '$app/environment';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

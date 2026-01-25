@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { ArrowLeft, ExternalLink, Heart, Users, ChevronDown } from 'lucide-svelte';
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { ArrowLeft, ExternalLink, Heart, Users, ChevronDown } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
-	import { browser } from '$app/environment';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

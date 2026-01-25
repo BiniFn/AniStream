@@ -1,10 +1,10 @@
 <script lang="ts">
-	import AnimeCard from '$lib/components/anime/display/anime-card.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import { Calendar, ChevronRight, Clock, Play, Star, TrendingUp } from 'lucide-svelte';
-	import type { PageProps } from './$types';
-	import { cn } from '$lib/utils';
+	import AnimeCard from '$lib/components/anime/display/anime-card.svelte';
 	import AnimeSection from '$lib/components/anime/layout/anime-section.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { cn } from '$lib/utils';
+	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 

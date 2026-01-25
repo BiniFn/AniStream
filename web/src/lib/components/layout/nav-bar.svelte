@@ -1,14 +1,4 @@
 <script lang="ts">
-	import { onNavigate } from '$app/navigation';
-	import { page } from '$app/state';
-	import { apiClient } from '$lib/api/client';
-	import type { components } from '$lib/api/openapi';
-	import UserProfileDropdown from '$lib/components/layout/user-profile-dropdown.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import * as Command from '$lib/components/ui/command';
-	import * as Sheet from '$lib/components/ui/sheet';
-	import { getAppStateContext } from '$lib/context/state.svelte';
-	import { cn } from '$lib/utils';
 	import {
 		Dice6,
 		Download,
@@ -21,6 +11,16 @@
 		Swords,
 		User,
 	} from 'lucide-svelte';
+	import { onNavigate } from '$app/navigation';
+	import { page } from '$app/state';
+	import { apiClient } from '$lib/api/client';
+	import type { components } from '$lib/api/openapi';
+	import UserProfileDropdown from '$lib/components/layout/user-profile-dropdown.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import * as Command from '$lib/components/ui/command';
+	import * as Sheet from '$lib/components/ui/sheet';
+	import { getAppStateContext } from '$lib/context/state.svelte';
+	import { cn } from '$lib/utils';
 	import BrandText from './brand-text.svelte';
 	import ProfilePicture from './profile-picture.svelte';
 

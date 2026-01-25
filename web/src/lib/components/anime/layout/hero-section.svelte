@@ -1,11 +1,11 @@
 <script lang="ts">
+	import { CirclePlay, Play, Share2, Star } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 	import type { components } from '$lib/api/openapi';
 	import LibraryBtn from '$lib/components/anime/controls/library-btn.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
 	import { cn } from '$lib/utils';
-	import { CirclePlay, Play, Share2, Star } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
 	type LibraryReponse = components['schemas']['models.LibraryResponse'];

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import AnimeCard from './anime-card.svelte';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+	import type { Snippet } from 'svelte';
 	import type { components } from '$lib/api/openapi';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Pagination } from '$lib/components/ui/pagination';
-	import type { Snippet } from 'svelte';
-	import LibraryBtn from '../controls/library-btn.svelte';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 	import type { FilterManager } from '$lib/utils/filter-manager.svelte';
+	import LibraryBtn from '../controls/library-btn.svelte';
+	import AnimeCard from './anime-card.svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeResponse'];
 	type AnimeWithLibraryResponse = components['schemas']['models.AnimeWithLibraryResponse'];

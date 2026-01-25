@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { formatDate } from 'date-fns';
+	import { ExternalLink, TrendingUp } from 'lucide-svelte';
 	import type { components } from '$lib/api/openapi';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
-	import { formatDate } from 'date-fns';
-	import { ExternalLink, TrendingUp } from 'lucide-svelte';
 
 	type AnimeResponse = components['schemas']['models.AnimeWithMetadataResponse'];
 	interface Props {

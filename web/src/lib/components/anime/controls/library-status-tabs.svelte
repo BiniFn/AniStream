@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { CircleCheck, CirclePlay, CircleX, Clock, Pause } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { cn } from '$lib/utils';
 	import type { FilterState } from '$lib/utils/filters';
-	import { CircleCheck, CirclePlay, CircleX, Clock, Pause } from 'lucide-svelte';
 
 	interface Props {
 		currentStatus: string;

@@ -1,11 +1,11 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import type { FilterManager } from '$lib/utils/filter-manager.svelte';
-	import type { Snippet } from 'svelte';
 
 	interface Props {
 		genres: string[];

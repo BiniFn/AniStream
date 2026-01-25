@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { type } from 'arktype';
+	import { useSearchParams } from 'runed/kit';
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button';
 	import { errorMessages } from '$lib/errors';
-	import { type } from 'arktype';
-	import { useSearchParams } from 'runed/kit';
 
 	const ErrorSchema = type({
 		type: 'string = ""',

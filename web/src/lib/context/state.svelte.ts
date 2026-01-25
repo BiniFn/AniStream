@@ -1,7 +1,7 @@
-import { apiClient } from '$lib/api/client';
-import type { components } from '$lib/api/openapi';
 import { getContext, setContext } from 'svelte';
 import { toast } from 'svelte-sonner';
+import { apiClient } from '$lib/api/client';
+import type { components } from '$lib/api/openapi';
 
 type User = components['schemas']['models.UserResponse'];
 type Settings = Omit<components['schemas']['models.SettingsResponse'], 'userId'>;

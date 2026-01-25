@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { cn } from '$lib/utils';
 	import { Palette, Settings, TriangleAlert, User, Users } from 'lucide-svelte';
-	import type { LayoutProps } from './$types';
-	import * as Tabs from '$lib/components/ui/tabs';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import PageHeader from '$lib/components/layout/page-header.svelte';
+	import * as Tabs from '$lib/components/ui/tabs';
+	import { cn } from '$lib/utils';
+	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
 

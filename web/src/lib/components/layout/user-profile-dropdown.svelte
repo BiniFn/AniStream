@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { ChevronDown, Heart, LogOut, Settings, User } from 'lucide-svelte';
 	import { buttonVariants } from '$lib/components/ui/button/button.svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { cn } from '$lib/utils';
-	import { ChevronDown, Heart, LogOut, Settings, User } from 'lucide-svelte';
-	import ProfilePicture from './profile-picture.svelte';
 	import { getAppStateContext } from '$lib/context/state.svelte';
+	import { cn } from '$lib/utils';
+	import ProfilePicture from './profile-picture.svelte';
 
 	interface Props {
 		class?: string;

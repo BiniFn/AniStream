@@ -1,8 +1,8 @@
 <script lang="ts">
+	import type { ComponentType, Snippet } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { cn } from '$lib/utils';
-	import type { ComponentType, Snippet } from 'svelte';
 
 	interface Props {
 		icon?: ComponentType | string;

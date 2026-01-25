@@ -1,13 +1,13 @@
 <script lang="ts">
+	import { Search } from 'lucide-svelte';
+	import { watch } from 'runed';
+	import AnimeGrid from '$lib/components/anime/display/anime-grid.svelte';
+	import EmptyState from '$lib/components/anime/display/empty-state.svelte';
 	import FilterSidebar from '$lib/components/anime/filters/filter-sidebar.svelte';
 	import MobileFilters from '$lib/components/anime/filters/mobile-filters.svelte';
 	import AnimePageHeader from '$lib/components/anime/layout/anime-page-header.svelte';
-	import type { PageProps } from './$types';
-	import AnimeGrid from '$lib/components/anime/display/anime-grid.svelte';
-	import EmptyState from '$lib/components/anime/display/empty-state.svelte';
-	import { Search } from 'lucide-svelte';
 	import { FilterManager } from '$lib/utils/filter-manager.svelte';
-	import { watch } from 'runed';
+	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 

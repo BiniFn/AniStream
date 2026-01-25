@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 
 	interface Props {
 		totalPages: number;
