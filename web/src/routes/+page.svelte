@@ -42,7 +42,7 @@
 				alt={featuredAnime.ename || featuredAnime.jname}
 				class="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
 			/>
-			<div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/20"></div>
+			<div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/20"></div>
 			<div
 				class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent md:bg-gradient-to-t"
 			></div>
@@ -51,7 +51,7 @@
 		<div class="absolute inset-0 z-20 flex items-center">
 			<div class="container mx-auto px-6">
 				<div
-					class="flex flex-col-reverse items-center md:gap-8 lg:flex-row lg:justify-between lg:gap-16 xl:gap-20"
+					class="flex flex-col-reverse items-center gap-4 md:gap-8 lg:flex-row lg:justify-between lg:gap-16 xl:gap-20"
 				>
 					<div class="max-w-3xl flex-1">
 						<div class="mb-6 flex items-center gap-3 md:pt-0">
@@ -65,12 +65,14 @@
 							</div>
 						</div>
 						<h1
-							class="mb-3 line-clamp-3 text-4xl leading-none font-black tracking-tight text-foreground sm:mb-6 sm:text-6xl md:text-8xl"
+							class="mb-3 line-clamp-2 text-3xl leading-tight font-black tracking-tight text-foreground sm:mb-6 sm:text-5xl md:text-5xl lg:text-6xl xl:text-7xl"
 						>
 							{featuredAnime.jname || featuredAnime.ename}
 						</h1>
 						{#if featuredAnime.ename && featuredAnime.jname}
-							<p class="mb-4 hidden text-4xl font-light text-muted-foreground sm:mb-6 sm:block">
+							<p
+								class="mb-4 hidden text-xl font-light text-muted-foreground sm:mb-6 sm:block md:text-2xl lg:text-3xl"
+							>
 								{featuredAnime.ename}
 							</p>
 						{/if}
@@ -125,7 +127,7 @@
 								<img
 									src={featuredAnime.metadata?.mainPictureUrl || featuredAnime.imageUrl}
 									alt={featuredAnime.ename || featuredAnime.jname}
-									class="aspect-[2/3] w-[45vw] overflow-hidden rounded-2xl object-cover lg:h-[550px] lg:w-96"
+									class="aspect-[2/3] w-[45vw] overflow-hidden rounded-2xl object-cover md:w-[300px] lg:h-[550px] lg:w-96"
 								/>
 							</div>
 							<div
