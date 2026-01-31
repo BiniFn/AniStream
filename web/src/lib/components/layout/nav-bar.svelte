@@ -6,28 +6,34 @@
 		Library,
 		LogOut,
 		Menu,
-		Search,
 		Settings,
 		Swords,
 		User,
 	} from 'lucide-svelte';
+	import { resource } from 'runed';
 	import { onNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { apiClient } from '$lib/api/client';
-	import type { components } from '$lib/api/openapi';
 	import UserProfileDropdown from '$lib/components/layout/user-profile-dropdown.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import * as Command from '$lib/components/ui/command';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { getAppStateContext } from '$lib/context/state.svelte';
 	import { cn } from '$lib/utils';
 	import BrandText from './brand-text.svelte';
 	import ProfilePicture from './profile-picture.svelte';
-
-	type AnimeResponse = components['schemas']['models.AnimeResponse'];
+	import SearchBar from './search-bar.svelte';
 
 	const appState = getAppStateContext();
 	const showDownload = false;
+
+	const trendingResource = resource(
+		() => [],
+		async () => {
+			const response = await apiClient.GET('/anime/listings/trending');
+			return response.data || [];
+		},
+		{ once: true },
+	);
 
 	let links = $derived.by(() => {
 		const base = [
@@ -60,108 +66,11 @@
 	});
 
 	let isSheetOpen = $state(false);
-	let isSearchOpen = $state(false);
-	let searchQuery = $state('');
-	let searchResults = $state<AnimeResponse[]>([]);
-	let isSearching = $state(false);
-	let searchTimeout: NodeJS.Timeout;
-	let searchAbortController: AbortController | null = null;
-
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
-			event.preventDefault();
-			isSearchOpen = !isSearchOpen;
-			isSheetOpen = false;
-		}
-	}
-
-	async function performSearch(query: string) {
-		if (!query || query.length < 3) {
-			searchResults = [];
-			return;
-		}
-
-		// Cancel any in-flight search request
-		if (searchAbortController) {
-			searchAbortController.abort();
-		}
-
-		searchAbortController = new AbortController();
-		isSearching = true;
-
-		try {
-			const response = await apiClient.GET('/anime/listings/search', {
-				params: {
-					query: {
-						q: query,
-						page: 1,
-						itemsPerPage: 3,
-					},
-				},
-				signal: searchAbortController.signal,
-			});
-
-			// Only update results if this request wasn't cancelled
-			if (!searchAbortController.signal.aborted && response.data?.items) {
-				searchResults = response.data.items;
-			}
-		} catch (error) {
-			// Ignore abort errors
-			if (error instanceof Error && error.name === 'AbortError') {
-				return;
-			}
-			console.error('Search failed:', error);
-			if (!searchAbortController?.signal.aborted) {
-				searchResults = [];
-			}
-		} finally {
-			if (!searchAbortController?.signal.aborted) {
-				isSearching = false;
-			}
-		}
-	}
-
-	function handleSearchInput(value: string) {
-		searchQuery = value;
-		clearTimeout(searchTimeout);
-
-		if (searchAbortController) {
-			searchAbortController.abort();
-			searchAbortController = null;
-		}
-
-		if (value.length < 3) {
-			searchResults = [];
-			isSearching = false;
-			return;
-		}
-
-		isSearching = true;
-		searchTimeout = setTimeout(() => {
-			performSearch(value);
-		}, 700);
-	}
-
-	$effect(() => {
-		if (!isSearchOpen) {
-			searchQuery = '';
-			searchResults = [];
-			if (searchAbortController) {
-				searchAbortController.abort();
-				searchAbortController = null;
-			}
-			clearTimeout(searchTimeout);
-			isSearching = false;
-		}
-	});
 
 	onNavigate(() => {
 		isSheetOpen = false;
-		isSearchOpen = false;
 	});
 </script>
-
-<svelte:window on:keydown={handleKeydown} />
 
 <header
 	id="navbar"
@@ -190,22 +99,11 @@
 			</div>
 
 			<div class="flex items-center gap-4">
+				<SearchBar trendingAnime={trendingResource.current} />
+
 				<Button variant="outline" class="lg:hidden" onclick={() => (isSheetOpen = true)}>
 					<Menu class="h-5 w-5" />
 					<span class="sr-only">Menu</span>
-				</Button>
-				<Button
-					variant="outline"
-					class="hidden w-64 items-center justify-start space-x-2 border-muted-foreground/20 bg-transparent text-muted-foreground hover:border-primary/50 lg:flex"
-					onclick={() => (isSearchOpen = true)}
-				>
-					<Search class="h-4 w-4" />
-					<span>Search anime...</span>
-					<kbd
-						class="pointer-events-none ml-auto inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 select-none"
-					>
-						<span class="text-xs">⌘</span>K
-					</kbd>
 				</Button>
 
 				{#if !appState.isLoggedIn}
@@ -254,17 +152,6 @@
 		</div>
 
 		<div class="mt-auto mb-4 flex flex-col gap-2 px-4">
-			<Button
-				variant="outline"
-				class="w-full"
-				onclick={() => {
-					isSearchOpen = true;
-					isSheetOpen = false;
-				}}
-			>
-				<Search class="h-4 w-4" />
-				<span>Search anime...</span>
-			</Button>
 			{#if !appState.isLoggedIn}
 				<Button href="/login" variant="outline" class="w-full">Sign In</Button>
 				<Button href="/register" class="w-full">Register</Button>
@@ -277,75 +164,3 @@
 		</div>
 	</Sheet.Content>
 </Sheet.Root>
-
-<Command.Dialog bind:open={isSearchOpen} shouldFilter={false}>
-	<Command.Input
-		placeholder="Search anime..."
-		value={searchQuery}
-		oninput={(e) => handleSearchInput(e.currentTarget.value)}
-	/>
-	<Command.List class="max-h-[400px]">
-		{#if searchQuery.length < 3}
-			<Command.Empty>Type at least 3 characters to search...</Command.Empty>
-		{:else if isSearching}
-			<Command.Empty>Searching...</Command.Empty>
-		{:else}
-			<Command.Group>
-				{#if searchResults.length === 0}
-					<Command.Empty>No results found.</Command.Empty>
-				{:else}
-					{#each searchResults as anime (anime.id)}
-						<Command.LinkItem
-							value={anime.ename || anime.jname}
-							class="flex cursor-pointer items-center gap-3 p-3 hover:bg-accent"
-							href="/anime/{anime.id}"
-						>
-							<div class="relative h-16 w-12 flex-shrink-0 overflow-hidden rounded-md">
-								<img
-									src={anime.imageUrl}
-									alt={anime.jname || anime.ename}
-									class="h-full w-full object-cover"
-								/>
-							</div>
-							<div class="min-w-0 flex-1">
-								<div class="line-clamp-1 font-medium">
-									{anime.jname || anime.ename}
-								</div>
-								{#if anime.jname && anime.ename}
-									<div class="line-clamp-1 text-sm text-muted-foreground">
-										{anime.ename}
-									</div>
-								{/if}
-								<div class="flex items-center gap-2 text-xs text-muted-foreground">
-									<span class="capitalize">{anime.season} {anime.seasonYear}</span>
-									{#if anime.genre}
-										<span>•</span>
-										<span class="line-clamp-1"
-											>{anime.genre.split(', ').slice(0, 2).join(', ')}</span
-										>
-									{/if}
-								</div>
-							</div>
-						</Command.LinkItem>
-					{/each}
-				{/if}
-
-				{#if searchQuery.length >= 3}
-					{#if searchResults.length > 0}
-						<Command.Separator />
-					{/if}
-					<Command.LinkItem
-						value="view-all-{searchQuery}"
-						class="flex cursor-pointer items-center justify-center gap-2 p-3 font-medium text-primary hover:bg-accent"
-						href="/catalog?search={searchQuery}"
-					>
-						<Search class="h-4 w-4" />
-						{searchResults.length > 0
-							? `View all results for "${searchQuery}"`
-							: `Search for "${searchQuery}" in catalog`}
-					</Command.LinkItem>
-				{/if}
-			</Command.Group>
-		{/if}
-	</Command.List>
-</Command.Dialog>
