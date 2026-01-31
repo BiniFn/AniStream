@@ -10,10 +10,8 @@
 		Swords,
 		User,
 	} from 'lucide-svelte';
-	import { resource } from 'runed';
 	import { onNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { apiClient } from '$lib/api/client';
 	import UserProfileDropdown from '$lib/components/layout/user-profile-dropdown.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Sheet from '$lib/components/ui/sheet';
@@ -25,15 +23,6 @@
 
 	const appState = getAppStateContext();
 	const showDownload = false;
-
-	const trendingResource = resource(
-		() => [],
-		async () => {
-			const response = await apiClient.GET('/anime/listings/trending');
-			return response.data || [];
-		},
-		{ once: true },
-	);
 
 	let links = $derived.by(() => {
 		const base = [
@@ -99,7 +88,7 @@
 			</div>
 
 			<div class="flex items-center gap-4">
-				<SearchBar trendingAnime={trendingResource.current} />
+				<SearchBar />
 
 				<Button variant="outline" class="lg:hidden" onclick={() => (isSheetOpen = true)}>
 					<Menu class="h-5 w-5" />

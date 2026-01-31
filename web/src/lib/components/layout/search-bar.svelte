@@ -3,24 +3,26 @@
 	import { Debounced, resource, watch } from 'runed';
 	import { onNavigate } from '$app/navigation';
 	import { apiClient } from '$lib/api/client';
-	import { type components } from '$lib/api/openapi';
 	import { Button } from '../ui/button';
 	import * as Command from '../ui/command';
-
-	type Props = {
-		trendingAnime?: components['schemas']['models.AnimeResponse'][];
-	};
-
-	let { trendingAnime }: Props = $props();
 
 	let isSearchOpen = $state(false);
 	let rawQuery = $state('');
 	const debouncedQuery = new Debounced(() => rawQuery, 700);
 
+	const trendingResource = resource(
+		() => [],
+		async () => {
+			const response = await apiClient.GET('/anime/listings/trending');
+			return response.data || [];
+		},
+		{ once: true },
+	);
+
 	let searchResource = resource(
 		() => debouncedQuery.current,
 		async (query, _, { signal }) => {
-			if (!query || query.length < 3) return trendingAnime || [];
+			if (!query || query.length < 3) return trendingResource.current || [];
 			const response = await apiClient.GET('/anime/listings/search', {
 				params: {
 					query: {
@@ -34,7 +36,7 @@
 		},
 		{
 			debounce: 0,
-			initialValue: trendingAnime || [],
+			initialValue: trendingResource.current || [],
 		},
 	);
 
@@ -49,11 +51,22 @@
 		}
 	}
 
-	$effect(() => {
-		if (!isSearchOpen) {
+	watch(
+		() => trendingResource.current,
+		() => {
+			if (rawQuery.length === 0) {
+				searchResource.refetch();
+			}
+		},
+	);
+
+	watch(
+		() => isSearchOpen,
+		() => {
+			if (isSearchOpen) return;
 			rawQuery = '';
-		}
-	});
+		},
+	);
 
 	watch(
 		() => rawQuery,
