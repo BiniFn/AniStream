@@ -76,15 +76,16 @@
 								{featuredAnime.ename}
 							</p>
 						{/if}
-						<div
-							class="mb-3 hidden w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-gray-300 backdrop-blur-sm sm:mb-6 sm:flex"
+						<a
+							href="/catalog?seasons={featuredAnime.season}&years={featuredAnime.seasonYear}"
+							class="mb-3 hidden w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-gray-300 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white sm:mb-6 sm:flex"
 						>
 							<Calendar class="h-4 w-4" />
 							<span class="font-medium capitalize">
 								{featuredAnime.season}
 								{featuredAnime.seasonYear}
 							</span>
-						</div>
+						</a>
 						<div class="mb-4 flex flex-wrap items-center gap-6 sm:mb-6">
 							<div class="flex flex-wrap gap-2">
 								{#each featuredAnime.genre.split(', ') as genre, i (genre)}
