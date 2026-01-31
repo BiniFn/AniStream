@@ -27,7 +27,7 @@
 			</div>
 
 			{#if actions}
-				<div class="flex w-full items-center gap-3 md:w-fit">
+				<div class="flex w-full items-center gap-3 lg:w-fit">
 					{@render actions()}
 				</div>
 			{/if}
