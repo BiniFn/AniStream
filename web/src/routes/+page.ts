@@ -1,13 +1,13 @@
 import { apiClient } from '$lib/api/client';
 import type { PageLoad } from './$types';
 
-export const load: PageLoad = async ({ fetch, parent, depends }) => {
+export const load: PageLoad = async ({ fetch, depends }) => {
 	depends('app:library');
-	const { user } = await parent();
 
 	const response = await apiClient.GET('/home', { fetch });
 
 	if (response.error || !response.data) {
+		console.error('Homepage data fetch error:', response.error);
 		// Fallback to empty data if home endpoint fails
 		return {
 			trending: [],
@@ -15,7 +15,6 @@ export const load: PageLoad = async ({ fetch, parent, depends }) => {
 			recentlyUpdated: [],
 			seasonal: [],
 			featuredAnime: null,
-			user,
 			continueWatching: [],
 			planning: [],
 		};
@@ -29,7 +28,6 @@ export const load: PageLoad = async ({ fetch, parent, depends }) => {
 		recentlyUpdated: data.recentlyUpdated || [],
 		seasonal: data.seasonal || [],
 		featuredAnime: data.featuredAnime || null,
-		user,
 		continueWatching: data.continueWatching || [],
 		planning: data.planning || [],
 	};

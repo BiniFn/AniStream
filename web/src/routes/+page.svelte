@@ -14,16 +14,14 @@
 		recentlyUpdated,
 		seasonal,
 		featuredAnime,
-		user,
 		continueWatching,
 		planning,
+		isLoggedIn,
 	} = data;
 
 	let popularAnime = $derived.by(() => {
 		return popular.slice(0, 8);
 	});
-
-	let isLoggedIn = $derived(!!user);
 </script>
 
 <svelte:head>
@@ -358,7 +356,7 @@
 		{/each}
 	</AnimeSection>
 
-	{#if !data.isLoggedIn}
+	{#if !isLoggedIn}
 		<section
 			class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 p-8 text-center md:p-16"
 		>
