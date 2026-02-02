@@ -2,7 +2,9 @@ import { apiClient } from '$lib/api/client';
 import { redirectToErrorPage } from '$lib/errors';
 import type { PageLoad } from './$types';
 
-export const load: PageLoad = async ({ fetch, params, url }) => {
+export const load: PageLoad = async ({ fetch, params, url, depends }) => {
+	depends('app:library');
+
 	const episodeNumber = Number(url.searchParams.get('ep')) || 1;
 
 	const [anime, episodes, library] = await Promise.allSettled([
