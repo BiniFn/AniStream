@@ -115,6 +115,15 @@ Once the API is running:
 
 ---
 
+
+## 🚀 Deploying to Render
+
+This repo now includes a `render.yaml` Blueprint for the SvelteKit website (`web/`) using the Node adapter.
+
+1. Create a new **Blueprint** service in Render and point it to this repository.
+2. Set `PUBLIC_API_URL` in Render to your deployed API URL.
+3. Deploy — Render will run `npm install && npm run build` inside `web/` and start the app with `npm run start`.
+
 ## 🧑‍💻 Contributing
 
 1. Fork the repo
