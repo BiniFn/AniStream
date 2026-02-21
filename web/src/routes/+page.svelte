@@ -29,15 +29,51 @@
 	// Derived data from resource
 	const homeData = $derived(homeResource.current);
 	const hasError = $derived(!!homeResource.error);
+	const fallbackHomeData = {
+		trending: [
+			{
+				id: 16498,
+				ename: 'Attack on Titan',
+				jname: 'Shingeki no Kyojin',
+				imageUrl:
+					'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-buvcRTBx8iAt.jpg',
+				season: 'spring',
+				seasonYear: 2013,
+				genre: 'Action, Drama, Mystery',
+				score: 8.5,
+			},
+		],
+		popular: [],
+		recentlyUpdated: [],
+		seasonal: [],
+		featuredAnime: {
+			id: 21,
+			ename: 'One Piece',
+			jname: 'One Piece',
+			synopsis:
+				"Monkey D. Luffy and his crew sail the Grand Line in search of the legendary treasure, the One Piece.",
+			imageUrl:
+				'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21-YCDoj1EkAxFn.jpg',
+			season: 'fall',
+			seasonYear: 1999,
+			genre: 'Action, Adventure, Comedy, Fantasy',
+			type: 'TV',
+			lastEpisode: 1100,
+			score: 8.7,
+		},
+		continueWatching: [],
+		planning: [],
+	};
+	const pageData = $derived(hasError ? fallbackHomeData : homeData);
 
 	// Extract data with fallbacks
-	const trending = $derived(homeData?.trending || []);
-	const popular = $derived(homeData?.popular || []);
-	const recentlyUpdated = $derived(homeData?.recentlyUpdated || []);
-	const seasonal = $derived(homeData?.seasonal || []);
-	const featuredAnime = $derived(homeData?.featuredAnime || null);
-	const continueWatching = $derived(homeData?.continueWatching || []);
-	const planning = $derived(homeData?.planning || []);
+	const trending = $derived(pageData?.trending || []);
+	const popular = $derived(pageData?.popular || []);
+	const recentlyUpdated = $derived(pageData?.recentlyUpdated || []);
+	const seasonal = $derived(pageData?.seasonal || []);
+	const featuredAnime = $derived(pageData?.featuredAnime || null);
+	const continueWatching = $derived(pageData?.continueWatching || []);
+	const planning = $derived(pageData?.planning || []);
 
 	const popularAnime = $derived(popular.slice(0, 8));
 </script>
@@ -50,24 +86,7 @@
 	/>
 </svelte:head>
 
-<!-- Error State -->
-{#if hasError}
-	<div class="flex min-h-screen items-center justify-center p-4">
-		<div class="flex w-full flex-col items-center gap-4">
-			<h1 class="text-3xl font-bold">Failed to Load Homepage</h1>
-			<img src="/error.gif" alt="Error Illustration" class="mx-auto max-w-64" />
-			<p class="text-center text-lg font-medium text-muted-foreground">
-				Unable to load anime data. Please try again.
-			</p>
-			<div class="flex gap-4">
-				<Button onclick={() => homeResource.refetch()} variant="default">
-					<RefreshCcw class="mr-2 h-4 w-4" />
-					Try Again
-				</Button>
-			</div>
-		</div>
-	</div>
-{:else if !homeData}
+{#if !homeData && !hasError}
 	<!-- Full Page Skeleton - Shows immediately while data loads -->
 	<div class="min-h-screen">
 		<!-- Hero Skeleton - Takes up full viewport height naturally -->
@@ -272,7 +291,22 @@
 			</div>
 		</div>
 	</div>
+
 {:else}
+	{#if hasError}
+		<div class="container mx-auto px-4 pt-4">
+			<div
+				class="flex flex-col gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100 md:flex-row md:items-center md:justify-between"
+			>
+				<p>Live data is unavailable right now, so you're seeing demo content.</p>
+				<Button onclick={() => homeResource.refetch()} size="sm" variant="outline">
+					<RefreshCcw class="mr-2 h-4 w-4" />
+					Retry connection
+				</Button>
+			</div>
+		</div>
+	{/if}
+
 	<!-- Real Content - Only renders when data is ready -->
 	{#if featuredAnime}
 		<section class="absolute top-0 right-0 left-0 z-10 mb-16 h-screen w-screen overflow-hidden">
