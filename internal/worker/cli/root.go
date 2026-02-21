@@ -13,7 +13,7 @@ var deps *app.Deps
 func Execute() {
 	var rootCmd = &cobra.Command{
 		Use:               "worker",
-		Short:             "Aniways worker",
+		Short:             "AniStream worker",
 		PersistentPreRunE: initDepsOnce,
 	}
 

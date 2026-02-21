@@ -121,10 +121,10 @@
 </script>
 
 <svelte:head>
-	<title>Reset Password - Aniways</title>
+	<title>Reset Password - AniStream</title>
 	<meta
 		name="description"
-		content="Reset your Aniways password using the secure reset token sent to your email."
+		content="Reset your AniStream password using the secure reset token sent to your email."
 	/>
 </svelte:head>
 

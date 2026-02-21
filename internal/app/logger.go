@@ -31,7 +31,7 @@ func NewLogger(svcName string) *slog.Logger {
 	case "API":
 		color = "red"
 	}
-	txt := fmt.Sprintf("Aniways %s", svcName)
+	txt := fmt.Sprintf("AniStream %s", svcName)
 	fig := figure.NewColorFigure(txt, "", color, true)
 	fig.Print()
 

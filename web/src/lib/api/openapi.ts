@@ -4146,7 +4146,7 @@ export interface components {
 		'models.Theme': {
 			/** @example theme-default */
 			className: string;
-			/** @example The default Aniways theme. */
+			/** @example The default AniStream theme. */
 			description: string;
 			/** @example 1 */
 			id: number;

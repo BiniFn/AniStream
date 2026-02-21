@@ -65,7 +65,7 @@
 </script>
 
 <svelte:head>
-	<title>My List - Aniways</title>
+	<title>My List - AniStream</title>
 	<meta name="description" content="Manage your anime watchlist and track your viewing progress" />
 </svelte:head>
 

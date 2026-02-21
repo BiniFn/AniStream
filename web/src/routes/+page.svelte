@@ -79,7 +79,7 @@
 </script>
 
 <svelte:head>
-	<title>Aniways</title>
+	<title>AniStream</title>
 	<meta
 		name="description"
 		content="Discover, watch, and track your favorite anime series and movies. Stay updated with the latest releases and trending shows."

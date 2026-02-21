@@ -11,7 +11,7 @@ import (
 	"github.com/coeeter/aniways/internal/utils"
 )
 
-// @title AniWays API
+// @title AniStream API
 // @version 1.0.0
 // @description An anime tracking and streaming platform API
 

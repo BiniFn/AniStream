@@ -16,8 +16,8 @@
 </script>
 
 <svelte:head>
-	<title>{data.anime.jname || data.anime.ename} - Aniways</title>
-	<meta name="description" content={`Watch ${data.anime.jname || data.anime.ename} on Aniways`} />
+	<title>{data.anime.jname || data.anime.ename} - AniStream</title>
+	<meta name="description" content={`Watch ${data.anime.jname || data.anime.ename} on AniStream`} />
 </svelte:head>
 
 <HeroSection

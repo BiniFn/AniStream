@@ -53,10 +53,10 @@
 </script>
 
 <svelte:head>
-	<title>Forgot Password - Aniways</title>
+	<title>Forgot Password - AniStream</title>
 	<meta
 		name="description"
-		content="Reset your Aniways password. Enter your email address to receive a password reset link."
+		content="Reset your AniStream password. Enter your email address to receive a password reset link."
 	/>
 </svelte:head>
 

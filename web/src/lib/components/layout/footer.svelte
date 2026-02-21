@@ -126,10 +126,10 @@
 		>
 			<div class="text-center md:text-left">
 				<p class="text-sm text-muted-foreground">
-					© {new Date().getFullYear()} Aniways. Open source project.
+					© {new Date().getFullYear()} AniStream. Open source project.
 				</p>
 				<p class="mt-2 text-xs text-muted-foreground">
-					AniWays is for educational purposes only. All content is sourced from third-party sites.
+					AniStream is for educational purposes only. All content is sourced from third-party sites.
 					We do not host or store any copyrighted material. Use at your own risk.
 				</p>
 			</div>

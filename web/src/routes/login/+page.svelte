@@ -65,10 +65,10 @@
 </script>
 
 <svelte:head>
-	<title>Sign In - Aniways</title>
+	<title>Sign In - AniStream</title>
 	<meta
 		name="description"
-		content="Sign in to your Aniways account to access your personalized anime experience."
+		content="Sign in to your AniStream account to access your personalized anime experience."
 	/>
 </svelte:head>
 
@@ -95,7 +95,7 @@
 					</span>
 				</div>
 				<h1 class="mb-2 text-3xl font-bold tracking-tight">Sign In</h1>
-				<p class="text-muted-foreground">Continue your anime journey with Aniways</p>
+				<p class="text-muted-foreground">Continue your anime journey with AniStream</p>
 			</div>
 
 			<div class="rounded-2xl border border-primary/10 bg-card/80 p-8 shadow-2xl backdrop-blur-sm">

@@ -73,7 +73,7 @@ func (h *Handler) RegisterOpenAPIRoutes() {
 }
 
 func (h *Handler) home(w http.ResponseWriter, _ *http.Request) {
-	w.Write([]byte("AniWays API\n"))
+	w.Write([]byte("AniStream API\n"))
 }
 
 func (h *Handler) Router() *chi.Mux {

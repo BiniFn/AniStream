@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-	<title>Continue Watching - Aniways</title>
+	<title>Continue Watching - AniStream</title>
 	<meta name="description" content="Resume watching your anime where you left off" />
 </svelte:head>
 

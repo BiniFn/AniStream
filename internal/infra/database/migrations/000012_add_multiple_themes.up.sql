@@ -8,7 +8,7 @@ CREATE TABLE themes(
 );
 
 INSERT INTO themes(name, theme_class, description)
-  VALUES ('Default', '', 'The default Aniways theme'),
+  VALUES ('Default', '', 'The default AniStream theme'),
 ('Teal Dream', 'teal', 'A refreshing teal theme'),
 ('Amber Minimal', 'amber', 'A minimalistic amber theme'),
 ('Catpuccin', 'catpuccin', 'A cozy catpuccin theme'),

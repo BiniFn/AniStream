@@ -1,4 +1,4 @@
-# AniWays
+# AniStream
 
 An anime tracking and streaming platform that helps users discover, track, and manage their anime library with metadata from multiple sources.
 
@@ -26,7 +26,7 @@ An anime tracking and streaming platform that helps users discover, track, and m
 
 ## 🧱 Architecture
 
-AniWays is built around four core services:
+AniStream is built around four core services:
 
 | Service          | Path         | Description                                             |
 | ---------------- | ------------ | ------------------------------------------------------- |

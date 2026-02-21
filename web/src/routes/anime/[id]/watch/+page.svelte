@@ -103,11 +103,11 @@
 
 <svelte:head>
 	<title>
-		{data.anime.jname || data.anime.ename} - Episode {data.episodeNumber} - Aniways
+		{data.anime.jname || data.anime.ename} - Episode {data.episodeNumber} - AniStream
 	</title>
 	<meta
 		name="description"
-		content="Watch {data.anime.jname || data.anime.ename} Episode {data.episodeNumber} on Aniways"
+		content="Watch {data.anime.jname || data.anime.ename} Episode {data.episodeNumber} on AniStream"
 	/>
 </svelte:head>
 

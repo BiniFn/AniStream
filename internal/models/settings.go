@@ -11,7 +11,7 @@ type SettingsRequest struct {
 type Theme struct {
 	ID          int    `json:"id" validate:"required" example:"1"`
 	Name        string `json:"name" validate:"required" example:"Default"`
-	Description string `json:"description" validate:"required" example:"The default Aniways theme."`
+	Description string `json:"description" validate:"required" example:"The default AniStream theme."`
 	ClassName   string `json:"className" validate:"required" example:"theme-default"`
 }
 
