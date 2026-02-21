@@ -124,6 +124,13 @@ This repo now includes a `render.yaml` Blueprint for the SvelteKit website (`web
 2. Set `PUBLIC_API_URL` in Render to your deployed API URL.
 3. Deploy — Render will run `npm install && npm run build` inside `web/` and start the app with `npm run start`.
 
+### If your Render service builds from repository root
+
+Some Render setups run at repo root (`/opt/render/project/src`) instead of `web/`. This repository includes a root `package.json` that forwards build/start commands to `web/`, so these commands also work:
+
+- Build command: `npm install && npm run build`
+- Start command: `npm run start`
+
 ## 🧑‍💻 Contributing
 
 1. Fork the repo

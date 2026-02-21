@@ -1,0 +1,14 @@
+{
+  "name": "anistream",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "postinstall": "npm --prefix web install",
+    "build": "npm --prefix web run build",
+    "start": "npm --prefix web run start",
+    "dev": "npm --prefix web run dev"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
