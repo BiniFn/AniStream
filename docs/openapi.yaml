@@ -4,7 +4,7 @@ info:
     name: Coeeter
     url: https://github.com/coeeter/aniways
   description: An anime tracking and streaming platform API
-  title: AniWays API
+  title: AniStream API
   version: 1.0.0
 paths:
   "/anime/{id}":
@@ -3198,7 +3198,7 @@ components:
           example: theme-default
           type: string
         description:
-          example: The default Aniways theme.
+          example: The default AniStream theme.
           type: string
         id:
           example: 1

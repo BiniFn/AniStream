@@ -28,7 +28,7 @@
 </script>
 
 <svelte:head>
-	<title>Error - Aniways</title>
+	<title>Error - AniStream</title>
 	<meta name="description" content={errorMessage} />
 </svelte:head>
 

@@ -69,10 +69,10 @@
 </script>
 
 <svelte:head>
-	<title>Download Desktop App - Aniways</title>
+	<title>Download Desktop App - AniStream</title>
 	<meta
 		name="description"
-		content="Download the Aniways desktop app for the best anime watching experience."
+		content="Download the AniStream desktop app for the best anime watching experience."
 	/>
 </svelte:head>
 
@@ -122,7 +122,7 @@
 					</div>
 
 					<h1 class="mb-4 text-4xl font-bold tracking-tight md:text-5xl">
-						Download Aniways for {getOSDisplayName(os)}
+						Download AniStream for {getOSDisplayName(os)}
 					</h1>
 
 					<p class="mb-8 text-lg text-muted-foreground">

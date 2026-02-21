@@ -124,7 +124,7 @@ export class AppState {
 			theme: {
 				id: 1,
 				name: 'Default',
-				description: 'The default Aniways theme',
+				description: 'The default AniStream theme',
 				className: '',
 			},
 		};

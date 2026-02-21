@@ -101,10 +101,10 @@
 </script>
 
 <svelte:head>
-	<title>Create Account - Aniways</title>
+	<title>Create Account - AniStream</title>
 	<meta
 		name="description"
-		content="Join Aniways to discover, watch, and track your favorite anime series and movies."
+		content="Join AniStream to discover, watch, and track your favorite anime series and movies."
 	/>
 </svelte:head>
 
@@ -131,7 +131,7 @@
 				<div class="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2">
 					<Sparkles class="h-4 w-4 text-primary" />
 					<span class="text-sm font-semibold tracking-wider text-primary uppercase">
-						Join Aniways
+						Join AniStream
 					</span>
 				</div>
 				<h1 class="mb-2 text-3xl font-bold tracking-tight">Create Account</h1>

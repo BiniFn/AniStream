@@ -24,7 +24,7 @@
 </script>
 
 <svelte:head>
-	<title>Logout - Aniways</title>
+	<title>Logout - AniStream</title>
 </svelte:head>
 
 <div

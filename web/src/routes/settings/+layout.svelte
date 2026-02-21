@@ -45,7 +45,7 @@
 </script>
 
 <svelte:head>
-	<title>Settings - Aniways</title>
+	<title>Settings - AniStream</title>
 </svelte:head>
 
 <div class="min-h-screen bg-background">

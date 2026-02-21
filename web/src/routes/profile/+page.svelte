@@ -131,7 +131,7 @@
 </script>
 
 <svelte:head>
-	<title>Profile - Aniways</title>
+	<title>Profile - AniStream</title>
 	<meta name="description" content="Manage your profile and view your anime library statistics" />
 </svelte:head>
 

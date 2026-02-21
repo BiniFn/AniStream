@@ -31,7 +31,7 @@
 </script>
 
 <svelte:head>
-	<title>Catalog - Aniways</title>
+	<title>Catalog - AniStream</title>
 	<meta name="description" content="Browse and discover anime from our extensive catalog." />
 </svelte:head>
 

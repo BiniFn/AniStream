@@ -61,7 +61,7 @@
 </script>
 
 <svelte:head>
-	<title>{person.name} - Voice Actor - Aniways</title>
+	<title>{person.name} - Voice Actor - AniStream</title>
 	<meta
 		name="description"
 		content={`Learn more about ${person.name} and their voice acting roles`}

@@ -60,7 +60,7 @@ func (a *App) Run(ctx context.Context) error {
 			errChan <- err
 		}
 	}()
-	a.Log.Info("AniWays API listening", "on", a.Config.AppPort)
+	a.Log.Info("AniStream API listening", "on", a.Config.AppPort)
 
 	select {
 	case <-ctx.Done():

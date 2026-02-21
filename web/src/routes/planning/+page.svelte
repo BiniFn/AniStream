@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-	<title>Planning - Aniways</title>
+	<title>Planning - AniStream</title>
 	<meta name="description" content="Anime you plan to watch" />
 </svelte:head>
 

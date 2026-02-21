@@ -23,10 +23,10 @@
 </script>
 
 <svelte:head>
-	<title>Themes - Settings - Aniways</title>
+	<title>Themes - Settings - AniStream</title>
 	<meta
 		name="description"
-		content="Choose your preferred theme and customize the appearance of Aniways"
+		content="Choose your preferred theme and customize the appearance of AniStream"
 	/>
 </svelte:head>
 

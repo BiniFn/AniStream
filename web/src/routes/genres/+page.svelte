@@ -13,7 +13,7 @@
 </script>
 
 <svelte:head>
-	<title>Genres - Aniways</title>
+	<title>Genres - AniStream</title>
 	<meta name="description" content="Browse anime by genre and discover new favorites." />
 </svelte:head>
 

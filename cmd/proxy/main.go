@@ -66,7 +66,7 @@ func main() {
 
 	errChan := make(chan error, 1)
 	go func() {
-		logger.Info("AniWays Proxy listening", "on", *addr)
+		logger.Info("AniStream Proxy listening", "on", *addr)
 
 		if err := srv.ListenAndServe(); err != nil {
 			errChan <- err

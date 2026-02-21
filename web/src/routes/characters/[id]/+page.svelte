@@ -40,7 +40,7 @@
 </script>
 
 <svelte:head>
-	<title>{character.name} - Character - Aniways</title>
+	<title>{character.name} - Character - AniStream</title>
 	<meta
 		name="description"
 		content={`Learn more about ${character.name} and their anime appearances`}

@@ -237,12 +237,12 @@ start_services() {
 
 # Main installation process
 main() {
-    printf "${CYAN}🚀 AniWays Setup${NC}\n"
+    printf "${CYAN}🚀 AniStream Setup${NC}\n"
     printf "${CYAN}===============${NC}\n\n"
     
     # Check if we're in the right directory
     if [ ! -f "go.mod" ] || [ ! -f "Makefile" ]; then
-        print_status "error" "Please run this script from the AniWays project root directory"
+        print_status "error" "Please run this script from the AniStream project root directory"
         print_status "info" "Expected files: go.mod, Makefile"
         print_status "info" "Current directory: $(pwd)"
         exit 1
