@@ -16,7 +16,7 @@
     "postui:add": "bun format",
     "openapi": "openapi-typescript ../docs/openapi.yaml -o ./src/lib/api/openapi.ts",
     "postopenapi": "prettier --write ./src/lib/api/",
-    "start": "node build"
+    "start": "node build/index.js"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
