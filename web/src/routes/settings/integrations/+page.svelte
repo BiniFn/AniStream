@@ -2,7 +2,7 @@
 	import { Import, TriangleAlert } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { invalidate } from '$app/navigation';
-	import { PUBLIC_API_URL } from '$env/static/public';
+	import { env } from '$env/dynamic/public';
 	import { apiClient } from '$lib/api/client';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Card from '$lib/components/ui/card';
@@ -26,7 +26,7 @@
 	] as const;
 
 	async function connectOAuth(provider: 'myanimelist' | 'anilist') {
-		window.location.href = `${PUBLIC_API_URL}/auth/oauth/${provider}?redirect=${encodeURIComponent(window.location.href)}`;
+		window.location.href = `${env.PUBLIC_API_URL}/auth/oauth/${provider}?redirect=${encodeURIComponent(window.location.href)}`;
 	}
 
 	async function disconnectOAuth(provider: string) {

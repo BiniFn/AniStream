@@ -1,5 +1,5 @@
 import type { Handle, HandleFetch } from '@sveltejs/kit';
-import { PUBLIC_API_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	return resolve(event, {
@@ -8,7 +8,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 };
 
 export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
-	if (request.url.startsWith(PUBLIC_API_URL)) {
+	if (request.url.startsWith(env.PUBLIC_API_URL)) {
 		const cookies = event.request.headers.get('cookie');
 		if (cookies) {
 			request.headers.set('cookie', cookies);

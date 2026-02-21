@@ -4,7 +4,7 @@ import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
 import Hls from 'hls.js';
 import { Captions, LoaderCircle, Pause, SkipForward } from 'lucide-svelte';
 import { goto } from '$app/navigation';
-import { PUBLIC_STREAMING_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import type { components } from '$lib/api/openapi';
 import type { AppState } from '$lib/context/state.svelte';
 import { convertComponentToHTML } from '$lib/utils';
@@ -42,11 +42,11 @@ export const createArtPlayer = ({
 
 	// Use proxy URLs for browser
 	const getStreamUrl = () => {
-		return `${PUBLIC_STREAMING_URL}${source.source.proxyHls}`;
+		return `${env.PUBLIC_STREAMING_URL}${source.source.proxyHls}`;
 	};
 
 	const getTrackUrl = (track: { raw: string; url: string }) => {
-		return `${PUBLIC_STREAMING_URL}${track.url}`;
+		return `${env.PUBLIC_STREAMING_URL}${track.url}`;
 	};
 
 	const plugins = [
@@ -65,7 +65,7 @@ export const createArtPlayer = ({
 
 	if (thumbnails) {
 		plugins.push(
-			thumbnailPlugin(getTrackUrl(thumbnails), (path) => `${PUBLIC_STREAMING_URL}${path}`),
+			thumbnailPlugin(getTrackUrl(thumbnails), (path) => `${env.PUBLIC_STREAMING_URL}${path}`),
 		);
 	}
 
